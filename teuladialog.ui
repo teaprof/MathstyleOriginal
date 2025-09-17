@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TEulaDialog</class>
+ <widget class="QDialog" name="TEulaDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>543</width>
+    <height>365</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>EULA</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTextBrowser" name="textBrowser">
+     <property name="html">
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ЛИЦЕНЗИОННОЕ СОГЛАШЕНИЕ (ДОГОВОР) ПОЛЬЗОВАТЕЛЯ&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Настоящее Лицензионное соглашение (договор) является предложением (публичной офертой) и содержит порядок и все существенные условия использования Вами (далее – «Пользователь») программы для ЭВМ Mathstyle Pro (далее «Программа»). &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;В соответствии с настоящим соглашением Автор – физическое лицо, гражданин РФ Цветков Егор Александрович (ИНН 7718171679) (далее «Правообладатель») – обладатель исключительных имущественных авторских прав на программу для ЭВМ Mathstyle Pro, включая Руководство пользователя к ней в печатном и/или электронном виде – обязуется предоставить Пользователю (напрямую либо через третьих лиц) неисключительное право на использование Программы, ограниченное правом инсталляции и запуска Программы в соответствии с установленными настоящим Соглашением (договором) правилами и условиями (простая неисключительная лицензия).&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Порядок акцепта оферты (лицензионного соглашения)&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Настоящая оферта (лицензионное соглашение/договор) считается акцептованной Пользователем в случае соблюдения одного из двух следующих условий:&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;1) Выбор Пользователем пункта «Я принимаю условия Лицензионного соглашения» при установке Программы и нажатие на кнопку «Далее» означает  безоговорочное согласие Пользователя с условиями настоящего соглашения. &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;2) Факт оформления заказа, оплаты или получения Пользователем от Правообладателя или уполномоченных третьих лиц неисключительных прав на использование Программы на основании (на условиях) настоящего договора (соглашения) означает  безоговорочное согласие Пользователя с условиями настоящего соглашения.&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Порядок передачи и стоимость прав&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;В соответствии с настоящим Лицензионным соглашением Пользователь обязан в срок до 30 (тридцати) календарных дней с момента акцепта оферты получить от Правообладателя (напрямую или от уполномоченных третьих лиц) неисключительные права на использование Программы. Моментом передачи прав Пользователю считается момент подписания Правообладателем (или третьим лицом осуществляющим передачу прав) соответствующего Акта приемки-передачи. За полученные права Пользователь обязан уплатить фиксированное вознаграждение, размер которого определяется условиями соглашения Пользователя со стороной, осуществляющей передачу прав. В случае отказа Пользователя от получения прав (неполучение прав в указанный срок) настоящее Лицензионное соглашение считается не вступившим в силу.&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Правила использования Программы&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Пользователь имеет право использовать Программу на территории всех стран мира в соответствии с условиями настоящего Лицензионного соглашения (договора) при соблюдении следующих правил:&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;1. Запрещается производить декомпиляцию и/или модификацию Программы.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;2. Запрещается сдавать Программу в аренду, прокат или во временное пользование.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;3. Запрещается разделять Программу на составляющие части для использования их на разных компьютерах.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;4. Запрещается использовать Программу с целью создания данных или кода вредоносных программ.&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Пользователь имеет право&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Использовать Программу для ознакомительных целей в течение 30 (тридцати) дней с момента ее первого запуска (инсталляции). &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Изготовить копию Программы при условии, что эта копия предназначена только для архивных целей и для замены правомерно приобретенного дистрибутива в случаях, когда оригинал утерян, уничтожен или стал непригоден для использования. Указанная в настоящем пункте копия не может быть использована для иных целей и должна быть уничтожена в случае, если использование программы Пользователем перестанет быть правомерным. &lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Отказ от гарантий&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Правообладатель не гарантирует работоспособность Программы при нарушении условий, описанных в Руководстве пользователя, а также в случае нарушения Пользователем условий настоящего лицензионного соглашения.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Правообладатель не предоставляет никаких гарантий в отношении безошибочной и бесперебойной работы Программы или отдельных её компонентов и/или функций, соответствия Программы конкретным целям и ожиданиям Пользователя, сохранности файлов и/или данных Пользователя, а также не предоставляет никаких иных гарантий, прямо не указанных в настоящем Лицензионном соглашении.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Пользователь сам несет риск соответствия Программы его желаниям и потребностям, а также риск соответствия условий и объема предоставляемых прав своим желаниям и потребностям. &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Правообладатель и/или его партнеры не несут ответственность за какие-либо убытки или ущерб, не зависимо от причин их возникновения, (включая, но не ограничиваясь этим, особый, случайный или косвенный ущерб, убытки связанные с недополученной прибылью, прерыванием коммерческой или производственной деятельности, утратой деловой информации, небрежностью, или какие-либо иные убытки), возникшие вследствие использования или невозможности использования Программы.&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Заключительные положения&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;За нарушение авторских прав на Программу нарушитель несет гражданскую, административную или уголовную ответственность в соответствии с законодательством Российской Федерации. &lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QComboBox" name="comboBox">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string>Russian</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>English</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>Ok</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

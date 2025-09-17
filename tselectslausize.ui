@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TSelectSLAUsize</class>
+ <widget class="QDialog" name="TSelectSLAUsize">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>188</width>
+    <height>187</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Select size</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="title">
+        <string>Number of variables</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QSpinBox" name="spinBox">
+          <property name="value">
+           <number>3</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="title">
+        <string>Number of equations</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QSpinBox" name="spinBox_2">
+          <property name="value">
+           <number>3</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="pushButton_2">
+       <property name="text">
+        <string>Create</string>
+       </property>
+       <property name="icon">
+        <iconset resource="Schoolar.qrc">
+         <normaloff>:/Commands/Pictures/Commands/Check_48x48.png</normaloff>:/Commands/Pictures/Commands/Check_48x48.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+       <property name="icon">
+        <iconset resource="Schoolar.qrc">
+         <normaloff>:/Commands/Pictures/Commands/Delete_48x48.png</normaloff>:/Commands/Pictures/Commands/Delete_48x48.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="Schoolar.qrc"/>
+ </resources>
+ <connections/>
+</ui>

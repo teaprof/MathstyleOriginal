@@ -1,0 +1,381 @@
+#ifndef TPOLYNOMDERIVATIVE_H
+#define TPOLYNOMDERIVATIVE_H
+
+#include "tproblem.h"
+#include "Base/polynom.h"
+
+extern TNumeric X_1;
+extern TNumeric X_2;
+extern TNumeric EmptySet;
+extern TNumeric NumericAllReal;
+extern TInterval IntervalAllRealNumbers;
+extern TNumeric NumPhi;
+
+class TPolynomConditions:  public TProblem
+{
+        int RightPartID; //вычисляется как MaxPower+1
+        bool HaveRightPart; //истина, если необходимо добавлять в Conditions правую часть
+    public:
+        TNumeric UnknownVar; //обозначение неизвестной переменной
+        size_t MaxPower;
+        TPolynomConditions(size_t MaxPower = 8, bool HaveRightPart = true, int Operator = OperatorEqual);
+        TPolynomConditions(const TPolynom& P, bool HaveRightPart = true, int Operator = OperatorEqual, bool AllCoef = true);//Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
+        ~TPolynomConditions();
+        vector<TNumeric> GetCoef() const;
+        TPolynom GetP() const;
+        virtual void SetLeftPartP(const TPolynom &P, bool AllCoef = true); //Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
+        virtual void SetLeftPart(const TNumeric &a, const TNumeric &b); //sets left part to ax+b
+        virtual void SetLeftPart(const TNumeric &a, const TNumeric &b, const TNumeric& c); //sets left part to ax^2+bx+c
+        virtual void SetMaxPower(size_t MaxPower, int Operator); //устанавливает максимальную степень многочлена MaxPower
+
+        TNumeric* GetCoefP(size_t power); //returns Pointer
+        TNumeric GetCoef(size_t power) const;
+
+        TNumeric* GetRightPartP(); //returns Pointer
+        TNumeric GetRightPart() const;
+
+        void SetUnknownVar(TNumeric UnknownVar); //меняет Conditions, если они есть
+
+        virtual void SaveToFile(ofstream &f);
+        virtual void LoadFromFile(ifstream &f);
+
+        virtual TNumeric GetVarPower(size_t power); //возвращает UnknownVar^power
+};
+
+class TPolynomialEquality : public TPolynomConditions, public TEquality
+{
+    public:
+        //Эти данные относятся к решению, их в файл можно не сохранять
+        bool Degenerate; //истина, если многочлен вырожденный (0x^n+0x^(n-1)+...+0x+a = b). В этом случае решений или нет (a!=b), или решение - любое число.
+        //Эти поля имеют смысл только если Degenerate == false
+        vector<TNumeric> Roots;
+        vector<size_t> RootsMultiplicity;
+
+        void SortRoots(); //сортирует Roots совместно с RootsMultiplicity
+
+        TPolynomialEquality(size_t MaxPower = 6);
+        TPolynomialEquality(const TPolynom& P, bool AllCoef = true);
+        ~TPolynomialEquality();
+        virtual string GetTask();
+        virtual string GetShortTask();
+        virtual bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs = 0);
+        bool GetSolution(TPolynom P, vector<TRectangleElement*> *Lines, size_t Ntabs = 0);
+        virtual string GetClassName() { return "TPolynomialEquality";};
+
+};
+
+class TLinearEquality : public TPolynomialEquality
+//ax + b = c
+{
+    void Assign(const TLinearEquality& L);
+public:
+    TLinearEquality();
+    TLinearEquality(const TPolynom& P);
+    ~TLinearEquality();
+    //TLinearEquality(const TLinearEquality& L);
+    void operator=(const TLinearEquality& L) {Assign(L);};
+
+    virtual void SetLeftPartP(const TPolynom &P);
+    virtual string GetTask();
+    virtual string GetShortTask();
+    virtual bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs = 0); //возвращает непосредственно само решение без дублирования условия
+
+    virtual string GetClassName() { return "TLinearEquality";};
+};
+
+class TSquareEquality : public TPolynomialEquality
+        //ax^2 + bx + c = 0
+{
+public:
+    TSquareEquality();
+    TSquareEquality(TPolynom P); //полином должен быть квадратным, иначе будет исключение
+    ~TSquareEquality();
+    virtual void SetLeftPartP(const TPolynom &P);
+    virtual string GetTask();
+    virtual string GetShortTask();
+    virtual bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs = 0);
+
+    virtual string GetClassName() { return "TSquareEquality";};
+
+};
+
+
+//*****************************************************************************************************************************
+//              НЕРАВЕНСТВА
+//*****************************************************************************************************************************
+
+class TPolynomialInequality : public TPolynomConditions, public TInequality
+{
+        bool SetType(bool Less, bool Strict);
+    public:
+        bool Less; //Depends on conditions: true, if ax^2 + bx + c < 0; false if ax^2 + bx + c > 0
+        bool Strict; //true if inequality is strict
+
+        TPolynomialInequality(size_t MaxPower = 6, bool Less = true, bool Strict = true);
+        TPolynomialInequality(const TPolynom& P, bool Less = true, bool Strict = true, bool AllCoef = true);
+        ~TPolynomialInequality();
+        virtual string GetTask();
+        virtual string GetShortTask();
+        virtual bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs = 0);
+
+        virtual vector<TNumeric> GetTypes(TNumeric* N); //выдаёт все возможные типы задачи
+        virtual void SetType(TNumeric* N, size_t Type);
+
+        virtual string GetClassName() { return "TPolynomialInequality";};
+
+        virtual void SaveToFile(ofstream &f);
+        virtual void LoadFromFile(ifstream &f);
+};
+
+
+class TLinearInequality : public TPolynomialInequality
+{
+    static const int IDa = 1;
+    static const int IDb = 2;
+    static const int IDc = 3;
+public:
+        TLinearInequality(bool Less = true, bool Strict = true);
+        TLinearInequality(const TLinearInequality *L, bool Less = true, bool Strict = true); //коэффициенты будут такие же, как в L, а знак неравенства будет определятся флагами Less и Strict
+        ~TLinearInequality();
+        virtual string GetTask();
+        virtual string GetShortTask();
+        bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs);
+        virtual string GetClassName() { return "TLinearInequality";};
+
+};
+
+class TSquareInequality : public TPolynomialInequality
+{
+public:
+    TSquareInequality(bool Less = true, bool Strict = true);
+    ~TSquareInequality();
+    TSquareInequality(const TSquareInequality *L, bool Less = true, bool Strict = true); //коэффициенты будут такие же, как в L, а знак неравенства будет определятся флагами Less и Strict
+    virtual string GetTask();
+    virtual string GetShortTask();
+    bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs);
+    virtual string GetClassName() { return "TSquareInequality";};
+
+};
+
+
+//*****************************************************************************************************************************
+//              СИСТЕМЫ И СОВОКУПНОСТИ УРАВНЕНИЙ И НЕРАВЕНСТВ
+//*****************************************************************************************************************************
+
+
+template <class TInequalityClass, const char* ClassName>
+class TSetOfInequalities : public TProblem, public TInequality
+{
+public:
+    TInequalityClass FirstInequality, SecondInequality;
+    TSetOfInequalities();
+    ~TSetOfInequalities();
+    virtual string GetTask();
+    virtual string GetShortTask();
+    virtual bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs = 0);
+    virtual vector<TNumeric> GetTypes(TNumeric* N); //выдаёт все возможные типы задачи, когда кликается по объекту N
+    virtual void SetType(TNumeric* N, size_t Type);
+    virtual void SaveToFile(ofstream &f)
+    {
+        this->Conditions->WriteToFile(f);
+/*        FirstInequality.SaveToFile(f);
+        SecondInequality.SaveToFile(f);*/
+    }
+    virtual void LoadFromFile(ifstream &f)
+    {
+        this->Conditions->LoadFromFile(f);
+/*        FirstInequality.LoadFromFile(f);
+        SecondInequality.LoadFromFile(f);*/
+    }
+    virtual string GetClassName() { return ClassName;};
+};
+
+template <class TInequalityClass, const char* ClassName>
+class TSystemOfInequalities : public TSetOfInequalities<TInequalityClass, ClassName>
+{
+//    TInequality FirstInequality, SecondInequality;
+public:
+    TSystemOfInequalities();
+    ~TSystemOfInequalities() {};
+    virtual string GetTask() {return (*Phrases)[PhSolveSystemOfInequalities];};
+    virtual string GetShortTask() {return (*Phrases)[PhSystemOfInequalities];};
+    virtual bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs = 0);
+    virtual string GetClassName() { return ClassName;};
+};
+
+
+
+template <class TInequalityClass, const char* ClassName>
+TSetOfInequalities<TInequalityClass, ClassName>::TSetOfInequalities()
+{
+    this->Conditions = new TNumeric;
+    this->Conditions->Operator = OperatorEqSet;
+    this->Conditions->Operands.push_back(*(FirstInequality.Conditions));
+    this->Conditions->Operands.push_back(*(SecondInequality.Conditions));
+    this->Solution = 0;
+}
+
+template <class TInequalityClass, const char* ClassName>
+TSetOfInequalities<TInequalityClass, ClassName>::~TSetOfInequalities()
+{
+}
+
+template <class TInequalityClass, const char* ClassName>
+string TSetOfInequalities<TInequalityClass, ClassName>::GetTask()
+{
+    return (*Phrases)[PhSolveSetOfInequalities];
+}
+
+template <class TInequalityClass, const char* ClassName>
+string TSetOfInequalities<TInequalityClass, ClassName>::GetShortTask()
+{
+    return (*Phrases)[PhSetOfInequalities];
+}
+
+template <class TInequalityClass, const char* ClassName>
+bool TSetOfInequalities<TInequalityClass, ClassName>::GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs)
+{
+TLines *TabLines = new TLines;
+    *FirstInequality.Conditions = TProblem::Conditions->Operands[0];
+    Lines->push_back(new TText((*Phrases)[PhSolvingFirstInequality]));
+    if(FirstInequality.GetSolution(TabLines, Ntabs + 1) == false) return false;
+    TLine* L = new TLine;
+    L->push_back(new THSpace);
+    L->push_back(TabLines);
+    Lines->push_back(L);
+
+    TabLines = new TLines;
+    *SecondInequality.Conditions = TProblem::Conditions->Operands[1];
+    Lines->push_back(new TText((*Phrases)[PhSolvingSecondInequality]));
+    if(SecondInequality.GetSolution(TabLines, Ntabs + 1) == false) return false;
+    L = new TLine;
+    L->push_back(new THSpace);
+    L->push_back(TabLines);
+    Lines->push_back(L);
+
+    Lines->push_back(new TText((*Phrases)[PhCommonSolution]));
+    TIntervalsSet Res;
+    Res = this->FirstInequality.Result + this->SecondInequality.Result;
+    TNumeric *N = new TNumeric(MakeBelongsTo(TNumeric("x"), Res.GetNumeric()));
+    Lines->push_back(N);
+
+    TInequality::Result = Res;
+    return true;
+}
+
+
+template <class TInequalityClass, const char* ClassName>
+vector<TNumeric> TSetOfInequalities<TInequalityClass, ClassName>::GetTypes(TNumeric* N)
+{
+vector<TNumeric> Res;
+    if(N == &(this->Conditions->Operands[0]))
+    {
+        *FirstInequality.Conditions = *N;
+        Res = FirstInequality.GetTypes(FirstInequality.Conditions);
+    };
+    if(N == &(this->Conditions->Operands[1]))
+    {
+        *SecondInequality.Conditions = *N;
+        Res = SecondInequality.GetTypes(SecondInequality.Conditions);
+    }
+    return Res;
+}
+
+template <class TInequalityClass, const char* ClassName>
+void TSetOfInequalities<TInequalityClass, ClassName>::SetType(TNumeric* N, size_t Type)
+{
+    if(N == &(this->Conditions->Operands[0]))
+    {
+        FirstInequality.SetType(FirstInequality.Conditions, Type);
+        TProblem::Conditions->Operands[0] = *FirstInequality.Conditions;
+    };
+    if(N == &(this->Conditions->Operands[1]))
+    {
+        SecondInequality.SetType(SecondInequality.Conditions, Type);
+        TProblem::Conditions->Operands[1] = *SecondInequality.Conditions;
+    }
+}
+
+template <class TInequalityClass, const char* ClassName>
+TSystemOfInequalities<TInequalityClass, ClassName>::TSystemOfInequalities()
+{
+    this->Conditions->Operator = OperatorEqSystem;
+};
+
+template <class TInequalityClass, const char* ClassName>
+bool TSystemOfInequalities<TInequalityClass, ClassName>::GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs)
+{
+TLines *TabLines = new TLines;
+    *(this->FirstInequality.Conditions) = this->Conditions->Operands[0];
+    Lines->push_back(new TText((*Phrases)[PhSolvingFirstInequality]));
+    if(this->FirstInequality.GetSolution(TabLines, Ntabs+1) == false) return false;
+    TLine* L = new TLine;
+    L->push_back(new THSpace);
+    L->push_back(TabLines);
+    Lines->push_back(L);
+
+    TabLines = new TLines;
+    *(this->SecondInequality.Conditions) = this->Conditions->Operands[1];
+    Lines->push_back(new TText((*Phrases)[PhSolvingSecondInequality]));
+    if(this->SecondInequality.GetSolution(TabLines, Ntabs+1) == false) return false;
+    L = new TLine;
+    L->push_back(new THSpace);
+    L->push_back(TabLines);
+    Lines->push_back(L);
+
+    Lines->push_back(new TText((*Phrases)[PhCommonSolution]));
+    TIntervalsSet Res;
+    Res = this->FirstInequality.Result*this->SecondInequality.Result;
+    TNumeric *N = new TNumeric(MakeBelongsTo(TNumeric("x"), Res.GetNumeric()));
+    Lines->push_back(N);
+
+    ((TInequality*)this)->Result = Res;
+    return true;
+}
+
+
+extern const char TSetOfLinearInequalitiesStr[];
+extern const char TSystemOfLinearInequalitiesStr[];
+extern const char TSetOfSquareInequalitiesStr[];
+extern const char TSystemOfSquareInequalitiesStr[];
+typedef TSetOfInequalities<TLinearInequality, TSetOfLinearInequalitiesStr> TSetOfLinearInequalities;
+typedef TSystemOfInequalities<TLinearInequality, TSystemOfLinearInequalitiesStr> TSystemOfLinearInequalities;
+typedef TSetOfInequalities<TSquareInequality, TSetOfSquareInequalitiesStr> TSetOfSquareInequalities;
+typedef TSystemOfInequalities<TSquareInequality, TSystemOfSquareInequalitiesStr> TSystemOfSquareInequalities;
+
+//*****************************************************************************************************************************
+//              ПРОИЗВОДНЫЕ
+//*****************************************************************************************************************************
+class TPolynomDerivative : public TPolynomConditions
+{
+public:
+    TPolynomDerivative(size_t MaxPower = 8);
+    ~TPolynomDerivative();
+
+    virtual string GetTask();
+    virtual string GetShortTask();
+    virtual bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs = 0);
+
+    virtual string GetClassName() { return "TPolynomDerivative";};
+};
+
+
+class TRationalFunctionDerivative : public TProblem
+{
+public:
+    TNumeric UnknownVar;
+    int MaxPowerNominator, MaxPowerDenominator;
+    TRationalFunctionDerivative(size_t MaxPowerNominator = 8, size_t MaxPowerDenominator = 8);
+    ~TRationalFunctionDerivative();
+
+    virtual string GetTask();
+    virtual string GetShortTask();
+    virtual bool GetSolution(vector<TRectangleElement*> *Lines, size_t Ntabs = 0);
+    virtual string GetClassName() { return "TRationalFunctionDerivative";};
+
+    virtual void SaveToFile(ofstream &f);
+    virtual void LoadFromFile(ifstream &f);
+};
+
+
+#endif // TPOLYNOMDERIVATIVE_H

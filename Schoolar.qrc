@@ -1,0 +1,94 @@
+<RCC>
+    <qresource prefix="/Tasks">
+        <file>Pictures/Tasks/blue.png</file>
+        <file>Pictures/Tasks/cyan.png</file>
+        <file>Pictures/Tasks/derivative.png</file>
+        <file>Pictures/Tasks/equation.png</file>
+        <file>Pictures/Tasks/green.png</file>
+        <file>Pictures/Tasks/inequality.png</file>
+        <file>Pictures/Tasks/lightblue.png</file>
+        <file>Pictures/Tasks/lightgreen.png</file>
+        <file>Pictures/Tasks/lightpurple.png</file>
+        <file>Pictures/Tasks/lightred.png</file>
+        <file>Pictures/Tasks/purple.png</file>
+        <file>Pictures/Tasks/red.png</file>
+        <file>Pictures/Tasks/saved.png</file>
+        <file>Pictures/Tasks/simplify.png</file>
+        <file>Pictures/Tasks/systemsofinequalities.png</file>
+        <file>Pictures/Tasks/yellow.png</file>
+        <file>Pictures/Tasks/systemsofequations.png</file>
+    </qresource>
+    <qresource prefix="/Commands">
+        <file>Pictures/Commands/1998_low_cost_clock_256x256.png</file>
+        <file>Pictures/Commands/arrow_up_green_48.png</file>
+        <file>Pictures/Commands/browser.png</file>
+        <file>Pictures/Commands/coins.png</file>
+        <file>Pictures/Commands/comment_48.png</file>
+        <file>Pictures/Commands/cross_48.png</file>
+        <file>Pictures/Commands/file_pdf.png</file>
+        <file>Pictures/Commands/floppy_disk_48.png</file>
+        <file>Pictures/Commands/Open_48x48.png</file>
+        <file>Pictures/Commands/Save_48x48.png</file>
+        <file>Pictures/Commands/Settings_48x48.png</file>
+        <file>Pictures/Commands/Zoom In_48x48.png</file>
+        <file>Pictures/Commands/Zoom Out_48x48.png</file>
+        <file>Pictures/tea/lamp_scaled.png</file>
+        <file>Pictures/Commands/New_48x48.png</file>
+        <file>Pictures/Commands/Delete_48x48.png</file>
+        <file>Pictures/Commands/Check_48x48.png</file>
+        <file>Pictures/Commands/print.png</file>
+        <file>Pictures/Commands/Heart-icon.png</file>
+        <file>Pictures/Commands/Favorites_48x48.png</file>
+        <file>Pictures/Commands/Test.png</file>
+    </qresource>
+    <qresource prefix="/Style">
+        <file>Pictures/Style/book_48.png</file>
+        <file>Pictures/Style/folder_48.png</file>
+        <file>Pictures/Style/moleskine_black.png</file>
+        <file>Pictures/Style/bulb.png</file>
+        <file>Icon/favicon.png</file>
+        <file>Pictures/Style/uparrow.png</file>
+        <file>Pictures/Style/downarrow.png</file>
+        <file>Pictures/Style/leftarrow.png</file>
+        <file>Pictures/Style/rightarrow.png</file>
+        <file>Pictures/Style/stripesforvertical.png</file>
+        <file>Pictures/Style/stripesforhoriz.png</file>
+        <file>Pictures/Style/Help_32x32.png</file>
+    </qresource>
+    <qresource prefix="/formulas">
+        <file>Pictures/Formulas/clear.png</file>
+        <file>Pictures/Formulas/frac.png</file>
+        <file>Pictures/Formulas/plus.png</file>
+        <file>Pictures/Formulas/power.png</file>
+        <file>Pictures/Formulas/prod.png</file>
+        <file>Pictures/Formulas/recycle.png</file>
+        <file>Pictures/Formulas/simplify.png</file>
+        <file>Pictures/Formulas/solve.png</file>
+        <file>Pictures/Formulas/sqrt.png</file>
+        <file>Pictures/Formulas/sin.png</file>
+        <file>Pictures/Formulas/root.bmp</file>
+        <file>Pictures/Formulas/asin.png</file>
+        <file>Pictures/Formulas/acos.png</file>
+        <file>Pictures/Formulas/atg.png</file>
+        <file>Pictures/Formulas/cos.png</file>
+        <file>Pictures/Formulas/ln.png</file>
+        <file>Pictures/Formulas/log.png</file>
+        <file>Pictures/Formulas/tg.png</file>
+        <file>Pictures/Formulas/x.png</file>
+        <file>Pictures/Formulas/arrow_left_48.png</file>
+        <file>Pictures/Formulas/arrow_left_green_48.png</file>
+        <file>Pictures/Formulas/arrow_right_48.png</file>
+        <file>Pictures/Formulas/arrow_right_green_48.png</file>
+        <file>Pictures/Formulas/minus.png</file>
+        <file>Pictures/acrobat_icon1.png</file>
+        <file>Pictures/Formulas/sh.png</file>
+        <file>Pictures/Formulas/ch.png</file>
+        <file>Pictures/Formulas/exp.png</file>
+        <file>Pictures/Formulas/erase.png</file>
+        <file>Pictures/Formulas/edit.png</file>
+    </qresource>
+    <qresource prefix="/EULA">
+        <file>Eula/EULA_russian.html</file>
+        <file>Eula/EULA_english_translated.html</file>
+    </qresource>
+</RCC>

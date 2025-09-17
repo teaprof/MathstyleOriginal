@@ -1,0 +1,148 @@
+#ifndef TPOLYNOMINTEGRALPROBLEM_H
+#define TPOLYNOMINTEGRALPROBLEM_H
+
+#include "tproblem.h"
+#include "TPolynomProblems.h"
+
+class TPolynomIntegralProblem : public TPolynomConditions
+{
+    void Assign(const TPolynomIntegralProblem& S);
+public:
+    TPolynom Result;
+    TPolynomIntegralProblem();
+    TPolynomIntegralProblem(const TPolynomIntegralProblem& S);
+    ~TPolynomIntegralProblem();
+    void operator=(const TPolynomIntegralProblem& D) {Assign(D);};
+
+    virtual string GetTask();
+    virtual string GetShortTask();
+    virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+    virtual void BuildPhrases();
+
+    virtual string GetClassName() { return "TPolynomIntegralProblem";};
+    virtual vector<string> GetKeyWords();
+};
+
+
+class TRationalIntegralProblem2 : public TProblem
+//integral of rational function with factorized denominator
+{
+        void Assign(const TRationalIntegralProblem2& S);
+    public:
+        TRationalIntegralProblem2(size_t MaxPowerNominator = 4, size_t SimpleRoots = 2, size_t SquareEquations = 4);
+        //MaxPowerNominator - max power of nominator
+        //SimpleRoots - number of multiplicators like a*x+b in denominator
+        //SquareRoots - number of multiplicatirs like a*x^2+b*x+c in denominator
+
+        TRationalIntegralProblem2(const TRationalIntegralProblem2& S);
+        ~TRationalIntegralProblem2();
+        void operator=(const TRationalIntegralProblem2& D);
+
+        virtual string GetTask();
+        virtual string GetShortTask();
+        virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+        virtual void BuildPhrases();
+
+        virtual string GetClassName() { return "TRationalIntegralProblem";};
+
+        void LoadFromFile(ifstream &f);
+        void SaveToFile(ofstream &f);
+        virtual vector<string> GetKeyWords();
+};
+
+
+class TRationalIntegralProblem : public TRationalFunctionConditions
+{
+        void Assign(const TRationalIntegralProblem& S);
+    public:
+        TRationalIntegralProblem(size_t MaxPowerNominator = 4, size_t MaxPowerDenominator = 4);
+        TRationalIntegralProblem(const TRationalIntegralProblem& S);
+        ~TRationalIntegralProblem();
+        void operator=(const TRationalIntegralProblem& D);
+
+        virtual string GetTask();
+        virtual string GetShortTask();
+        virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+        virtual void BuildPhrases();
+
+        virtual string GetClassName() { return "TRationalIntegralProblem";};
+
+        void LoadFromFile(ifstream &f);
+        void SaveToFile(ofstream &f);
+        virtual vector<string> GetKeyWords();
+};
+
+class TElementarFractionIntegralProblem : public TProblem
+//Этот класс не является TProblem в полноценном смысле: здесь нет возможности сохранения и загрузки в файл,
+//есть лишь возможность классифицировать рациональную дробь и взять от нее интеграл при помощи таблицы интегралов от элементарных дробей
+{
+        bool Integrate1(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x + c)
+        bool Integrate2(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x + c)^k
+        bool Integrate3(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x^2+c*x+d)
+        bool Integrate4(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x^2+c*x+d)^k
+        bool IntegrateJn(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x^2+c)^k
+    public:
+        TNumeric Result;
+        string Var;
+
+        TElementarFractionIntegralProblem();
+
+        void SetConditions(const TNumeric &N, const string& var);
+
+        TNumeric Integrate(THTMLWriter *Writer, const TNumeric& N, string Var);
+
+        virtual string GetTask();
+        virtual string GetShortTask();
+        virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+        virtual void BuildPhrases();
+
+        virtual string GetClassName() { return "TElementarFractionIntegralProblem";};
+        virtual vector<string> GetKeyWords() {vector<string> T; return T;};
+};
+
+
+class TIntegralProblem : public TProblem
+{
+    void Assign(const TIntegralProblem& S);
+public:
+    TNumeric Result;
+    TIntegralProblem();
+    TIntegralProblem(const TIntegralProblem& S);
+    ~TIntegralProblem();
+    void operator=(const TIntegralProblem& D) {Assign(D);};
+
+    virtual string GetTask();
+    virtual string GetShortTask();
+    virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+    virtual void BuildPhrases();
+
+    virtual string GetClassName() { return "TIntegralProblem";};
+    virtual vector<string> GetKeyWords();
+};
+
+class TTabularIntegralProblem : public TProblem
+//Этот класс не является TProblem в полноценном смысле: здесь нет возможности сохранения и загрузки в файл,
+//есть лишь возможность классифицировать рациональную дробь и взять от нее интеграл при помощи таблицы интегралов от элементарных дробей
+{
+        bool IntegrateSin(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a*sin(b*x+c)
+    public:
+        TNumeric Result;
+        string Var;
+
+        TTabularIntegralProblem();
+
+        void SetConditions(const TNumeric &N, const string& var);
+
+        TNumeric Integrate(THTMLWriter *Writer, const TNumeric& N, string Var);
+
+        virtual string GetTask();
+        virtual string GetShortTask();
+        virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+        virtual void BuildPhrases();
+
+        virtual string GetClassName() { return "TElementarFractionIntegralProblem";};
+        virtual vector<string> GetKeyWords() {vector<string> T; return T;};
+};
+
+
+#endif // TPOLYNOMINTEGRALPROBLEM_H
