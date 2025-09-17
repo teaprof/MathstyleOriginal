@@ -62,16 +62,16 @@ int TPaintCanvas::TextWidth(string Text)
     if(Painter)
     {
         QFontMetrics Metrics(Font);
-        QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
+        //QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
         //return R.width();
-        return Metrics.width(QString::fromUtf8(Text.c_str()));
+        return Metrics.horizontalAdvance(QString::fromUtf8(Text.c_str()));
     };
     if(Scene)
     {        
         QFontMetrics Metrics(Font);
-        QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
-//        return R.width();
-        return Metrics.width(QString::fromUtf8(Text.c_str()));
+        //QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
+        //return R.width();
+        return Metrics.horizontalAdvance(QString::fromUtf8(Text.c_str()));
 
 /*        QGraphicsTextItem I(QString::fromUtf8(Text.c_str()));
         I.setFont(Font);

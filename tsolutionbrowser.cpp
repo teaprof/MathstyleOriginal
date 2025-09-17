@@ -12,7 +12,7 @@ TSolutionBrowser::TSolutionBrowser(QWidget *parent) :
     setWindowFlags(Qt::Window);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
-    WebView = new QWebView(this);
+    WebView = new QWebEngineView(this);
     ToolBar = new QToolBar(this);
     ToolBar->setIconSize(QSize(48, 48));
 
@@ -98,8 +98,8 @@ QPrinter printer;
     printer.setOutputFormat(QPrinter::PdfFormat);
     printer.setOutputFileName(fileName);
     printer.setFullPage(false);
-    printer.setOrientation(QPrinter::Portrait);
-    printer.setPaperSize(QPrinter::A4);
+    printer.setPageOrientation(QPageLayout::Orientation::Portrait);
+    printer.setPageSize(QPageSize::A4);
     WebView->print(&printer);
 
 }

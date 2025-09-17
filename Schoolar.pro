@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui webkit network widgets webkitwidgets printsupport
+QT       += core gui network widgets webview printsupport webenginewidgets
 
 TARGET = Schoolar
 TEMPLATE = app

@@ -59,7 +59,7 @@ TButtonsSheetView::TButtonsSheetView(QWidget *parent) :
     QWidget(parent)
 {
     Layout = new QVBoxLayout(this);
-    Layout->setMargin(0);
+    //Layout->setMargin(0);
     Model = new TKeywordsModel(this);
 
     ListView = new QListView(this);

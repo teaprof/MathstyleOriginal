@@ -5,6 +5,7 @@
 #include <qmath.h>
 #include <QMouseEvent>
 #include <iostream>
+#include <random>
 using namespace std;
 
 TGlobeView::TGlobeView(QWidget *parent) : QWidget(parent)
@@ -25,7 +26,9 @@ TGlobeView::~TGlobeView()
 
 double globe_random() //returns random in [0...1]
 {
-    return double(qrand())/double(RAND_MAX);
+    static mt19937 rand;
+    std::uniform_real_distribution<double> u01(0, 1);
+    return u01(rand);
 }
 
 void TGlobeView::AlignStrings()
@@ -92,7 +95,7 @@ void TGlobeView::paintEvent(QPaintEvent *event)
         F.setPixelSize(Coords[i].FontHeight);
         Painter.setFont(F);
         QFontMetrics Metrics(Painter.font());
-        Coords[i].textwidth = Metrics.width(Words[i]);
+        Coords[i].textwidth = Metrics.horizontalAdvance(Words[i]);
         Rects[i] = Metrics.boundingRect(Words[i]);
         Rects[i].translate(Coords[i].gx - Coords[i].textwidth/2, Coords[i].gy);
 

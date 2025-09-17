@@ -34,10 +34,10 @@
 #include <QTreeWidgetItem>
 #include <QDir>
 #include <QFile>
-#include <QtWebKitWidgets/QWebView>
-#include <QtWebKitWidgets/QWebPage>
-#include <QtWebKitWidgets/QWebFrame>
-#include <QtWebKit/QWebElement>
+#include <QtWebView/QtWebView>
+//#include <QtWebView/QWebPage>
+//#include <QtWebView/QWebFrame>
+//#include <QtWebKit/QWebElement>
 #include <QGroupBox>
 #include <QCheckBox>
 #include <QTime>

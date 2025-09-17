@@ -1,7 +1,7 @@
 #ifndef TSOLUTIONBROWSER_H
 #define TSOLUTIONBROWSER_H
 
-#include <QtWebKitWidgets/QWebView>
+#include <QtWebEngineWidgets/QWebEngineView>
 #include <QToolBar>
 #include <QWidget>
 
@@ -9,7 +9,7 @@ class TSolutionBrowser : public QWidget
 {
     Q_OBJECT
 private:    
-    QWebView *WebView;
+    QWebEngineView *WebView;
     QToolBar *ToolBar;    
     void RegisterToolButton(const char* Img, QString ToolTip, QWidget* Receiver, const char* Slot);
 
