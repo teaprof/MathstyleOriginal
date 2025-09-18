@@ -414,6 +414,7 @@ TPolynomSeries GetMaclaurin(int Operator, size_t LastTerm)
             Res = Res * (TNumeric(1)/MakeLn(TNumeric(10)));
         };
         case OperatorSqrt:     //returns series for sqrt(1+x)
+            [[fallthrough]];
         case OperatorFrac:     //returns series for 1/(1+x)
         {
             Res.Coefs.assign(LastTerm+1, TNumeric("0"));

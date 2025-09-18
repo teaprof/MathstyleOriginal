@@ -102,8 +102,8 @@ void QFormulaArea::mouseMoveEvent(QMouseEvent *M)
 {
     if(Formula)
     {
-        Formula->MouseX = M->x();
-        Formula->MouseY = M->y();
+        Formula->MouseX = M->position().x();
+        Formula->MouseY = M->position().y();
         Formula->DrawMouse = true;
         repaint();
     };
@@ -135,9 +135,7 @@ void QFormulaArea::mouseDoubleClickEvent(QMouseEvent *)
 
 bool QFormulaArea::event(QEvent *q)
 {
-bool b = isEnabled();
     setEnabled(true);
-    b = isEnabled();
     return QWidget::event(q);
 }
 
@@ -938,9 +936,7 @@ void QFormulaEditor::mousePressEvent(QMouseEvent *)
 
 bool QFormulaEditor::event(QEvent *q)
 {
-bool b = isEnabled();
     setEnabled(true);
-    b = isEnabled();
     return QWidget::event(q);
 }
 

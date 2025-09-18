@@ -1097,10 +1097,10 @@ TLinearEquality::~TLinearEquality()
 //delete Conditions and delete Solution is called by ~TProblem, no need to call them here
 }
 
-/*TLinearEquality::TLinearEquality(const TLinearEquality& L) : TEquality()
+TLinearEquality::TLinearEquality(const TLinearEquality& L) : TPolynomialEquality()
 {
     Assign(L);
-}*/
+}
 
 
 string TLinearEquality::GetTask()
@@ -1115,7 +1115,8 @@ string TLinearEquality::GetShortTask()
 
 void TLinearEquality::Assign(const TLinearEquality& L)
 {
-    if(Conditions == 0) Conditions = new TNumeric;
+    if(Conditions != 0) delete Conditions;
+    Conditions = new TNumeric;
     *Conditions = *L.Conditions;
 
     //if(Solution) delete Solution;
@@ -2318,7 +2319,7 @@ TRationalFunctionConditions::TRationalFunctionConditions(int Operator = Operator
     SetMaxPower(MaxPowerNominator, MaxPowerDenominator);
 }
 
-void TRationalFunctionConditions::Assign(const TRationalFunctionConditions& R)
+/*void TRationalFunctionConditions::Assign(const TRationalFunctionConditions& R)
 {
     HaveRightPart = R.HaveRightPart;
     MaxPowerNominator = R.MaxPowerDenominator;
@@ -2331,7 +2332,7 @@ void TRationalFunctionConditions::Assign(const TRationalFunctionConditions& R)
 void TRationalFunctionConditions::operator=(const TRationalFunctionConditions& R)
 {
     Assign(R);
-}
+}*/
 
 void TRationalFunctionConditions::SetMaxPower(size_t MaxPowerNominator, size_t MaxPowerDenominator)
 {

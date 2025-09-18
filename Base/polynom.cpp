@@ -89,7 +89,7 @@ int M = MajorPower();
 }
 
 
-bool TPolynom::operator==(const TPolynom& P)
+bool TPolynom::operator==(const TPolynom& P) const
 {
 size_t M1 = MajorPower();
 size_t M2 = P.MajorPower();
@@ -887,11 +887,11 @@ size_t MaxPower = MajorPower()/2;
 //*****************************************************************************************
 //*****************************************************************************************
 //*****************************************************************************************
-void TRationalFunction::Assign(const TRationalFunction &R)
+/*void TRationalFunction::Assign(const TRationalFunction &R)
 {
     P = R.P;
     Q = R.Q;
-}
+}*/
 
 TRationalFunction::TRationalFunction()
 {
@@ -924,11 +924,11 @@ TNumeric Res;
     return Res;
 }
 
-TRationalFunction TRationalFunction::operator=(const TRationalFunction& R)
+/*TRationalFunction TRationalFunction::operator=(const TRationalFunction& R)
 {
     Assign(R);
     return R;
-}
+}*/
 
 TRationalFunction TRationalFunction::operator+(const TRationalFunction& R)
 {

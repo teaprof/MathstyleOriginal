@@ -34,7 +34,7 @@ class TPolynom
         TNumeric GetNumeric() const; //x^k + x^(k-1) + ... + x^0
         TNumeric GetNumeric(const TNumeric& UnknownVar) const; //x^k + x^(k-1) + ... + x^0
         TNumeric GetSeriesNumeric(const TNumeric& UnknownVar) const; //x^0 + x^1 + x^2 +...
-        bool operator==(const TPolynom& P);
+        bool operator==(const TPolynom& P) const;
         TPolynom operator=(const TNumeric& N); // => P = const
         TPolynom operator=(const TPolynom& P);
         TPolynom operator+(const TPolynom& P);
@@ -75,7 +75,7 @@ bool BuildIntegerPolynom(const vector<int> &X, const vector<int> &Y, TPolynom& P
 class TRationalFunction
 //функция вида P(x)/Q(x)
 {
-        void Assign(const TRationalFunction& R);
+        //void Assign(const TRationalFunction& R);
     public:
         TPolynom P, Q;
         TRationalFunction();
@@ -84,19 +84,19 @@ class TRationalFunction
         ~TRationalFunction();
 
         TNumeric GetNumeric() const;
-        TRationalFunction operator=(const TRationalFunction& R);
+        //TRationalFunction operator=(const TRationalFunction& R);
         TRationalFunction operator+(const TRationalFunction& R);
         TRationalFunction operator-(const TRationalFunction& R);
         TRationalFunction operator*(const TRationalFunction& R);               
         TRationalFunction operator/(const TRationalFunction& R);
 
-        TNumeric GetNumeric(const TNumeric& UnknownVar) { return MakeFrac(P.GetNumeric(UnknownVar), Q.GetNumeric(UnknownVar));};
+        TNumeric GetNumeric(const TNumeric& UnknownVar) { return MakeFrac(P.GetNumeric(UnknownVar), Q.GetNumeric(UnknownVar));}
 
 
-        const TPolynom& Nominator() const {return P; };
-        const TPolynom& Denominator() const {return Q; };
-        TPolynom& Nominator() {return P; };
-        TPolynom& Denominator() {return Q; };
+        const TPolynom& Nominator() const {return P; }
+        const TPolynom& Denominator() const {return Q; }
+        TPolynom& Nominator() {return P; }
+        TPolynom& Denominator() {return Q; }
 
         TNumeric Calculate(const TNumeric &X);
         TRationalFunction Derivative();

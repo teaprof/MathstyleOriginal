@@ -10,7 +10,7 @@
 #include <QSignalMapper>
 
 #include "Problems/tproblem.h"
-#include "Problems/GraphicsProblems.h"
+//#include "Problems/GraphicsProblems.h"
 #include "toptionswindow.h"
 
 #include "tglobeview.h"

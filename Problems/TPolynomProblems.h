@@ -101,10 +101,10 @@ class TLinearEquality : public TPolynomialEquality
     void Assign(const TLinearEquality& L);
 public:
     TLinearEquality();
-    TLinearEquality(const TPolynom& P);
     ~TLinearEquality();
-    //TLinearEquality(const TLinearEquality& L);
-    void operator=(const TLinearEquality& L) {Assign(L);};
+    explicit TLinearEquality(const TPolynom& P);
+    explicit TLinearEquality(const TLinearEquality& L);
+    void operator=(const TLinearEquality& L) {Assign(L);}
 
 
     virtual void SetLeftPartP(const TPolynom &P, bool unused_flag = false);
@@ -503,7 +503,7 @@ class TRationalFunctionConditions : public TProblem
 {
     int RightPartID() const {return MaxPowerDenominator + MaxPowerNominator + 2; };
     bool HaveRightPart; //истина, если необходимо добавлять в Conditions правую часть
-    void Assign(const TRationalFunctionConditions& R);
+    //void Assign(const TRationalFunctionConditions& R);
     TNumeric GetVarPower(size_t power); //возвращает UnknownVar^power
 public:
     TNumeric UnknownVar; //обозначение неизвестной переменной
@@ -512,7 +512,7 @@ public:
     TRationalFunctionConditions(int Operator, bool HaveRightPart = true, size_t MaxPowerNominator = 4, size_t MaxPowerDenominator = 4);
     ~TRationalFunctionConditions();
 
-    void operator=(const TRationalFunctionConditions& R);
+    //void operator=(const TRationalFunctionConditions& R);
 
     TNumeric *GetNominator();
     TNumeric *GetDenominator();

@@ -84,7 +84,9 @@ int main(int argc, char *argv[])
         init_mathomatic();
 
         Tr = new QTranslator();
-        Tr->load("en2ru");
+        if(Tr->load("en2ru") == false) {
+            std::cout<<"Can't load dictionary"<<std::endl;
+        }
 
 
 

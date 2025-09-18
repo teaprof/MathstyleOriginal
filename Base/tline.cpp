@@ -278,7 +278,7 @@ void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text, QCol
 
 
         QGraphicsSimpleTextItem *I = Scene->addSimpleText(QString::fromUtf8(Text.c_str()), Font);
-        QRectF R = I->boundingRect();
+        //QRectF R = I->boundingRect();
         I->setX(X1 - OriginX);
         QFontMetrics M(this->Font);        
         int MidLine = (Y1+Y2)/2;

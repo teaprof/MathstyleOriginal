@@ -1,14 +1,15 @@
 extern "C"
 {
-//#include <mathomatic/includes.h>
+#include <mathomatic/includes.h>
 void free_mem(void);
 void clear_all(void);
 int process(char *cp);
 void init_gvars(void);
 int init_mem(void);
 }
-#include <mathomatic/includes.h>
+//#include <mathomatic/includes.h>
 #undef min
+#undef max
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>

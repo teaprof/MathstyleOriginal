@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 project(Schoolar VERSION 1.0 LANGUAGES C CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Set up AUTOMOC and some sensible defaults for runtime execution
@@ -19,11 +22,11 @@ qt_add_executable(Schoolar WIN32 MACOSX_BUNDLE
     Base/arithmetic.cpp Base/arithmetic.h
     Base/polynom.cpp Base/polynom.h
     Base/symbols.cpp Base/symbols.h
-    Base/taxes.cpp Base/taxes.h
+    #Base/taxes.cpp Base/taxes.h
     Base/tinterval.cpp Base/tinterval.h
     Base/tline.cpp Base/tline.h
     Base/tphrases.cpp Base/tphrases.h
-    Problems/GraphicsProblems.cpp Problems/GraphicsProblems.h
+    #Problems/GraphicsProblems.cpp Problems/GraphicsProblems.h
     Problems/ObjectsFactory.cpp Problems/ObjectsFactory.h
     Problems/RandomFunction.cpp Problems/RandomFunction.h
     Problems/TPolynomIntegralproblem.cpp Problems/TPolynomIntegralproblem.h

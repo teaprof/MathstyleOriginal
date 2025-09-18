@@ -16,7 +16,7 @@ SOURCES += \
     Base/tphrases.cpp \
     Base/tline.cpp \
     Base/tinterval.cpp \
-    Base/taxes.cpp \
+#    Base/taxes.cpp \
     Base/polynom.cpp \
     Base/arithmetic.cpp \
     Problems/ttrigonometryproblems.cpp \
@@ -24,7 +24,7 @@ SOURCES += \
     Problems/tproblem.cpp \
     Problems/tpowerproblems.cpp \
     Problems/ObjectsFactory.cpp \
-    Problems/GraphicsProblems.cpp \
+#    Problems/GraphicsProblems.cpp \
     algebra_operations.cpp \
     twaitform.cpp \
     ttasktypeselector.cpp \
@@ -55,7 +55,7 @@ HEADERS  += \
     Base/tphrases.h \
     Base/tline.h \
     Base/tinterval.h \
-    Base/taxes.h \
+#    Base/taxes.h \
     Base/polynom.h \
     Base/arithmetic.h \
     Problems/ttrigonometryproblems.h \
@@ -63,7 +63,7 @@ HEADERS  += \
     Problems/tproblem.h \
     Problems/tpowerproblems.h \
     Problems/ObjectsFactory.h \
-    Problems/GraphicsProblems.h \
+#    Problems/GraphicsProblems.h \
     twaitform.h \
     ttasktypeselector.h \
     taboutdialog.h \
@@ -112,3 +112,4 @@ OTHER_FILES += \
 
 QMAKE_CXXFLAGS += -O3
 
+CONFIG += c++20
