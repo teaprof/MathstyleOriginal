@@ -521,7 +521,7 @@ bool RightZero = true;
     return !RightZero;
 }
 
-bool TSystemOfEquations::GetSystemSolution(THTMLWriter *Writer)
+bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     ExcludeSimilarEquations();
     if(ReadData() == false)
@@ -679,7 +679,7 @@ bool TSystemOfEquations::GetSystemSolution(THTMLWriter *Writer)
     return true;
 }
 
-bool TSystemOfEquations::GetSolution(THTMLWriter* Writer)
+bool TSystemOfEquations::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     if(GetSystemSolution(Writer))
     {

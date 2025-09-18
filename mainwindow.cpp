@@ -733,7 +733,8 @@ void MainWindow::Solve()
             Writer->EditableColor = Opt->EditableColor;
 
             Writer->BeginWrite(Path.c_str());
-            if(Problem->Solve(Writer))
+            bool res = Problem->Solve(Writer);
+            if(res)
             {
                 /*if(Problem->Solution && !FreeVersion && !LicenseChecker->IsValid())
                 {

@@ -139,7 +139,7 @@ string TLinearTrigEquality::GetShortTask()
     return MyTranslator.tr("linear");
 }
 
-bool TLinearTrigEquality::GetSolution(THTMLWriter* Writer)
+bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     if(Conditions == 0) return false;
 TNumeric a = *(Conditions->GetByID(IDa));
@@ -466,7 +466,7 @@ size_t sinpower = MaxPower - power;
     };
 }
 
-bool THomogeneousTrigEquality::GetSolution(THTMLWriter* Writer)
+bool THomogeneousTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 /*    AddLine(Lines, Ntabs, new TText("Решаем однородное тригонометрическое уравнение: "));
     AddLine(Lines, Ntabs, new TNumeric(*Conditions));*/

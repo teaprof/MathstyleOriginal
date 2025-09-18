@@ -42,9 +42,9 @@ public:
     virtual string GetTask();
     virtual string GetShortTask();
 
-    bool ExpandIntoSeries(THTMLWriter *Writer, TPolynomSeries *Res, string var, const TNumeric& N, int LastTerm);
+    bool ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writer, TPolynomSeries *Res, string var, const TNumeric& N, int LastTerm);
 
-    virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() { return "TMaclaurinSeriesProblem";};

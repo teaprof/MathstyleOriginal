@@ -67,7 +67,7 @@ string TDerivativeProblem::GetShortTask()
     return MyTranslator.tr("Derivative");
 }
 
-bool TDerivativeProblem::GetSolution(THTMLWriter* Writer)
+bool TDerivativeProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     TNumeric XDeriv = Conditions->Derivative();
     TNumeric XDerivSimplified = XDeriv.Simplify();

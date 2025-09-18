@@ -16,7 +16,7 @@ public:
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() { return "TPolynomIntegralProblem";};
@@ -40,7 +40,7 @@ class TRationalIntegralProblem2 : public TProblem
 
         virtual string GetTask();
         virtual string GetShortTask();
-        virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+        virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
         virtual void BuildPhrases();
 
         virtual string GetClassName() { return "TRationalIntegralProblem";};
@@ -62,7 +62,7 @@ class TRationalIntegralProblem : public TRationalFunctionConditions
 
         virtual string GetTask();
         virtual string GetShortTask();
-        virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+        virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
         virtual void BuildPhrases();
 
         virtual string GetClassName() { return "TRationalIntegralProblem";};
@@ -76,11 +76,11 @@ class TElementarFractionIntegralProblem : public TProblem
 //Этот класс не является TProblem в полноценном смысле: здесь нет возможности сохранения и загрузки в файл,
 //есть лишь возможность классифицировать рациональную дробь и взять от нее интеграл при помощи таблицы интегралов от элементарных дробей
 {
-        bool Integrate1(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x + c)
-        bool Integrate2(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x + c)^k
-        bool Integrate3(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x^2+c*x+d)
-        bool Integrate4(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x^2+c*x+d)^k
-        bool IntegrateJn(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x^2+c)^k
+        bool Integrate1(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x + c)
+        bool Integrate2(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x + c)^k
+        bool Integrate3(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x^2+c*x+d)
+        bool Integrate4(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x^2+c*x+d)^k
+        bool IntegrateJn(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res); //  a/(b*x^2+c)^k
     public:
         TNumeric Result;
         string Var;
@@ -89,11 +89,11 @@ class TElementarFractionIntegralProblem : public TProblem
 
         void SetConditions(const TNumeric &N, const string& var);
 
-        TNumeric Integrate(THTMLWriter *Writer, const TNumeric& N, string Var);
+        TNumeric Integrate(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var);
 
         virtual string GetTask();
         virtual string GetShortTask();
-        virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+        virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
         virtual void BuildPhrases();
 
         virtual string GetClassName() { return "TElementarFractionIntegralProblem";};
@@ -113,7 +113,7 @@ public:
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() { return "TIntegralProblem";};
@@ -124,7 +124,7 @@ class TTabularIntegralProblem : public TProblem
 //Этот класс не является TProblem в полноценном смысле: здесь нет возможности сохранения и загрузки в файл,
 //есть лишь возможность классифицировать рациональную дробь и взять от нее интеграл при помощи таблицы интегралов от элементарных дробей
 {
-        bool IntegrateSin(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res); //  a*sin(b*x+c)
+        bool IntegrateSin(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res); //  a*sin(b*x+c)
     public:
         TNumeric Result;
         string Var;
@@ -133,11 +133,11 @@ class TTabularIntegralProblem : public TProblem
 
         void SetConditions(const TNumeric &N, const string& var);
 
-        TNumeric Integrate(THTMLWriter *Writer, const TNumeric& N, string Var);
+        TNumeric Integrate(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var);
 
         virtual string GetTask();
         virtual string GetShortTask();
-        virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+        virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
         virtual void BuildPhrases();
 
         virtual string GetClassName() { return "TElementarFractionIntegralProblem";};

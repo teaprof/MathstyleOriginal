@@ -67,7 +67,7 @@ string TPolynomIntegralProblem::GetShortTask()
     return MyTranslator.tr("polynom");
 }
 
-bool TPolynomIntegralProblem::GetSolution(THTMLWriter* Writer)
+bool TPolynomIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 vector<TNumeric> NewCoefs;
     NewCoefs.assign(MaxPower+2, TNumeric("0"));
@@ -216,7 +216,7 @@ string TRationalIntegralProblem::GetShortTask()
     return MyTranslator.tr("rational function");
 }
 
-bool TRationalIntegralProblem::GetSolution(THTMLWriter* Writer)
+bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 //*************************** ВЫДЕЛЯЕМ ГЛАВНУЮ ЧАСТЬ
 TPolynom MainPart;
@@ -543,7 +543,7 @@ string TRationalIntegralProblem2::GetShortTask()
     return MyTranslator.tr("rational function");
 }
 
-bool TRationalIntegralProblem2::GetSolution(THTMLWriter* Writer)
+bool TRationalIntegralProblem2::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     TNumeric Result;
     Result = *Conditions;
@@ -599,7 +599,7 @@ string TIntegralProblem::GetShortTask()
     return MyTranslator.tr("integral");
 }
 
-bool TIntegralProblem::GetSolution(THTMLWriter* Writer)
+bool TIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     TTabularIntegralProblem P;
     P.SetConditions(*Conditions, "x");
@@ -648,7 +648,7 @@ void TElementarFractionIntegralProblem::BuildPhrases()
     //nothing to add to dictionary
 }
 
-bool TElementarFractionIntegralProblem::Integrate1(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res) //  a/(b*x + c)
+bool TElementarFractionIntegralProblem::Integrate1(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res) //  a/(b*x + c)
 {
     Q_UNUSED(Writer);
  TNumericMask MaskAlg;
@@ -667,7 +667,7 @@ bool TElementarFractionIntegralProblem::Integrate1(THTMLWriter *Writer, const TN
     return false;
 }
 
-bool TElementarFractionIntegralProblem::Integrate2(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res) //  a/(b*x + c)^k
+bool TElementarFractionIntegralProblem::Integrate2(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res) //  a/(b*x + c)^k
 {
     Q_UNUSED(Writer);
 TNumericMask MaskAlg;
@@ -689,7 +689,7 @@ TNumeric Mask;
    }
    return false;
 }
-bool TElementarFractionIntegralProblem::Integrate3(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res)
+bool TElementarFractionIntegralProblem::Integrate3(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res)
 {
 TNumericMask MaskAlg;
 TNumeric Mask;
@@ -738,7 +738,7 @@ TNumeric Mask;
     }
     return false;
 }
-bool TElementarFractionIntegralProblem::Integrate4(THTMLWriter *Writer, const TNumeric& NConst, string Var, TNumeric& Res) //  a/(b*x^2+c*x+d)^k
+bool TElementarFractionIntegralProblem::Integrate4(std::shared_ptr<THTMLWriter> Writer, const TNumeric& NConst, string Var, TNumeric& Res) //  a/(b*x^2+c*x+d)^k
 {
 TNumericMask MaskAlg;
 TNumeric Mask;
@@ -789,7 +789,7 @@ TNumeric Mask;
     return false;
 }
 
-bool TElementarFractionIntegralProblem::IntegrateJn(THTMLWriter *Writer, const TNumeric& Num, string Var, TNumeric& Res)
+bool TElementarFractionIntegralProblem::IntegrateJn(std::shared_ptr<THTMLWriter> Writer, const TNumeric& Num, string Var, TNumeric& Res)
 {
     //рекуррентная формула для 1/(x^2+a^2)^n
 TNumericMask MaskAlg;
@@ -837,7 +837,7 @@ TNumeric Mask;
 }
 
 
-TNumeric TElementarFractionIntegralProblem::Integrate(THTMLWriter *Writer, const TNumeric& N, string Var)
+TNumeric TElementarFractionIntegralProblem::Integrate(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var)
 {
 TNumeric Res;
     if(Writer)Writer->IncrementNestingLevel();
@@ -873,7 +873,7 @@ void TElementarFractionIntegralProblem::SetConditions(const TNumeric &N, const s
     this->Var = var;
 }
 
-bool TElementarFractionIntegralProblem::GetSolution(THTMLWriter* Writer)
+bool TElementarFractionIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     Result = Integrate(Writer, *Conditions, Var);
 #ifdef __DEBUG__
@@ -898,7 +898,7 @@ void TTabularIntegralProblem::BuildPhrases()
     //nothing to add to dictionary
 }
 
-bool TTabularIntegralProblem::IntegrateSin(THTMLWriter *Writer, const TNumeric& N, string Var, TNumeric& Res) //  a/(b*x + c)
+bool TTabularIntegralProblem::IntegrateSin(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res) //  a/(b*x + c)
 {
     Q_UNUSED(Writer);
  TNumericMask MaskAlg;
@@ -937,7 +937,7 @@ bool TTabularIntegralProblem::IntegrateSin(THTMLWriter *Writer, const TNumeric& 
 }
 
 
-TNumeric TTabularIntegralProblem::Integrate(THTMLWriter *Writer, const TNumeric& N, string Var)
+TNumeric TTabularIntegralProblem::Integrate(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var)
 {
 TNumeric Res;
     if(Writer)Writer->IncrementNestingLevel();
@@ -968,7 +968,7 @@ void TTabularIntegralProblem::SetConditions(const TNumeric &N, const string& var
     this->Var = var;
 }
 
-bool TTabularIntegralProblem::GetSolution(THTMLWriter* Writer)
+bool TTabularIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     Result = Integrate(Writer, *Conditions, Var);
 #ifdef __DEBUG__

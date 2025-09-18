@@ -39,7 +39,7 @@ class TPowerEquality : public TPowerProblemConditions, public TEquality
         ~TPowerEquality();
         virtual string GetTask();
         virtual string GetShortTask();
-        virtual bool GetSolution(THTMLWriter* Writer);
+        virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
         virtual string GetClassName() { return "TPowerEquality";};
         virtual void BuildPhrases();
         virtual vector<string> GetKeyWords();

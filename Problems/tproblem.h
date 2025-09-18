@@ -27,8 +27,8 @@ public:
     virtual ~TProblem();
     TProblem& operator=(const TProblem &other);
 
-    virtual string GetTask() = 0;
-    virtual string GetShortTask() = 0;
+    virtual string GetTask() { return {};}
+    virtual string GetShortTask() {return {};}
     virtual bool Solve(std::shared_ptr<THTMLWriter> Writer);
 
     //возвращает непосредственно само решение без дублирования условия
@@ -46,12 +46,12 @@ public:
         Q_UNUSED(Type);
     }
 
-    virtual vector<string> GetKeyWords() = 0; //выдает ключевые слова
+    virtual vector<string> GetKeyWords() {return {};} //выдает ключевые слова
 
     virtual void SaveToFile(ofstream &f);
     virtual void LoadFromFile(ifstream &f);
 
-    virtual string GetClassName() = 0;
+    virtual string GetClassName() {return "TProblem";};
     virtual void BuildPhrases();
 
     virtual void Randomize(std::mt19937& rng) {Q_UNUSED(rng);};

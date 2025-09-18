@@ -183,7 +183,7 @@ string TPowerEquality::GetShortTask()
     return string(Buf);
 }
 
-bool TPowerEquality::GetSolution(THTMLWriter* Writer)
+bool TPowerEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 TPolynom L = GetLeftP();
 TPolynom R = GetRightP();

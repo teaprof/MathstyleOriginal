@@ -27,7 +27,7 @@ class TLinearTrigEquality : public TProblem, public TEquality
         virtual string GetClassName() { return "TLinearTrigEquality";};
 
 
-        virtual bool GetSolution(THTMLWriter* Writer);
+        virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
         void SetCoef(const TNumeric& a, const TNumeric& b, const TNumeric& c);
 
         virtual void LoadFromFile(ifstream &f)
@@ -70,7 +70,7 @@ public:
     //virtual void SetMaxPower(size_t MaxPower, int Operator); //устанавливает максимальную степень многочлена MaxPower
 
 
-    virtual bool GetSolution(THTMLWriter* Writer);
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
 
 
 //    virtual void SaveToFile(ofstream &f);

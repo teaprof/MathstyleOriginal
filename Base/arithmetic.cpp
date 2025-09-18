@@ -2554,7 +2554,7 @@ void TNumeric::Assign(const char* str)
    p = new char[strlen(str)+1];
    strcpy(p, str);
    Assign(p);
-   delete p;
+   delete [] p;
 };
 
 void TNumeric::Assign(char* str)

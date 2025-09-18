@@ -13,7 +13,7 @@ TSolutionBrowser::TSolutionBrowser(QWidget *parent) :
 
     QVBoxLayout *layout = new QVBoxLayout(this);
     WebView = new QWebEngineView(this);
-    ToolBar = new QToolBar(this);
+    ToolBar = new QToolBar(this);    
     ToolBar->setIconSize(QSize(48, 48));
 
     layout->addWidget(ToolBar);
@@ -40,6 +40,7 @@ TSolutionBrowser::TSolutionBrowser(QWidget *parent) :
     RegisterToolButton(":Commands/Pictures/Commands/cross_48.png", "Close", this, SLOT(Close()));
 
     SetCaption("Mathstyle Pro Browser");
+    this->setMinimumSize(300, 100);
 
 };
 

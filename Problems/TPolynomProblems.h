@@ -55,15 +55,15 @@ class TPolynomConditions:  public TProblem
 };
 
 class TPolynomialEquality : public TPolynomConditions, public TEquality
-{        
-        bool CheckRationalAndGetNOK(THTMLWriter *Writer, const TPolynom &P, int& NOK); //проверяет, чтобы все коэффициенты в многочлене были рациональными и вычисляет НОК знаменателей
-        bool GetIntCoefs(THTMLWriter *Writer, int NOK, const TPolynom& P, vector<int> &IntCoefs); //умножает все коэффициенты многочлена на NOK, после чего они должны стать целыми, и записывает их в IntCoefs
-        int TakeOutCommonMultiplicator(THTMLWriter *Writer, vector<int>& Coefs); //выносит общий множитель
-        bool TakeOutXk(THTMLWriter *Writer, vector<int>& Coefs); //выносит общий множитель вида x^k
-        bool SearchRationalRoots(THTMLWriter *Writer, vector<int>& Coefs, TPolynom& PRemaining); //ищет корни среди рациональных корней
+{
+        bool CheckRationalAndGetNOK(std::shared_ptr<THTMLWriter> Writer, const TPolynom &P, int& NOK); //проверяет, чтобы все коэффициенты в многочлене были рациональными и вычисляет НОК знаменателей
+        bool GetIntCoefs(std::shared_ptr<THTMLWriter> Writer, int NOK, const TPolynom& P, vector<int> &IntCoefs); //умножает все коэффициенты многочлена на NOK, после чего они должны стать целыми, и записывает их в IntCoefs
+        int TakeOutCommonMultiplicator(std::shared_ptr<THTMLWriter> Writer, vector<int>& Coefs); //выносит общий множитель
+        bool TakeOutXk(std::shared_ptr<THTMLWriter> Writer, vector<int>& Coefs); //выносит общий множитель вида x^k
+        bool SearchRationalRoots(std::shared_ptr<THTMLWriter> Writer, vector<int>& Coefs, TPolynom& PRemaining); //ищет корни среди рациональных корней
         //PRemaining - оставшийся многочлен после выноса рациональных корней
 
-        bool AnalyzePRemaining(THTMLWriter *Writer, const TPolynom& PRemaining); //пытается что-то еще сделать с оставшимся многочленом
+        bool AnalyzePRemaining(std::shared_ptr<THTMLWriter> Writer, const TPolynom& PRemaining); //пытается что-то еще сделать с оставшимся многочленом
 
     public:
         //Эти данные относятся к решению, их в файл можно не сохранять
@@ -86,12 +86,12 @@ class TPolynomialEquality : public TPolynomConditions, public TEquality
         ~TPolynomialEquality();
         virtual string GetTask();
         virtual string GetShortTask();
-        virtual bool GetSolution(THTMLWriter* Writer);
-        bool GetSolution(THTMLWriter *Writer, TPolynom P);
+        virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
+        bool GetSolution(std::shared_ptr<THTMLWriter> Writer, TPolynom P);
         virtual string GetClassName() { return "TPolynomialEquality";};
         virtual void BuildPhrases();
 
-        void PrintAnswer(THTMLWriter *Writer);
+        void PrintAnswer(std::shared_ptr<THTMLWriter> Writer);
 
         void ClearSolution();
         void AddRoot(const TNumeric& N, size_t Multiplicity = 1);
@@ -118,7 +118,7 @@ public:
     virtual void SetLeftPartP(const TPolynom &P, bool unused_flag = false);
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() { return "TLinearEquality";};
@@ -137,7 +137,7 @@ public:
     virtual void SetLeftPartP(const TPolynom &P, bool unused_flag = false);
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(THTMLWriter* Writer);
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
     virtual void BuildPhrases();
 
     virtual string GetClassName() { return "TSquareEquality";};
@@ -164,7 +164,7 @@ class TPolynomialInequality : public TPolynomConditions, public TInequality
         ~TPolynomialInequality();
         virtual string GetTask();
         virtual string GetShortTask();
-        virtual bool GetSolution(THTMLWriter* Writer);
+        virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
 
         virtual vector<TNumeric> GetTypes(std::shared_ptr<TNumeric> N); //выдаёт все возможные типы задачи
         virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type);
@@ -190,7 +190,7 @@ public:
         ~TLinearInequality();
         virtual string GetTask();
         virtual string GetShortTask();
-        bool GetSolution(THTMLWriter* Writer);
+        bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
         virtual string GetClassName() { return "TLinearInequality";};
         virtual void BuildPhrases();
         virtual vector<string> GetKeyWords();
@@ -206,7 +206,7 @@ public:
     TSquareInequality(const TSquareInequality *L, bool Less = true, bool Strict = true); //коэффициенты будут такие же, как в L, а знак неравенства будет определятся флагами Less и Strict
     virtual string GetTask();
     virtual string GetShortTask();
-    bool GetSolution(THTMLWriter* Writer);
+    bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
     virtual string GetClassName() { return "TSquareInequality";};
     virtual void BuildPhrases();
     virtual vector<string> GetKeyWords();
@@ -229,7 +229,7 @@ public:
     ~TSetOfInequalities();
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(THTMLWriter* Writer);
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
     virtual vector<TNumeric> GetTypes(std::shared_ptr<TNumeric> N); //выдаёт все возможные типы задачи, когда кликается по объекту N
     virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type);
     virtual void SaveToFile(ofstream &f)
@@ -260,7 +260,7 @@ public:
     ~TSystemOfInequalities() {};
     virtual string GetTask() {return MyTranslator.tr("Solve system of inequalities");};
     virtual string GetShortTask() {return MyTranslator.tr("system of inequalities");};
-    virtual bool GetSolution(THTMLWriter* Writer);
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
     virtual string GetClassName() { return ClassName;};    
     virtual void BuildPhrases();
     virtual vector<string> GetKeyWords();
@@ -337,7 +337,7 @@ vector<string> Res;
 
 
 template <class TInequalityClass, const char* ClassName>
-bool TSetOfInequalities<TInequalityClass, ClassName>::GetSolution(THTMLWriter* Writer)
+bool TSetOfInequalities<TInequalityClass, ClassName>::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 
     *FirstInequality.Conditions = TProblem::Conditions->Operands[0];
@@ -418,7 +418,7 @@ TSystemOfInequalities<TInequalityClass, ClassName>::TSystemOfInequalities() : TS
 };
 
 template <class TInequalityClass, const char* ClassName>
-bool TSystemOfInequalities<TInequalityClass, ClassName>::GetSolution(THTMLWriter* Writer)
+bool TSystemOfInequalities<TInequalityClass, ClassName>::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     *(this->FirstInequality.Conditions) = this->Conditions->Operands[0];
     if(Writer)Writer->AddParagraph("Solving first inequality");
@@ -498,7 +498,7 @@ public:
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(THTMLWriter* Writer);
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
 
     virtual string GetClassName() { return "TPolynomDerivative";};
     virtual void BuildPhrases();
@@ -557,7 +557,7 @@ public:
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(THTMLWriter* Writer);
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
     virtual string GetClassName() { return "TRationalFunctionDerivative";};
     virtual void BuildPhrases();
 

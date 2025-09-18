@@ -31,8 +31,8 @@ public:
 
     virtual string GetTask();
     virtual string GetShortTask();
-    bool GetSystemSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
-    virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+    bool GetSystemSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
 
     virtual string GetClassName() { return "TSystemOfEquations";};
     virtual void BuildPhrases();

@@ -9,9 +9,9 @@
 
 TProblem::TProblem()
 {
-    Conditions = 0;
+    Conditions = std::make_shared<TNumeric>();
     CanRandomize = false;
-    BuildPhrases();    
+//    BuildPhrases();
 }
 TProblem::TProblem(const TProblem& P)
 {    
@@ -105,8 +105,6 @@ vector<TNumeric> TProblem::GetTypes(const std::shared_ptr<TNumeric>& N)
 TSimplifyProblem::TSimplifyProblem() : TProblem()
 {
     Conditions->Operator = OperatorSum;
-    auto a = TNumeric();
-    (void)a;
     Conditions->OperandsPushback(TNumeric("1"));
     Conditions->OperandsPushback(TNumeric("2"));
     Conditions->Assign("((x^2+(-1*x))+1");

@@ -14,7 +14,7 @@ public:
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(THTMLWriter* Writer); //возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
 
     virtual string GetClassName() { return "TDerivativeProblem";};
     virtual void BuildPhrases();

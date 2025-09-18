@@ -402,6 +402,7 @@ TPolynomSeries GetMaclaurin(int Operator, size_t LastTerm)
             Res = GetMaclaurin(OperatorLn, LastTerm);
             Res = Res * (TNumeric(1)/MakeLn(TNumeric(10)));
         };
+        break;
         case OperatorSqrt:     //returns series for sqrt(1+x)
             [[fallthrough]];
         case OperatorFrac:     //returns series for 1/(1+x)
@@ -428,7 +429,7 @@ TPolynomSeries GetMaclaurin(int Operator, size_t LastTerm)
 }
 
 
-bool TMaclaurinSeriesProblem::ExpandIntoSeries(THTMLWriter *Writer, TPolynomSeries *Res, string var, const TNumeric& N, int LastTerm)
+bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writer, TPolynomSeries *Res, string var, const TNumeric& N, int LastTerm)
 {
     switch(N.Operator)
     {
@@ -706,7 +707,7 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(THTMLWriter *Writer, TPolynomSeri
     return true;
 }
 
-bool TMaclaurinSeriesProblem::GetSolution(THTMLWriter* Writer)
+bool TMaclaurinSeriesProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     TPolynomSeries Ser;
     if(ExpandIntoSeries(Writer, &Ser, "x", *this->Conditions, MaxPower))

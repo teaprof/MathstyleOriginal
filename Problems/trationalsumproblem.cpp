@@ -194,7 +194,7 @@ string TRationalSumEquality::GetShortTask()
     return string(Buf);
 }
 
-bool TRationalSumEquality::GetSolution(THTMLWriter* Writer)
+bool TRationalSumEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 TPolynom P1 = GetP(0);
 TPolynom P2 = GetP(1);

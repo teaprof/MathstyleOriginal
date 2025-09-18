@@ -532,7 +532,7 @@ void TPolynomialEquality::AddMultiplicator(const TPolynom& P, size_t Multiplicit
 }
 
 
-bool TPolynomialEquality::CheckRationalAndGetNOK(THTMLWriter *Writer, const TPolynom &P, int& NOK)
+bool TPolynomialEquality::CheckRationalAndGetNOK(std::shared_ptr<THTMLWriter> Writer, const TPolynom &P, int& NOK)
 {
     NOK = 1;
     for(size_t Power = 0; Power <= MaxPower; Power++)
@@ -575,7 +575,7 @@ bool TPolynomialEquality::CheckRationalAndGetNOK(THTMLWriter *Writer, const TPol
     return true;
 }
 
-bool TPolynomialEquality::GetIntCoefs(THTMLWriter *Writer, int NOK, const TPolynom& P, vector<int> &IntCoefs)
+bool TPolynomialEquality::GetIntCoefs(std::shared_ptr<THTMLWriter> Writer, int NOK, const TPolynom& P, vector<int> &IntCoefs)
 {
     //умножаем все коэф на общий знаменатель
     if(NOK > 1)
@@ -597,7 +597,7 @@ bool TPolynomialEquality::GetIntCoefs(THTMLWriter *Writer, int NOK, const TPolyn
 }
 
 
-int TPolynomialEquality::TakeOutCommonMultiplicator(THTMLWriter *Writer, vector<int>& IntCoefs)
+int TPolynomialEquality::TakeOutCommonMultiplicator(std::shared_ptr<THTMLWriter> Writer, vector<int>& IntCoefs)
 {
     Q_UNUSED(Writer);
     int NOD = GetNOD(IntCoefs);
@@ -606,7 +606,7 @@ int TPolynomialEquality::TakeOutCommonMultiplicator(THTMLWriter *Writer, vector<
     return NOD;
 }
 
-bool TPolynomialEquality::TakeOutXk(THTMLWriter *Writer, vector<int>& IntCoefs)
+bool TPolynomialEquality::TakeOutXk(std::shared_ptr<THTMLWriter> Writer, vector<int>& IntCoefs)
 {
     //Рассматриваем случай x^k*P(x) = 0
     size_t ZeroXMult = 0; //кратность корня, равна k
@@ -629,7 +629,7 @@ bool TPolynomialEquality::TakeOutXk(THTMLWriter *Writer, vector<int>& IntCoefs)
     return true;
 };
 
-bool TPolynomialEquality::SearchRationalRoots(THTMLWriter *Writer, vector<int>& IntCoefs, TPolynom& PRemaining)
+bool TPolynomialEquality::SearchRationalRoots(std::shared_ptr<THTMLWriter> Writer, vector<int>& IntCoefs, TPolynom& PRemaining)
 {
     if(IntCoefs.size() == 0) return true;
 vector<TNumeric> RationalRoots; //найденные корни без учёта кратности
@@ -782,7 +782,7 @@ Degenerate = false;
     return true;
 };
 
-bool TPolynomialEquality::AnalyzePRemaining(THTMLWriter *Writer, const TPolynom& PRemaining)
+bool TPolynomialEquality::AnalyzePRemaining(std::shared_ptr<THTMLWriter> Writer, const TPolynom& PRemaining)
 {
     AllRootsFound = true;
 
@@ -903,7 +903,7 @@ void TPolynomialEquality::ClearSolution()
     LinearMultiplier = TNumeric(1);
 }
 
-bool TPolynomialEquality::GetSolution(THTMLWriter* Writer)
+bool TPolynomialEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 vector<TNumeric> Coef1; //коэффициенты в виде объектов TNumeric
     Coef1 = GetCoef();
@@ -973,7 +973,7 @@ vector<TNumeric> Coef1; //коэффициенты в виде объектов 
     return true;
 }
 
-void TPolynomialEquality::PrintAnswer(THTMLWriter *Writer)
+void TPolynomialEquality::PrintAnswer(std::shared_ptr<THTMLWriter> Writer)
 {
     if(Roots.size() > 0)
     {
@@ -1118,7 +1118,7 @@ TPolynom P2 = P;
     TPolynomialEquality::SetLeftPartP(P2);
 }
 
-bool TLinearEquality::GetSolution(THTMLWriter* Writer)
+bool TLinearEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     ClearSolution();
     TNumeric& a = GetCoefP(1);
@@ -1245,7 +1245,7 @@ TPolynom P2 = P;
     TPolynomialEquality::SetLeftPartP(P2);
 }
 
-bool TSquareEquality::GetSolution(THTMLWriter* Writer)
+bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     ClearSolution();
     TNumeric& a = GetCoefP(2);
@@ -1440,7 +1440,7 @@ string TPolynomialInequality::GetShortTask()
     return string(Buf);
 }
 
-bool TPolynomialInequality::GetSolution(THTMLWriter* Writer)
+bool TPolynomialInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 vector<TNumeric> Coef1; //коэффициенты в виде объектов TNumeric
     Coef1 = GetCoef();
@@ -1626,7 +1626,7 @@ string TLinearInequality::GetShortTask()
 }
 
 
-bool TLinearInequality::GetSolution(THTMLWriter* Writer)
+bool TLinearInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     TNumeric& a = GetCoefP(1);
     TNumeric& b = GetCoefP(0);
@@ -1807,7 +1807,7 @@ string TSquareInequality::GetShortTask()
     *(c1) = c;
 }*/
 
-bool TSquareInequality::GetSolution(THTMLWriter* Writer)
+bool TSquareInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 TSquareEquality Eq;
     TNumeric& a = GetCoefP(2);
@@ -2134,7 +2134,7 @@ char Buf[128];
     return string(Buf);
 }
 
-bool TPolynomDerivative::GetSolution(THTMLWriter* Writer)
+bool TPolynomDerivative::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     TPolynom P = GetP();
     if(Writer)
@@ -2217,7 +2217,7 @@ char Buf[128];
     return Buf;
 }
 
-bool TRationalFunctionDerivative::GetSolution(THTMLWriter* Writer)
+bool TRationalFunctionDerivative::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     TRationalFunction R;
     R.P.Coef.assign(MaxPowerNominator+1, TNumeric(0));

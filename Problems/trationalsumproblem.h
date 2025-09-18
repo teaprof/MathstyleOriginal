@@ -39,7 +39,7 @@ public:
     ~TRationalSumEquality();
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(THTMLWriter* Writer);
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
 
     virtual vector<TNumeric> GetTypes(TNumeric* N);
     virtual void SetType(TNumeric* N, size_t Type);    
