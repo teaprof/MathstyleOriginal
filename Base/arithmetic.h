@@ -14,7 +14,6 @@
 #include <fstream>
 #include <optional>
 #include <functional>
-#include "tline.h"
 
 #ifndef __int16
 #define __int16 short int
@@ -88,8 +87,6 @@ const int OperatorSh = 45;
 const int OperatorCh = 46;
 
 
-QFont DecreaseFont(TPaintCanvas* Canvas);
-
 enum TEditableFlags
 {
     NoEditable = 0x00,
@@ -98,81 +95,10 @@ enum TEditableFlags
     //NextFlag = 0x04 and so on
 };
 
-class TNumeric : public TRectangleElement
+class TNumeric
 {
       void CreateClear(); //создает чистый TNumeric
       void Assign(const TNumeric& N);
-      void DrawBracket(char Bracket, TPaintCanvas* Canvas, int X, int Y, int Height, int Depth) const;
-      int GetBracketWidth(char Bracket, TPaintCanvas* Canvas, int Height, int Depth) const;
-      void DrawBracket(string Bracket, TPaintCanvas* Canvas, int X, int Y, int Height, int Depth) const;
-      int GetBracketWidth(string Bracket, TPaintCanvas* Canvas, int Height, int Depth) const;
-
-
-      void FunctionGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void FunctionDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void StrGetTextRectangle(const char *Str, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void StrDraw(const char *Str, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void InlineGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void InlineDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void EqualGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void EqualDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void BelongsToGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void BelongsToDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void IntervalGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const; //for OperatorInterval, OperatorSegmentInterval, OperatorIntervalSegment, OperatorSegment
-      void IntervalDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void SqrtGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void SqrtDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void ProdGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void ProdDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void SumGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void SumDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void MinusGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void MinusDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void PlusMinusGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void PlusMinusDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void FracGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void FracDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void PowGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void PowDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void AbsGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void AbsDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void SubIndexGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void SubIndexDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void LinesGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, int LeftMargin, bool Simplify) const;
-      void LinesDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, int LeftMargin, bool Simplify) const;
-
-      void EqSystemGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void EqSystemDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void EqSetGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void EqSetDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void IntegralGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void IntegralDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void UnionGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void UnionDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void IntersectionGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void IntersectionDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-
-      void DerivGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const;
-      void DerivDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
 
       int GetOperatorPriority(int OpCode) const;
       int CompareOperatorsPriority(int OpCode1, int OpCode2) const;
@@ -259,38 +185,6 @@ class TNumeric : public TRectangleElement
       void MakeEqSet(const TNumeric& N1, const TNumeric& N2);
       //Создает систему из двух уравнений: N1 & N2
       void MakeEqSystem(const TNumeric& N1, const TNumeric& N2);
-
-      //Если Simplify == true, то функции рисуют формулу в хорошем виде, проводя некоторые преобразования. Иначе без преобразований
-      //шрифт надо выбирать вручную, вызвав заранее     Canvas->Font = Canvas->FormulaFont;
-      void PrettyGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const;
-      int PrettyDrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, bool NeedBrackets, bool Simplify) const;
-
-
-      //функции рисуют формулу после некоторых преобразований, упрощающих её вид
-      void GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool NeedBrackets) const
-      {
-          //MaxWidth не используется
-          Canvas->Font = Canvas->FormulaFont;
-          PrettyGetTextRectangle(Canvas, Width, Height, Depth, NeedBrackets, true);
-      }
-
-      int DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, bool NeedBrackets) const
-      {
-          //MaxWidth не используется
-          Canvas->Font = Canvas->FormulaFont;
-          return PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, true);
-      }
-
-
-      virtual void GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, int MaxWidth = -1) const
-      {
-          //MaxWidth не используется
-          Q_UNUSED(MaxWidth);
-          Canvas->Font = Canvas->FormulaFont;
-          GetTextRectangle(Canvas, Width, Height, Depth, false);
-      }
-
-      virtual void DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth = -1) const;
 
       void Assign(const char* str);
       void Assign(char* str);

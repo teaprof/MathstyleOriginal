@@ -13,6 +13,7 @@ RC_FILE = Schoolar.rc
 
 
 SOURCES += \
+    Base/formulaplotter.cpp \
     Base/tphrases.cpp \
     Base/tline.cpp \
     Base/tinterval.cpp \
@@ -52,6 +53,7 @@ SOURCES += \
     ttestfonts.cpp
 
 HEADERS  += \
+    Base/formulaplotter.h \
     Base/tphrases.h \
     Base/tline.h \
     Base/tinterval.h \
