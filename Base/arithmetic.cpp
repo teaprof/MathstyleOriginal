@@ -211,17 +211,32 @@ void TNumeric::Assign(const TNumeric& N)
    OwnHeight = N.OwnHeight;
    OwnDepth = N.OwnDepth;
    TRectangleElement::operator=(N);
-};
+}
 
-TNumeric* TNumeric::GetByID(int ID)
+bool TNumeric::hasID(int ID) {
+    if(ID == this->ID) {
+        return true;
+    }
+    for(size_t i = 0; i < Operands.size(); i++)
+    {
+        if(Operands[i].hasID(ID))
+            return true;
+    }
+    return false;
+}
+
+std::optional<std::reference_wrapper<TNumeric>> TNumeric::GetByID(int ID)
 {
-   if(ID == this->ID) return this;
-   for(size_t i = 0; i < Operands.size(); i++)
-   {
-      TNumeric *P = Operands[i].GetByID(ID);
-      if(P != NULL) return P;
-   };
-   return NULL;
+    if(ID == this->ID) {
+        return *this;
+    }
+    for(size_t i = 0; i < Operands.size(); i++)
+    {
+        if(Operands[i].hasID(ID)) {
+            return Operands[i].GetByID(ID);
+        }
+    };
+    return std::nullopt;
 };
 
 void TNumeric::ClearID()

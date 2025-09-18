@@ -27,7 +27,7 @@ public:
     TPolynom GetP(size_t N);  //возвращает числитель N-ой дроби
     TPolynom GetQ(size_t N);  //возвращает знаменатель N-ой дроби
 
-    void Randomize(TRandom *Rng);
+    void Randomize(std::mt19937& rng);
 };
 
 

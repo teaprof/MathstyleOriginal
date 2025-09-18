@@ -25,7 +25,7 @@ TSystemOfEquations::TSystemOfEquations(size_t VarsCount, size_t EqCount) : TProb
         Variables.push_back(V);
     };
 
-    Conditions = new TNumeric;
+    Conditions = std::make_shared<TNumeric>();
     Conditions->Operator = OperatorEqSystem;
     int IDCount = 0;
     for(size_t n = 0; n < EqCount; n++)
@@ -268,7 +268,7 @@ void TSystemOfEquations::Assign(const TSystemOfEquations& E)
 {
     this->Variables = E.Variables;
     if(Conditions == 0)
-        Conditions = new TNumeric;
+        Conditions = std::make_shared<TNumeric>();
     *Conditions = *E.Conditions;
     this->Coefs = E.Coefs;
     this->RightSide = E.RightSide;
@@ -294,8 +294,8 @@ bool TSystemOfEquations::ReadData()
         for(size_t m = 0; m < VarsCount(); m++)
             Coefs1[m] = *Conditions->GetByID(ID[n][m]);
         Coefs.push_back(Coefs1);
-        TNumeric *N = Conditions->GetByID(ID[n][VarsCount()]);
-        RightSide.push_back(*N);
+        TNumeric &N = Conditions->GetByID(ID[n][VarsCount()]).value().get();
+        RightSide.push_back(N);
     }
     return true;
 }
@@ -546,7 +546,7 @@ bool TSystemOfEquations::GetSystemSolution(THTMLWriter *Writer)
             if(!PrintedForExcluding)
             {
                 PrintedForExcluding = true;
-                if(Writer)Writer->WriteRectangleElement(Conditions);
+                //if(Writer)Writer->WriteRectangleElement(Conditions); // todo: why Conditions is rectangle element?
             }
             if(Writer)
                 Writer->AddParagraph("Equation above is always true", n+1);
@@ -703,8 +703,7 @@ bool TSystemOfEquations::GetSolution(THTMLWriter* Writer)
 
 void TSystemOfEquations::BeginAddEquations()
 {
-    if(Conditions)delete Conditions;
-    Conditions = new TNumeric;
+    Conditions = std::make_shared<TNumeric>();
     Conditions->Operator = OperatorEqSystem;
     MaxID = 0;
     ID.clear();
@@ -763,18 +762,19 @@ TNumeric LeftPart;
     return true;
 }
 
-void TSystemOfEquations::Randomize(TRandom *Rng)
+void TSystemOfEquations::Randomize(std::mt19937& rng)
 {
-    EqCount = ID.size();
+    std::uniform_int_distribution<int> dist(-10, 10);
+    EqCount = ID.size();    
     for(size_t n = 0; n < EqCount; n++)
     {
         for(size_t m = 0; m <= VarsCount(); m++)
         {
             int CurID = ID[n][m];
-            TNumeric *N = Conditions->GetByID(CurID);
-            *N = TNumeric(Rng->Random(-10, 10));
-            N->ID = CurID;
-            N->SetEditableFlags(ConstAllowed);
+            TNumeric& N = Conditions->GetByID(CurID).value().get();
+            N = TNumeric(dist(rng));
+            N.ID = CurID;
+            N.SetEditableFlags(ConstAllowed);
         };
     }
 }

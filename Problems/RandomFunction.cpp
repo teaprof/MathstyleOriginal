@@ -1,11 +1,6 @@
 #include "RandomFunction.h"
 
-TRandomFunction::TRandomFunction(TRandom *Rng)
-{
-    this->Rng = Rng;
-}
-
-TNumeric TRandomFunction::RandomFunction(int Flags, int Level)
+TNumeric TRandomFunction::RandomFunction(int Flags, int Level, std::mt19937& rng)
 {
     if(Level == 0)
     {
@@ -37,7 +32,7 @@ vector<int> Operators;
     {
         return TNumeric("x"); //Only const is allowed
     }
-    size_t Index = (size_t)Rng->Random(0, Operators.size() - 1);
+    size_t Index = rng() % Operators.size();
     int Operator = Operators[Index];
     TNumeric Res;
     Res.Operator = Operator;
@@ -52,15 +47,15 @@ vector<int> Operators;
         case OperatorArctg:
         case OperatorLn:
         case OperatorExp:
-            Res.OperandsPushback(RandomFunction(Flags, Level - 1));
+            Res.OperandsPushback(RandomFunction(Flags, Level - 1, rng));
             break;
         case OperatorFrac:
-            Res.OperandsPushback(RandomFunction(Flags, Level - 1));
-            Res.OperandsPushback(RandomFunction(Flags, Level - 1));
+            Res.OperandsPushback(RandomFunction(Flags, Level - 1, rng));
+            Res.OperandsPushback(RandomFunction(Flags, Level - 1, rng));
             break;
         case OperatorSum:
-            Res.OperandsPushback(RandomFunction(Flags & ~AllowSum, Level)); //we are excluding AllowSum to avoid
-            Res.OperandsPushback(RandomFunction(Flags & ~AllowSum, Level)); //infinite recursion (with probability = 0) and long expressions (prob > 0)
+            Res.OperandsPushback(RandomFunction(Flags & ~AllowSum, Level, rng)); //we are excluding AllowSum to avoid
+            Res.OperandsPushback(RandomFunction(Flags & ~AllowSum, Level, rng)); //infinite recursion (with probability = 0) and long expressions (prob > 0)
             break;
     }
     return Res;

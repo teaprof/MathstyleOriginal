@@ -49,7 +49,7 @@ TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int S
     Right.OperandsPushback(MakeFrac(GetPolynom(MaxPower, GetPStartIndex(3)), GetPolynom(MaxPower, GetQStartIndex(3))));
     Res.OperandsPushback(Left);
     Res.OperandsPushback(Right);
-    Conditions = new TNumeric(Res);
+    Conditions = std::make_shared<TNumeric>(Res);
 
     if(MaxPower == 1)
     {
@@ -58,18 +58,21 @@ TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int S
         {
             char Buf[20];
             sprintf(Buf, "%d", SampleCoefs[i]);
-            Conditions->GetByID(i)->K = Buf;
+            Conditions->GetByID(i).value().get().K = Buf;
         };
     } else {
         for(size_t i = 0; i < (MaxPower+1)*10; i++) //берём с запасом
         {
-            TNumeric* P = Conditions->GetByID(i);
-            if(P)
-            {
-                char Buf[20];
-                sprintf(Buf, "%d", (int) i);
-                P->K = Buf;
-            };
+            if(Conditions->hasID(i)) {
+                auto v = Conditions->GetByID(i);;
+                if(v.has_value())
+                {
+                    TNumeric& P = v.value().get();
+                    char Buf[20];
+                    sprintf(Buf, "%d", (int) i);
+                    P.K = Buf;
+                };
+            }
         }
     }
     SetSigns(Sign1, Sign2);
@@ -78,7 +81,7 @@ TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int S
 TRationalSumConditions::TRationalSumConditions(const TRationalSumConditions& R, int Sign1, int Sign2) : TProblem(R)
 {
     this->MaxPower = MaxPower;
-    Conditions = new TNumeric(*R.Conditions);
+    Conditions = std::make_shared<TNumeric>(*R.Conditions);
     SetSigns(Sign1, Sign2);
 }
 
@@ -118,22 +121,23 @@ TPolynom TRationalSumConditions::GetQ(size_t N)
 }
 
 
-void TRationalSumConditions::Randomize(TRandom *Rng)
+void TRationalSumConditions::Randomize(std::mt19937& rng)
 {
+    std::uniform_int_distribution<int> dist(-20, 20);
     for(size_t i = 0; i <= MaxPower; i++)
         for(size_t j = 0; j < 4; j++)
         {
             int ID = GetPStartIndex(j) + i;
-            TNumeric *N = Conditions->GetByID(ID);
-            *N = TNumeric(Rng->Random(-20, 20));
-            N->SetEditableFlags(ConstAllowed);
-            N->ID = ID;
+            TNumeric& N = Conditions->GetByID(ID).value().get();
+            N = TNumeric(dist(rng));
+            N.SetEditableFlags(ConstAllowed);
+            N.ID = ID;
 
             ID = GetQStartIndex(j) + i;
-            N = Conditions->GetByID(ID);
-            *N = TNumeric(Rng->Random(-20, 20));
-            N->SetEditableFlags(ConstAllowed);
-            N->ID = ID;
+            TNumeric& N2 = Conditions->GetByID(ID).value().get();
+            N2 = TNumeric(dist(rng));
+            N2.SetEditableFlags(ConstAllowed);
+            N2.ID = ID;
         }
 }
 

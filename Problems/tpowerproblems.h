@@ -23,7 +23,7 @@ class TPowerProblemConditions : public TProblem
         TNumeric* GetRightBase();
         TPolynom GetLeftP();
         TPolynom GetRightP();
-        void Randomize(TRandom* Rng);
+        void Randomize(std::mt19937& rng);
 
         virtual void SaveToFile(ofstream &f);
         virtual void LoadFromFile(ifstream &f);        

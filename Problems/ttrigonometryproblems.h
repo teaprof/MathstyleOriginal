@@ -46,7 +46,7 @@ class TLinearTrigEquality : public TProblem, public TEquality
         virtual void BuildPhrases();
         virtual vector<string> GetKeyWords();
 
-        void Randomize(TRandom *Rng);
+        void Randomize(std::mt19937& rng);
 };
 
 
@@ -91,7 +91,7 @@ public:
     virtual void BuildPhrases();
     virtual vector<string> GetKeyWords();
 
-    void Randomize(TRandom *Rng);
+    void Randomize(std::mt19937& rng);
 };
 
 #endif // TTRIGONOMETRYPROBLEMS_H

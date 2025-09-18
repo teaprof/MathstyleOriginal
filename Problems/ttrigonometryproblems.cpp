@@ -109,7 +109,7 @@ TNumeric c(0);
     a.SetEditableFlags(ConstAllowed);
     b.SetEditableFlags(ConstAllowed);
     c.SetEditableFlags(ConstAllowed);
-    Conditions = new TNumeric(MakeEquality(a*MakeCos(UnknownVar)+b*MakeSin(UnknownVar), c));
+    Conditions = std::make_shared<TNumeric>(MakeEquality(a*MakeCos(UnknownVar)+b*MakeSin(UnknownVar), c));
     this->UnknownVar = UnknownVar;
     this->CounterVar = CounterVar;
 }
@@ -120,12 +120,12 @@ TLinearTrigEquality::~TLinearTrigEquality()
 
 void TLinearTrigEquality::SetCoef(const TNumeric& a, const TNumeric& b, const TNumeric& c)
 {
-TNumeric *A = Conditions->GetByID(IDa);
-    *A = a; A->ClearID(); A->ID = IDa; A->EditableFlags = ConstAllowed;
-TNumeric *B = Conditions->GetByID(IDb);
-    *B = b; B->ClearID(); B->ID = IDb; B->EditableFlags = ConstAllowed;
-TNumeric *C = Conditions->GetByID(IDc);
-    *C = c; C->ClearID(); C->ID = IDc; C->EditableFlags = ConstAllowed;
+    TNumeric& A = Conditions->GetByID(IDa).value();
+    A = a; A.ClearID(); A.ID = IDa; A.EditableFlags = ConstAllowed;
+    TNumeric& B = Conditions->GetByID(IDb).value();
+    B = b; B.ClearID(); B.ID = IDb; B.EditableFlags = ConstAllowed;
+    TNumeric& C = Conditions->GetByID(IDc).value();
+    C = c; C.ClearID(); C.ID = IDc; C.EditableFlags = ConstAllowed;
 }
 
 
@@ -383,9 +383,10 @@ TNumeric c = *(Conditions->GetByID(IDc));
     return true;
 }
 
-void TLinearTrigEquality::Randomize(TRandom *Rng)
+void TLinearTrigEquality::Randomize(std::mt19937& rng)
 {
-    SetCoef(TNumeric(Rng->Random(-10, 10)), TNumeric(Rng->Random(-10, 10)), TNumeric(Rng->Random(-10, 10)));
+    std::uniform_int_distribution<int> dist(-10, 10);
+    SetCoef(TNumeric(dist(rng)), TNumeric(dist(rng)), TNumeric(dist(rng)));
 }
 
 //**************************************************************************************************
@@ -662,7 +663,7 @@ vector<string> Res;
     return Res;
 }
 
-void THomogeneousTrigEquality::Randomize(TRandom *Rng)
+void THomogeneousTrigEquality::Randomize(std::mt19937& rng)
 {
-    TPolynomConditions::Randomize(Rng);
+    TPolynomConditions::Randomize(rng);
 }

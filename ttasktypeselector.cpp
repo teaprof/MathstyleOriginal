@@ -47,6 +47,7 @@ TPaintCanvas Canvas(Scene);
         RectToNum.insert(pair<QGraphicsItem*, size_t>(I, i));       
         GI = I;
     }
+    (void)GI;
     ui->graphicsView->setScene(Scene);
     ui->graphicsView->ensurePolished();
 }

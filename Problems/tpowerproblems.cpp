@@ -10,16 +10,16 @@ size_t TPowerProblemConditions::GetStartID(size_t Part)
 TPowerProblemConditions::TPowerProblemConditions(size_t MaxPower)
 {
     this->MaxPower = MaxPower;
-TNumeric Left;
-TNumeric Right;
-TNumeric A(2), B(3);
+    TNumeric Left;
+    TNumeric Right;
+    TNumeric A(2), B(3);
     A.EditableFlags = ConstAllowed;
     A.ID = LeftBaseID;
     B.EditableFlags = ConstAllowed;
     B.ID = RightBaseID;
     Left = A^GetPolynom(MaxPower, GetStartID(0));
     Right = B^GetPolynom(MaxPower, GetStartID(1));
-    Conditions = new TNumeric;
+    Conditions = std::make_shared<TNumeric>();
     Conditions->Operator = OperatorEqual;
     Conditions->OperandsPushback(Left);
     Conditions->OperandsPushback(Right);
@@ -31,12 +31,18 @@ TPowerProblemConditions::~TPowerProblemConditions()
 }
 TNumeric* TPowerProblemConditions::GetLeftBase()
 {
-    return Conditions->GetByID(LeftBaseID);
+    auto v = Conditions->GetByID(LeftBaseID);
+    if(v.has_value())
+        return &(v->get());
+    return nullptr;
 }
 
 TNumeric* TPowerProblemConditions::GetRightBase()
 {
-    return Conditions->GetByID(RightBaseID);
+    auto v = Conditions->GetByID(RightBaseID);
+    if(v.has_value())
+        return &(v->get());
+    return nullptr;
 }
 
 TPolynom TPowerProblemConditions::GetLeftP()
@@ -76,33 +82,35 @@ __int16 MaxPower;
     TProblem::LoadFromFile(f);
 }
 
-void TPowerProblemConditions::Randomize(TRandom* Rng)
+void TPowerProblemConditions::Randomize(std::mt19937& rng)
 {
+    std::uniform_int_distribution<int> dist(-20, 20);
     for(size_t i = 0; i <= MaxPower; i++)
     {
         int ID = GetStartID(0) + i;
-        TNumeric *N = Conditions->GetByID(ID);
-        *N = TNumeric(Rng->Random(-20, +20));
-        N->ID = ID;
-        N->SetEditableFlags(ConstAllowed);
+        TNumeric& N = Conditions->GetByID(ID).value().get();
+        N = TNumeric(dist(rng));
+        N.ID = ID;
+        N.SetEditableFlags(ConstAllowed);
     };
     for(size_t i = 0; i <= MaxPower; i++)
     {
         int ID = GetStartID(1) + i;
-        TNumeric *N = Conditions->GetByID(ID);
-        *N = TNumeric(Rng->Random(-20, +20));
-        N->ID = ID;
-        N->SetEditableFlags(ConstAllowed);
+        TNumeric& N = Conditions->GetByID(ID).value().get();
+        N = TNumeric(dist(rng));
+        N.ID = ID;
+        N.SetEditableFlags(ConstAllowed);
     };
     //building the bases A and B
     vector<int> Primes;
-    Primes.push_back(2); Primes.push_back(3); Primes.push_back(5); Primes.push_back(7); Primes.push_back(11); Primes.push_back(13);
-    int base = Primes[Rng->Random(0, Primes.size() - 1)];
-    int d1 = Rng->Random(1, 3);
+    Primes.push_back(2); Primes.push_back(3); Primes.push_back(5); Primes.push_back(7); Primes.push_back(11); Primes.push_back(13);    
+    int base = Primes[rng() % Primes.size()];
+    std::uniform_int_distribution<int> dist2(1, 3);
+    int d1 = dist2(rng);
     int d2;
     do
     {
-        d2 = Rng->Random(1, 3);
+        d2 = dist2(rng);
     } while (d1 == d2);
     int base1 = base;
     while(d1-- > 0) base1 *= base;

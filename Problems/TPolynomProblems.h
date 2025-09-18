@@ -19,31 +19,39 @@ class TPolynomConditions:  public TProblem
         TNumeric UnknownVar; //обозначение неизвестной переменной
         size_t MaxPower;
         TPolynomConditions(size_t MaxPower = 8, bool HaveRightPart = true, int Operator = OperatorEqual);
-        TPolynomConditions(const TPolynom& P, bool HaveRightPart = true, int Operator = OperatorEqual, bool AllCoef = true);//Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
-        TPolynomConditions(const TPolynomConditions& P);
+        //Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
+        TPolynomConditions(const TPolynom& P, bool HaveRightPart = true, int Operator = OperatorEqual, bool AllCoef = true);
         ~TPolynomConditions();
+
         vector<TNumeric> GetCoef() const;
-        TPolynom GetP() const;
-        virtual void SetLeftPartP(const TPolynom &P, bool AllCoef = true); //Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
-        virtual void SetLeftPart(const TNumeric &a, const TNumeric &b); //sets left part to ax+b
-        virtual void SetLeftPart(const TNumeric &a, const TNumeric &b, const TNumeric& c); //sets left part to ax^2+bx+c
-        virtual void SetMaxPower(size_t MaxPower, int Operator); //устанавливает максимальную степень многочлена MaxPower        
-
-        TNumeric* GetCoefP(size_t power); //returns Pointer
-        TNumeric GetCoef(size_t power) const;
-
-        TNumeric* GetRightPartP(); //returns Pointer
+        TPolynom GetP() const; //rename to getPolynom
+        TNumeric& GetCoefP(size_t power);
+        const TNumeric& GetCoef(size_t power) const;
+        TNumeric& GetRightPartP();
         TNumeric GetRightPart() const;
+
+
+        //Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
+        virtual void SetLeftPartP(const TPolynom &P, bool AllCoef = true);
+        //sets left part to ax+b
+        virtual void SetLeftPart(const TNumeric &a, const TNumeric &b);
+        //sets left part to ax^2+bx+c
+        virtual void SetLeftPart(const TNumeric &a, const TNumeric &b, const TNumeric& c);
+        //устанавливает максимальную степень многочлена MaxPower
+        virtual void SetMaxPower(size_t MaxPower, int Operator);
+
         void SetRightPart(const TNumeric& N);
 
-        void SetUnknownVar(TNumeric UnknownVar); //меняет Conditions, если они есть
+        //меняет Conditions, если они есть
+        void SetUnknownVar(TNumeric UnknownVar);
 
         virtual void SaveToFile(ofstream &f);
         virtual void LoadFromFile(ifstream &f);
 
-        virtual TNumeric GetVarPower(size_t power); //возвращает UnknownVar^power
+        //возвращает UnknownVar^power
+        virtual TNumeric GetVarPower(size_t power);
 
-        void Randomize(TRandom *Rng);
+        void Randomize(std::mt19937& rng);
 };
 
 class TPolynomialEquality : public TPolynomConditions, public TEquality
@@ -116,7 +124,7 @@ public:
     virtual string GetClassName() { return "TLinearEquality";};
     virtual vector<string> GetKeyWords();
 
-    void Randomize(TRandom* Rng);
+    void Randomize(std::mt19937& rng);
 };
 
 class TSquareEquality : public TPolynomialEquality
@@ -135,7 +143,7 @@ public:
     virtual string GetClassName() { return "TSquareEquality";};
     virtual vector<string> GetKeyWords();
 
-    void Randomize(TRandom* Rng);
+    void Randomize(std::mt19937& rng);
 };
 
 
@@ -158,8 +166,8 @@ class TPolynomialInequality : public TPolynomConditions, public TInequality
         virtual string GetShortTask();
         virtual bool GetSolution(THTMLWriter* Writer);
 
-        virtual vector<TNumeric> GetTypes(TNumeric* N); //выдаёт все возможные типы задачи
-        virtual void SetType(TNumeric* N, size_t Type);
+        virtual vector<TNumeric> GetTypes(std::shared_ptr<TNumeric> N); //выдаёт все возможные типы задачи
+        virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type);
 
         virtual string GetClassName() { return "TPolynomialInequality";};
         virtual void BuildPhrases();
@@ -187,7 +195,7 @@ public:
         virtual void BuildPhrases();
         virtual vector<string> GetKeyWords();
 
-        void Randomize(TRandom* Rng);
+        void Randomize(std::mt19937& rng);
 };
 
 class TSquareInequality : public TPolynomialInequality
@@ -203,7 +211,7 @@ public:
     virtual void BuildPhrases();
     virtual vector<string> GetKeyWords();
 
-    void Randomize(TRandom* Rng);
+    void Randomize(std::mt19937& rng);
 };
 
 
@@ -222,8 +230,8 @@ public:
     virtual string GetTask();
     virtual string GetShortTask();
     virtual bool GetSolution(THTMLWriter* Writer);
-    virtual vector<TNumeric> GetTypes(TNumeric* N); //выдаёт все возможные типы задачи, когда кликается по объекту N
-    virtual void SetType(TNumeric* N, size_t Type);
+    virtual vector<TNumeric> GetTypes(std::shared_ptr<TNumeric> N); //выдаёт все возможные типы задачи, когда кликается по объекту N
+    virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type);
     virtual void SaveToFile(ofstream &f)
     {
         this->Conditions->WriteToFile(f);
@@ -240,7 +248,7 @@ public:
     virtual string GetClassName() { return ClassName;};
     virtual vector<string> GetKeyWords();
 
-    void Randomize(TRandom* Rng);
+    void Randomize(std::mt19937& rng);
 };
 
 template <class TInequalityClass, const char* ClassName>
@@ -257,7 +265,7 @@ public:
     virtual void BuildPhrases();
     virtual vector<string> GetKeyWords();
 
-//    void Randomize(TRandom* Rng);
+//    void Randomize(std::mt19937& rng);
 };
 
 
@@ -265,7 +273,7 @@ public:
 template <class TInequalityClass, const char* ClassName>
 TSetOfInequalities<TInequalityClass, ClassName>::TSetOfInequalities()
 {
-    this->Conditions = new TNumeric;
+    this->Conditions = std::make_shared<TNumeric>();
     this->Conditions->Operator = OperatorEqSet;
     this->Conditions->OperandsPushback(*(FirstInequality.Conditions));
     this->Conditions->OperandsPushback(*(SecondInequality.Conditions));
@@ -357,44 +365,44 @@ bool TSetOfInequalities<TInequalityClass, ClassName>::GetSolution(THTMLWriter* W
 
 
 template <class TInequalityClass, const char* ClassName>
-vector<TNumeric> TSetOfInequalities<TInequalityClass, ClassName>::GetTypes(TNumeric* N)
+vector<TNumeric> TSetOfInequalities<TInequalityClass, ClassName>::GetTypes(std::shared_ptr<TNumeric> N)
 {
 vector<TNumeric> Res;
-    if(N == &(this->Conditions->Operands[0]))
+    if(*N == this->Conditions->Operands[0])
     {
-        *FirstInequality.Conditions = *N;
+        FirstInequality.Conditions = std::make_shared<TNumeric>(*N);
         Res = FirstInequality.GetTypes(FirstInequality.Conditions);
     };
-    if(N == &(this->Conditions->Operands[1]))
+    if(*N == this->Conditions->Operands[1])
     {
-        *SecondInequality.Conditions = *N;
+        SecondInequality.Conditions = std::make_shared<TNumeric>(*N);
         Res = SecondInequality.GetTypes(SecondInequality.Conditions);
     }
     return Res;
 }
 
 template <class TInequalityClass, const char* ClassName>
-void TSetOfInequalities<TInequalityClass, ClassName>::SetType(TNumeric* N, size_t Type)
+void TSetOfInequalities<TInequalityClass, ClassName>::SetType(std::shared_ptr<TNumeric> N, size_t Type)
 {
-    if(N == &(this->Conditions->Operands[0]))
+    if(*N == Conditions->Operands[0])
     {
         FirstInequality.SetType(FirstInequality.Conditions, Type);
-        TProblem::Conditions->Operands[0] = *FirstInequality.Conditions;
+        Conditions->Operands[0] = *FirstInequality.Conditions;
     };
-    if(N == &(this->Conditions->Operands[1]))
+    if(*N == this->Conditions->Operands[1])
     {
         SecondInequality.SetType(SecondInequality.Conditions, Type);
-        TProblem::Conditions->Operands[1] = *SecondInequality.Conditions;
+        Conditions->Operands[1] = *SecondInequality.Conditions;
     }
 }
 
 template <class TInequalityClass, const char* ClassName>
-void TSetOfInequalities<TInequalityClass, ClassName>::Randomize(TRandom* Rng)
+void TSetOfInequalities<TInequalityClass, ClassName>::Randomize(std::mt19937& rng)
 {
     if(FirstInequality.CanRandomize)
-        FirstInequality.Randomize(Rng);
+        FirstInequality.Randomize(rng);
     if(SecondInequality.CanRandomize)
-        SecondInequality.Randomize(Rng);
+        SecondInequality.Randomize(rng);
     this->Conditions->Operator = OperatorEqSet;
     this->Conditions->OperandsClear();
     this->Conditions->OperandsPushback(*(FirstInequality.Conditions));
@@ -496,7 +504,7 @@ public:
     virtual void BuildPhrases();
     virtual vector<string> GetKeyWords();
 
-    void Randomize(TRandom* Rng);
+    void Randomize(std::mt19937& rng);
 };
 
 class TRationalFunctionConditions : public TProblem
@@ -520,7 +528,7 @@ public:
     TPolynom GetNominatorP();
     TPolynom GetDenominatorP();
 
-    TNumeric* GetRightPartP(); //returns Pointer
+    TNumeric& GetRightPartP();
     TNumeric GetRightPart() const;
     void SetRightPart(const TNumeric& R);
 
@@ -537,7 +545,7 @@ public:
     virtual void SaveToFile(ofstream &f);
     virtual void LoadFromFile(ifstream &f);
 
-    void Randomize(TRandom* Rng);
+    void Randomize(std::mt19937& rng);
 };
 
 

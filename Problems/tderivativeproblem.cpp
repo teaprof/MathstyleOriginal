@@ -4,7 +4,7 @@
 TDerivativeProblem::TDerivativeProblem()
 {
     CanRandomize = true;
-    Conditions = new TNumeric;
+    Conditions = std::make_shared<TNumeric>();
     Conditions->Operator = OperatorArctg;
     Conditions->OperandsPushback(MakePow(TNumeric("x"), TNumeric(2))+TNumeric(2));
     //Conditions->Operator = OperatorFrac;
@@ -54,16 +54,7 @@ vector<string> Res;
 
 void TDerivativeProblem::Assign(const TDerivativeProblem& S)
 {
-    if(Conditions) delete Conditions;
-    Conditions = new TNumeric;
-    *this->Conditions = *S.Conditions;
-    /*if(Solution) delete Solution;
-    Solution = 0;
-    if(S.Solution)
-    {
-        Solution = new TLines;
-        *Solution = *S.Solution;
-    }*/
+    Conditions = std::make_shared<TNumeric>(*S.Conditions);
 }
 
 string TDerivativeProblem::GetTask()
@@ -91,31 +82,31 @@ bool TDerivativeProblem::GetSolution(THTMLWriter* Writer)
     return true;
 }
 
-void TDerivativeProblem::Randomize(TRandom *Rng)
+void TDerivativeProblem::Randomize(std::mt19937& rng)
 {
-TNumeric Res;
-TRandomFunction RF(Rng);
-    switch(Rng->Random(0, 3))
+    TNumeric Res;
+    TRandomFunction RF;
+    switch(rng() % 3)
     {
         case 0:
             Res.Operator = OperatorFrac;
-            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1));
-            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1));
+            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1, rng));
+            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1, rng));
         break;
         case 1:
             Res.Operator = OperatorPow;
-            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2));
-            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum, 1));
+            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2, rng));
+            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum, 1, rng));
         break;
         case 2:
             Res.Operator = OperatorProd;
-            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1));
-            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1));
+            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1, rng));
+            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1, rng));
         break;
         case 3:
             Res.Operator = OperatorSum;
-            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2));
-            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2));
+            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2, rng));
+            Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2, rng));
         break;
     }
     Res.SetEditableFlags(ConstAllowed | FunctionsAllowed);

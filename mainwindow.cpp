@@ -487,7 +487,7 @@ void MainWindow::DrawConditions()
     if(Problem)
     {
         ui->FormulaEditor->SetTask(Problem->GetTask());
-        ui->FormulaEditor->SetFormula(Problem->Conditions);
+        ui->FormulaEditor->SetFormula(Problem->Conditions.get());
         ui->pushButton_6->setEnabled(Problem->CanRandomize);
     } else  {
         ui->pushButton_6->setEnabled(false);
@@ -546,7 +546,7 @@ TProblem* P = Problems[SelectedProblem];
 }
 
 
-void MainWindow::OnFormulaSelectionChanged(TNumeric* NewSelection)
+void MainWindow::OnFormulaSelectionChanged(std::shared_ptr<TNumeric> NewSelection)
 //Selecting the type of subproblem (like ax+b<c, or ax+b <= c or > or >=)
 {
     if(Problem)
@@ -722,7 +722,7 @@ void MainWindow::Solve()
 
             QElapsedTimer Time;
             Time.start();
-            THTMLWriter *Writer = new THTMLWriter;
+            auto Writer = std::make_shared<THTMLWriter>();
             string Dir = GetDirectory(DirCount++);
             string Path = Dir + "/index.html";
 
@@ -757,8 +757,6 @@ void MainWindow::Solve()
             B->show();
             B->activateWindow();
             B->Load(QString::fromLocal8Bit(Writer->GetFolder().c_str()), QString::fromLocal8Bit(Writer->GetFileName().c_str()));
-
-            delete Writer;
         };
     } catch(const char* str) {
         //ошибка скорее всего произошла из-за некорректного ввода
@@ -1029,7 +1027,7 @@ void MainWindow::RandomizeConditions()
 {
     if(Problem && Problem->CanRandomize)
     {        
-        Problem->Randomize(&Rng);
+        Problem->Randomize(rng);
         DrawConditions();
     };
 }

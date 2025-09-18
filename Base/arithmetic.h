@@ -12,7 +12,8 @@
 #include <map>
 #include <string>
 #include <fstream>
-
+#include <optional>
+#include <functional>
 #include "tline.h"
 
 #ifndef __int16
@@ -206,7 +207,7 @@ class TNumeric : public TRectangleElement
       void OperandsPushback(const TNumeric &Val);
       void OperandsClear();
 
-      string K;
+      string K; // todo: wtf?
       int Operator;
       TNumeric();
       virtual ~TNumeric();
@@ -300,7 +301,8 @@ class TNumeric : public TRectangleElement
       double Calculate() const;
       TNumeric Substitute(const string& var, const TNumeric& Val) const;
 
-      TNumeric* GetByID(int ID);
+      bool hasID(int ID);
+      std::optional<std::reference_wrapper<TNumeric>> GetByID(int ID);
       void ClearID(); //устанавливает ID у себя и всех потомков в -1
 
       TNumeric Simplify() const;

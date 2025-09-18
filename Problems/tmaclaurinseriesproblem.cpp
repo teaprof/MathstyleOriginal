@@ -192,26 +192,15 @@ TNumeric Res = This.GetSeriesNumeric(TNumeric(var));
 
 void TMaclaurinSeriesProblem::Assign(const TMaclaurinSeriesProblem& S)
 {
-    if(Conditions) delete Conditions;
-    Conditions = new TNumeric;
-    *this->Conditions = *S.Conditions;
+    Conditions = std::make_shared<TNumeric>(*S.Conditions);
     MaxPower = S.MaxPower;
-    /*if(Solution) delete Solution;
-    Solution = 0;
-    if(S.Solution)
-    {
-        Solution = new TLines;
-        *Solution = *S.Solution;
-    }
-    Series = S.Series;*/
-
     BuildPhrases();
 }
 
 
 TMaclaurinSeriesProblem::TMaclaurinSeriesProblem(size_t MaxPower)
 {
-    Conditions = new TNumeric;
+    Conditions = std::make_shared<TNumeric>();
     Conditions->Operator = OperatorPow;
     Conditions->OperandsPushback(TNumeric("x") + TNumeric(1));
     Conditions->OperandsPushback(MakeFrac(TNumeric("1"), TNumeric("2")));

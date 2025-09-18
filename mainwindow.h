@@ -54,7 +54,7 @@ public:
     TButtonsSheetView *KeywordsButtons;
     TGlobeView *KeywordsGlobeView;
 
-    TRandom Rng;
+    std::mt19937 rng;
     size_t DirCount; //счетчик созданных директорий с решениями
     QGraphicsScene *GViewScene;
     bool FreeDebugVersion; //true в случае бесплатной версии, используемой во время отладки
@@ -112,7 +112,7 @@ private slots:
     void SelectProblemByWidget(QTreeWidgetItem* item);
     void SelectProblemByIndex(size_t Index);
 
-    void OnFormulaSelectionChanged(TNumeric* NewSelection);
+    void OnFormulaSelectionChanged(std::shared_ptr<TNumeric> NewSelection);
     void OnKeywordPicked(QString Keyword);
 
     void on_treeWidget_3_itemPressed(QTreeWidgetItem* item, int column);

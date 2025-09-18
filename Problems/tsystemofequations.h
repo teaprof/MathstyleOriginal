@@ -49,7 +49,7 @@ public:
     void EndAddEquations();
     virtual vector<string> GetKeyWords();
 
-    void Randomize(TRandom *Rng);
+    void Randomize(std::mt19937& rng);
 };
 
 #endif // TSYSTEMOFEQUATIONS_H

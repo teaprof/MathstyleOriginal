@@ -8,7 +8,7 @@
 
 TPolynomIntegralProblem::TPolynomIntegralProblem() : TPolynomConditions(8, true, OperatorIntegral)
 {
-    *(GetRightPartP()) = TNumeric("x"); //integral over dx
+    GetRightPartP() = TNumeric("x"); //integral over dx
     BuildPhrases();
 }
 
@@ -54,16 +54,7 @@ TPolynomIntegralProblem::~TPolynomIntegralProblem()
 
 void TPolynomIntegralProblem::Assign(const TPolynomIntegralProblem& S)
 {
-    if(Conditions) delete Conditions;
-    Conditions = new TNumeric;
-    *this->Conditions = *S.Conditions;
-    /*if(Solution) delete Solution;
-    Solution = 0;
-    if(S.Solution)
-    {
-        Solution = new TLines;
-        *Solution = *S.Solution;
-    }*/
+    Conditions = std::make_shared<TNumeric>(*S.Conditions);
 }
 
 string TPolynomIntegralProblem::GetTask()
@@ -497,7 +488,7 @@ TNumeric UnknownVar("x");
 
     R = MakeFrac(Nom, Denom);
 
-    Conditions = new TNumeric;
+    Conditions = std::make_shared<TNumeric>();
     Conditions->Operator = OperatorIntegral;
     Conditions->OperandsPushback(R);
     Conditions->OperandsPushback(TNumeric("x"));
@@ -576,13 +567,11 @@ void TRationalIntegralProblem2::SaveToFile(ofstream &f)
 //**********************************************************************************************************************
 void TIntegralProblem::Assign(const TIntegralProblem& S)
 {
-    if(Conditions) delete Conditions;
-    Conditions = new TNumeric;
-    *this->Conditions = *S.Conditions;
+    Conditions = std::make_shared<TNumeric>(*S.Conditions);
 };
 TIntegralProblem::TIntegralProblem()
 {
-    Conditions = new TNumeric;
+    Conditions = std::make_shared<TNumeric>();
     Conditions->Operator = OperatorSin;
     Conditions->OperandsPushback(TNumeric("x"));
     Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);
@@ -877,8 +866,10 @@ string TElementarFractionIntegralProblem::GetShortTask()
 
 void TElementarFractionIntegralProblem::SetConditions(const TNumeric &N, const string& var)
 {
-    if(Conditions == 0) Conditions = new TNumeric(N);
-    else *Conditions = N;
+    if(Conditions == 0)
+        Conditions = std::make_shared<TNumeric>(N);
+    else
+        *Conditions = N;
     this->Var = var;
 }
 
@@ -972,7 +963,7 @@ string TTabularIntegralProblem::GetShortTask()
 
 void TTabularIntegralProblem::SetConditions(const TNumeric &N, const string& var)
 {
-    if(Conditions == 0) Conditions = new TNumeric(N);
+    if(Conditions == 0) Conditions = std::make_shared<TNumeric>(N);
     else *Conditions = N;
     this->Var = var;
 }
