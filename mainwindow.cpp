@@ -52,7 +52,7 @@ using namespace std;
 extern QApplication* qAppl;
 extern QString ApplicationDirPath;
 
-#define VERSION "2.0"
+#define VERSION "1.88"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
