@@ -29,7 +29,7 @@ class THTMLWriter : public TRectangleElementVisitor
         THTMLWriter();
         ~THTMLWriter();
 
-        virtual void visit(const TFormulaPlotter& element);
+        virtual void visit(const TConstFormulaPlotter& element);
         virtual void visit(const THSpace& element);
         virtual void visit(const TLine& element);
         virtual void visit(const TLines& element);
@@ -73,8 +73,8 @@ class THTMLWriter : public TRectangleElementVisitor
         void AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3, const TNumeric& N4);
 
         void Add(std::string str);
-        void AddFormula(TFormulaPlotter fp); //на отдельной строке <br/> $$FORMULA$$ <br/>
-        void AddInlineFormula(TFormulaPlotter fp); //встроенная в строку формула
+        void AddFormula(const TConstFormulaPlotter& fp); //на отдельной строке <br/> $$FORMULA$$ <br/>
+        void AddInlineFormula(const TConstFormulaPlotter& N); //встроенная в строку формула
         void AddFormula(const TNumeric& N); //на отдельной строке <br/> $$FORMULA$$ <br/>
         void AddInlineFormula(const TNumeric& N); //встроенная в строку формула
 

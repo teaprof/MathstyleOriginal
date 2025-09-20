@@ -80,7 +80,7 @@ TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int S
 
 TRationalSumConditions::TRationalSumConditions(const TRationalSumConditions& R, int Sign1, int Sign2) : TProblem(R)
 {
-    this->MaxPower = MaxPower;
+    //this->MaxPower = MaxPower;
     Conditions = std::make_shared<TNumeric>(*R.Conditions);
     SetSigns(Sign1, Sign2);
 }
@@ -296,26 +296,26 @@ TIntervalsSet ODZ(TInterval(NumericMinusInf, NumericPlusInf, false, false));
     };
 }
 
-vector<TNumeric> TRationalSumEquality::GetTypes(TNumeric* N)
+vector<std::shared_ptr<TNumeric>> TRationalSumEquality::GetTypes(std::shared_ptr<const TNumeric> N)
 {
-vector<TNumeric> Res;
-    if(N == Conditions->operands[0].get())
+    vector<std::shared_ptr<TNumeric>> Res;
+    if(N == Conditions->operands[0])
     {
-        Res.push_back(*(TRationalSumEquality(*this, +1, Sign2).Conditions));
-        Res.push_back(*(TRationalSumEquality(*this, -1, Sign2).Conditions));
+        Res.push_back(TRationalSumEquality(*this, +1, Sign2).Conditions);
+        Res.push_back(TRationalSumEquality(*this, -1, Sign2).Conditions);
     };
-    if(N == Conditions->operands[1].get())
+    if(N == Conditions->operands[1])
     {
-        Res.push_back(*(TRationalSumEquality(*this, Sign1, +1).Conditions));
-        Res.push_back(*(TRationalSumEquality(*this, Sign1, -1).Conditions));
+        Res.push_back(TRationalSumEquality(*this, Sign1, +1).Conditions);
+        Res.push_back(TRationalSumEquality(*this, Sign1, -1).Conditions);
     };
     return Res;
 }
 
-void TRationalSumEquality::SetType(TNumeric* N, size_t Type)
+void TRationalSumEquality::SetType(std::shared_ptr<TNumeric> N, size_t Type)
 {
  vector<TNumeric> Res;
-    if(N == Conditions->operands[0].get())
+    if(N == Conditions->operands[0])
     {
         switch(Type)
         {
@@ -323,7 +323,7 @@ void TRationalSumEquality::SetType(TNumeric* N, size_t Type)
             case 1: SetSigns(-1, Sign2); break;
         };
     };
-    if(N == Conditions->operands[1].get())
+    if(N == Conditions->operands[1])
     {
         switch(Type)
         {

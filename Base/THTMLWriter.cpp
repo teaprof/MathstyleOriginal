@@ -92,7 +92,7 @@ void THTMLWriter::EndWrite()
     fout.close();
 }
 
-void THTMLWriter::visit(const TFormulaPlotter& element) {
+void THTMLWriter::visit(const TConstFormulaPlotter& element) {
     AddInlineFormula(element);
     fout<<endl;
 }
@@ -350,8 +350,8 @@ void THTMLWriter::DecrementNestingLevel()
 class TNumericExporter //: public QThread
 {
 public:
-    TNumericExporter(TFormulaPlotter& formula_plotter) : fp(formula_plotter) {}
-    TFormulaPlotter& fp;
+    TNumericExporter(const TConstFormulaPlotter& formula_plotter) : fp(formula_plotter) {}
+    const TConstFormulaPlotter& fp;
     string FullFileName;
     QColor EditableColor, TextColor, FormulaColor;
     QFont FormulaFont, TextFont;
@@ -363,15 +363,14 @@ void TNumericExporter::run()
     QPicture Pic;
     QPainter Painter;
     Painter.begin(&Pic);
-    TPaintCanvas C(&Painter);
-    C.EditableColor = EditableColor;
-    C.TextColor = TextColor;
-    C.FormulaColor = FormulaColor;
-    C.FormulaFont = FormulaFont;
-    C.TextFont = TextFont;
-    int W, H, D;
-    fp.GetTextRectangle(&C, W, H, D);
-    fp.DrawAtBaseLeft(&C, 0, 0);
+    auto C = std::make_shared<TPaintCanvas>(&Painter);
+    C->EditableColor = EditableColor;
+    C->TextColor = TextColor;
+    C->FormulaColor = FormulaColor;
+    C->FormulaFont = FormulaFont;
+    C->TextFont = TextFont;
+    auto [W, H, D] = fp.GetTextRectangle(C);
+    fp.DrawAtBaseLeft(C, 0, 0);
     Painter.end();
     QRect Rect(0, -H, W, H + D);
     QSize Size = Rect.size();
@@ -386,14 +385,14 @@ void TNumericExporter::run()
         Painter2.end();
     } else {
         cerr<<"THTMLWriter::AddInlineFormula: the size of image is zero"<<endl;
-        fp.GetTextRectangle(&C, W, H, D); //for debug purposes only
+        //auto [W, H, D] = fp.GetTextRectangle(&C); //for debug purposes only
     }
 
     Im.save(QString::fromLocal8Bit(FullFileName.c_str()));
 }
 
 
-void THTMLWriter::AddInlineFormula(TFormulaPlotter fp)
+void THTMLWriter::AddInlineFormula(const TConstFormulaPlotter& fp)
 {
     string FileName = GetUniqueFileName(Path.c_str(), "png");
     QFileInfo FileInfo(QString::fromLocal8Bit(Path.c_str()), QString::fromLocal8Bit(FileName.c_str()));
@@ -411,12 +410,12 @@ void THTMLWriter::AddInlineFormula(TFormulaPlotter fp)
     stringstream padstr;
     padstr<<"style=\"vertical-align: middle;\"";  
     //fout<<"<img src=\""<<FileName<<"\" align = \"bottom\" "<<padstr.str()<<" alt = \""<<N.CodeBasic()<<"\"/>";
-    fout<<"<img src=\""<<FileName<<"\" align = \"bottom\" "<<padstr.str()<<" alt = \""<<fp.CodeBasic()<<"\"/>";
+    fout<<"<img src=\""<<FileName<<"\" align = \"bottom\" "<<padstr.str()<<" alt = \""<<TFormulaPlotter::CodeBasic(fp.numeric())<<"\"/>";
     /*fout<<"some text";
     fout<<"<img src=\""<<FileName<<"\" align = \"middle\" "<<padstr.str()<<" alt = \""<<N.CodeBasic()<<"\"/>";*/
 }
 
-void THTMLWriter::AddFormula(TFormulaPlotter fp)
+void THTMLWriter::AddFormula(const TConstFormulaPlotter& fp) /// \todo: rename to printFormula since it doesn't take the ownership of fp (here and others)
 {
     fout<<"<br/>"<<endl;
     AddInlineFormula(fp);
@@ -425,10 +424,10 @@ void THTMLWriter::AddFormula(TFormulaPlotter fp)
 
 void THTMLWriter::AddFormula(const TNumeric& N)
 {
-    AddFormula(TFormulaPlotter(N));
+    AddFormula(TConstFormulaPlotter(std::make_shared<TNumeric>(N)));
 }
 void THTMLWriter::AddInlineFormula(const TNumeric& N) {
-    AddInlineFormula(TFormulaPlotter(N));
+    AddInlineFormula(TConstFormulaPlotter(std::make_shared<TNumeric>(N)));
 }
 
 

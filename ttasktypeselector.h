@@ -40,11 +40,11 @@ class TTaskTypeSelector : public QDialog
     QColor FormulaColor, EditableColor, BackgroundColor;
 public:
     size_t SelectedNum;
-    vector<TNumeric> Types;
+    vector<std::shared_ptr<TNumeric>> Types;
     explicit TTaskTypeSelector(QWidget *parent = 0);
     ~TTaskTypeSelector();
 
-    void SetTypes(vector<TNumeric> Types);
+    void SetTypes(vector<std::shared_ptr<TNumeric>> Types);
 
     void SetFonts(QFont TextFont, QFont FormulaFont);
     void SetColors(QColor FormulaColor, QColor EditableColor,  QColor BackgroundColor);

@@ -93,11 +93,10 @@ void TProblem::LoadFromFile(ifstream &f)
 }
 
 
-vector<TNumeric> TProblem::GetTypes(const std::shared_ptr<TNumeric>& N)
+vector<std::shared_ptr<TNumeric>> TProblem::GetTypes(std::shared_ptr<const TNumeric> N)
 {
     Q_UNUSED(N);
-    vector<TNumeric> Empty;
-    return Empty;
+    return {};
 }
 
 //********************************************************************************************************

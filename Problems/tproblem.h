@@ -36,11 +36,11 @@ public:
 
 
     //возвращает непосредственно само решение без дублирования условия
-    virtual vector<TNumeric> GetTypes() {
+    virtual vector<std::shared_ptr<TNumeric>> GetTypes() {
         return GetTypes(Conditions); // todo: why?
     }
     //выдаёт все возможные типы задачи, когда кликается по объекту N
-    virtual vector<TNumeric> GetTypes(const std::shared_ptr<TNumeric>& N);
+    virtual vector<std::shared_ptr<TNumeric>> GetTypes(std::shared_ptr<const TNumeric> N);
     virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type) {
         Q_UNUSED(N);
         Q_UNUSED(Type);

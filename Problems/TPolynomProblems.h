@@ -166,10 +166,10 @@ class TPolynomialInequality : public TPolynomConditions, public TInequality
         virtual string GetShortTask();
         virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
 
-        virtual vector<TNumeric> GetTypes(std::shared_ptr<TNumeric> N); //выдаёт все возможные типы задачи
+        virtual std::vector<std::shared_ptr<TNumeric>> GetTypes(std::shared_ptr<const TNumeric> N); //выдаёт все возможные типы задачи
         virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type);
 
-        virtual string GetClassName() { return "TPolynomialInequality";};
+        virtual string GetClassName() { return "TPolynomialInequality";}
         virtual void BuildPhrases();
 
         virtual void SaveToFile(ofstream &f);
@@ -230,7 +230,7 @@ public:
     virtual string GetTask();
     virtual string GetShortTask();
     virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
-    virtual vector<TNumeric> GetTypes(std::shared_ptr<TNumeric> N); //выдаёт все возможные типы задачи, когда кликается по объекту N
+    virtual vector<std::shared_ptr<TNumeric>> GetTypes(std::shared_ptr<const TNumeric> N); //выдаёт все возможные типы задачи, когда кликается по объекту N
     virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type);
     virtual void SaveToFile(ofstream &f)
     {
@@ -365,9 +365,9 @@ bool TSetOfInequalities<TInequalityClass, ClassName>::GetSolution(std::shared_pt
 
 
 template <class TInequalityClass, const char* ClassName>
-vector<TNumeric> TSetOfInequalities<TInequalityClass, ClassName>::GetTypes(std::shared_ptr<TNumeric> N)
+vector<std::shared_ptr<TNumeric>> TSetOfInequalities<TInequalityClass, ClassName>::GetTypes(std::shared_ptr<const TNumeric> N)
 {
-vector<TNumeric> Res;
+vector<std::shared_ptr<TNumeric>> Res;
     if(*N == *this->Conditions->operands[0])
     {
         FirstInequality.Conditions = std::make_shared<TNumeric>(*N);

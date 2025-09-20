@@ -19,7 +19,7 @@ TTestFonts::~TTestFonts()
     delete ui;
 }
 
-void TTestFonts::DrawOnCanvas(TPaintCanvas& Canvas)
+void TTestFonts::DrawOnCanvas(std::shared_ptr<TPaintCanvas> Canvas)
 {
 
     string str = "{}=+-1234567890";
@@ -29,14 +29,14 @@ void TTestFonts::DrawOnCanvas(TPaintCanvas& Canvas)
         for(size_t i = 0; i < str.size(); i++)
         {
             string substr = str.substr(i, 1);
-            Canvas.TightTextWHD(substr, &W, &H, &D);
-            Canvas.TextOutA(X, Y, substr);
-            Canvas.Rectangle(X, Y-H, X+W+1, Y+D, Qt::blue);
+            Canvas->TightTextWHD(substr, &W, &H, &D);
+            Canvas->TextOutA(X, Y, substr);
+            Canvas->Rectangle(X, Y-H, X+W+1, Y+D, Qt::blue);
 
-            D = Canvas.TextDepth(substr);
-            H = Canvas.TextHeight(substr);
-            W = Canvas.TextWidth(substr);
-            Canvas.Rectangle(X, Y-H, X+W+1, Y+D, Qt::gray);
+            D = Canvas->TextDepth(substr);
+            H = Canvas->TextHeight(substr);
+            W = Canvas->TextWidth(substr);
+            Canvas->Rectangle(X, Y-H, X+W+1, Y+D, Qt::gray);
 
             X += W+10;
         };
@@ -48,19 +48,19 @@ void TTestFonts::DrawOnCanvas(TPaintCanvas& Canvas)
         {
             string substr = str.substr(i, 1);
             H = 40; D = 40;
-            Canvas.SetTextHPlusD(substr, H, D);
+            Canvas->SetTextHPlusD(substr, H, D);
 
-            Canvas.TightTextWHD(substr, &W, &H, &D);
-            Canvas.TextOutA(X, Y-D, substr);
-            Canvas.Rectangle(X, Y-H-D, X+W+1, Y, Qt::blue);
+            Canvas->TightTextWHD(substr, &W, &H, &D);
+            Canvas->TextOutA(X, Y-D, substr);
+            Canvas->Rectangle(X, Y-H-D, X+W+1, Y, Qt::blue);
 
             X += W+10;
         };
-        Canvas.Line(0, Y, X, Y, Qt::yellow);
+        Canvas->Line(0, Y, X, Y, Qt::yellow);
 
 }
 
-void TTestFonts::NumericOnCanvas(TPaintCanvas& Canvas)
+void TTestFonts::NumericOnCanvas(std::shared_ptr<TPaintCanvas> Canvas)
 {
     TNumeric Var("x");
     TNumeric A(2); A.SetEditableFlags(ConstAllowed);
@@ -69,14 +69,14 @@ void TTestFonts::NumericOnCanvas(TPaintCanvas& Canvas)
     TNumeric Line2 = MakeEquality((A/B)*Var + B*MakeLog(Var, (Var^2)+2), TNumeric(0));
     TNumeric Line3 = MakeEquality(A*MakeSin(Var) + B*(Var^2), TNumeric(0));
     TNumeric Line4 = MakeEquality(A*Var + MakeCos(Var^2), TNumeric(0));
-    TNumeric SystemOfEquations;
-    SystemOfEquations.operation = OperatorEqSystem;
-    SystemOfEquations.OperandsPushback(Line1);
-    SystemOfEquations.OperandsPushback(Line2);
-    SystemOfEquations.OperandsPushback(Line3);
-    SystemOfEquations.OperandsPushback(Line4);
-    Canvas.Font = FormulaFont;
-    TFormulaPlotter(SystemOfEquations).PrettyDrawAtBaseLeft(&Canvas, 0, 0, false, false);
+    auto SystemOfEquations = std::make_shared<TNumeric>();
+    SystemOfEquations->operation = OperatorEqSystem;
+    SystemOfEquations->OperandsPushback(Line1);
+    SystemOfEquations->OperandsPushback(Line2);
+    SystemOfEquations->OperandsPushback(Line3);
+    SystemOfEquations->OperandsPushback(Line4);
+    Canvas->Font = FormulaFont;
+    TConstFormulaPlotter(SystemOfEquations).DrawAtBaseLeft(Canvas, 0, 0);
 }
 
 
@@ -85,14 +85,14 @@ void TTestFonts::DrawScene()
     if(ui->graphicsView->scene())
         ui->graphicsView->scene()->clear();
     QGraphicsScene *Scene = new QGraphicsScene(ui->graphicsView);
-    TPaintCanvas Canvas(Scene);
+    auto Canvas = std::make_shared<TPaintCanvas>(Scene);
 
-    Canvas.TextFont = TextFont;
-    Canvas.FormulaFont = FormulaFont;
-    Canvas.FormulaColor = FormulaColor;
-    Canvas.EditableColor = EditableColor;
+    Canvas->TextFont = TextFont;
+    Canvas->FormulaFont = FormulaFont;
+    Canvas->FormulaColor = FormulaColor;
+    Canvas->EditableColor = EditableColor;
 
-    Canvas.Font = Canvas.FormulaFont;
+    Canvas->Font = Canvas->FormulaFont;
 
     //DrawOnCanvas(Canvas);
     NumericOnCanvas(Canvas);
@@ -104,14 +104,14 @@ void TTestFonts::DrawScene_2()
     if(ui->graphicsView_2->scene())
         ui->graphicsView_2->scene()->clear();
     QGraphicsScene *Scene = new QGraphicsScene(ui->graphicsView_2);
-    TPaintCanvas Canvas(Scene);
+    auto Canvas = std::make_shared<TPaintCanvas>(Scene);
 
-    Canvas.TextFont = TextFont;
-    Canvas.FormulaFont = FormulaFont;
-    Canvas.FormulaColor = FormulaColor;
-    Canvas.EditableColor = EditableColor;
+    Canvas->TextFont = TextFont;
+    Canvas->FormulaFont = FormulaFont;
+    Canvas->FormulaColor = FormulaColor;
+    Canvas->EditableColor = EditableColor;
 
-    Canvas.Font = Canvas.FormulaFont;
+    Canvas->Font = Canvas->FormulaFont;
 
     //P.setBrush(Qt::white);
     //P.fillRect(0, 0, ui->widget->width(), ui->widget->height(), Qt::white);

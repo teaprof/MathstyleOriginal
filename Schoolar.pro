@@ -104,9 +104,9 @@ FORMS    += \
     tselectslausize.ui \
     ttestfonts.ui
 
-LIBS += -L../../mathomatic/mathomatic/lib -lmathomatic
+LIBS += -L../mathomatic/mathomatic/lib -lmathomatic
 
-INCLUDEPATH += mathomatic
+INCLUDEPATH += mathomatic .
 
 RESOURCES += \
     Schoolar.qrc

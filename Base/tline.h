@@ -67,16 +67,23 @@ public:
 };
 
 class TRectangleElement;
-class TFormulaPlotter;
+class TConstFormulaPlotter;
 class THSpace;
 class TLine;
 class TLines;
 class TText;
 
+struct Metrics {
+    int Width{0};
+    int Height{0};
+    int Depth{0};
+};
+
+
 class TRectangleElementVisitor {
 public:
     virtual ~TRectangleElementVisitor() {}
-    virtual void visit(const TFormulaPlotter& element) = 0;
+    virtual void visit(const TConstFormulaPlotter& element) = 0;
     virtual void visit(const THSpace& element) = 0;
     virtual void visit(const TLine& element) = 0;
     virtual void visit(const TLines& element) = 0;
@@ -90,13 +97,11 @@ class TRectangleElement
         int PaddingLeft; //расстояние до левой границы
         TRectangleElement();
         virtual ~TRectangleElement();
-        //virtual int GetPageBottom(TNumeric& N, TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth = -1);
-        virtual void GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, int MaxWidth = -1) const = 0;
-        void Draw(TPaintCanvas* Canvas, int X, int Y, int MaxWidth = -1) const;
-        virtual void DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth = -1) const = 0;//X - левая граница, Y - положение основной линии текста
-        virtual void DrawAtTopLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth = -1) const; //(X, Y) - верхний левый угол текста
-
-        //virtual void SetEditableFlags(TNumeric& N,int Editable) { Q_UNUSED(Editable); }; //устанавливает поле Editable, если оно есть
+        //virtual int GetPageBottom(TNumeric& N, std::shared_ptr<TPaintCanvas> Canvas, int Y, int CurPageBottom, int MaxWidth = -1);
+        virtual Metrics GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth = -1) const = 0;
+        void Draw(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth = -1) const;
+        virtual void DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth = -1) const = 0;//X - левая граница, Y - положение основной линии текста
+        virtual void DrawAtTopLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth = -1) const; //(X, Y) - верхний левый угол текста
 
         QColor GetColor() const;
 
@@ -109,14 +114,14 @@ class THSpace : public TRectangleElement
         int W;
         THSpace(int W) {this->W = W;}
         THSpace() {this->W = 20;}
-        virtual void GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, int MaxWidth = -1) const
+        virtual Metrics GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth = -1) const
         {
             Q_UNUSED(Canvas);
             Q_UNUSED(MaxWidth);
-            Width = W; Height = Depth = 0;
+            return Metrics{W, 0, 0};
         }
 
-        virtual void DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth = -1) const
+        virtual void DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth = -1) const
         {
             Q_UNUSED(Canvas);
             Q_UNUSED(X);
@@ -136,8 +141,8 @@ class TText : public TRectangleElement
         string Text;
         TText(string Text2);
         TText();
-        virtual void GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, int MaxWidth = -1) const;
-        virtual void DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth = -1) const;
+        virtual Metrics GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth = -1) const;
+        virtual void DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth = -1) const;
         virtual void accept(TRectangleElementVisitor& visitor) const {
             visitor.visit(*this);
         }
@@ -155,9 +160,9 @@ public:
     TLine(TRectangleElement* E1, TRectangleElement* E2, TRectangleElement *E3, TRectangleElement *E4);
     ~TLine();
 
-    //virtual int GetPageBottom(TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth = -1);
-    virtual void GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, int MaxWidth = -1) const;
-    virtual void DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth = -1) const;
+    //virtual int GetPageBottom(std::shared_ptr<TPaintCanvas> Canvas, int Y, int CurPageBottom, int MaxWidth = -1);
+    virtual Metrics GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth = -1) const;
+    virtual void DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth = -1) const;
     virtual void SetEditableFlags(int flags); //устанавливает поле Editable, если оно есть
     virtual void accept(TRectangleElementVisitor& visitor) const {
         visitor.visit(*this);
@@ -172,16 +177,18 @@ class TLines : public TRectangleElement, public vector<TRectangleElement*>
         void AddLine(TLine* Line);
         void AddLine(TRectangleElement* E);
         void AddLine(TNumeric N);
-        //virtual int GetPageBottom(TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth = -1);
+        //virtual int GetPageBottom(std::shared_ptr<TPaintCanvas> Canvas, int Y, int CurPageBottom, int MaxWidth = -1);
 
 
-        virtual void GetXYSize(TPaintCanvas* Canvas, int &XSize, int &YSize, int MaxWidth = -1) const;
-        virtual void DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth = -1) const;
-        virtual void GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, int MaxWidth = -1) const
+        virtual void GetXYSize(std::shared_ptr<TPaintCanvas> Canvas, int &XSize, int &YSize, int MaxWidth) const;
+        virtual void DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth = -1) const;
+        virtual Metrics GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth = -1) const
         {
+            int Width, Height;
             GetXYSize(Canvas, Width, Height, MaxWidth);
-            Depth = Height/2;
+            int Depth = Height/2;
             Height = Height - Depth;
+            return Metrics{Width, Height, Depth};
         }
         void Add(TRectangleElement* R, int NTabs);
         virtual void SetEditableFlags(int flags); //устанавливает поле Editable, если оно есть

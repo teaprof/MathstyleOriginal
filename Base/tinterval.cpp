@@ -52,6 +52,10 @@ bool TInterval::operator<(const TInterval& I) const
     return false;
 }
 
+TInterval TInterval::operator=(const TInterval& I) {
+    Assign(I);
+    return *this;
+}
 bool TInterval::operator==(const TInterval& I) const
 {
     if(Left == I.Left && Right == I.Right && IncludeLeft == I.IncludeLeft && IncludeRight == I.IncludeRight)

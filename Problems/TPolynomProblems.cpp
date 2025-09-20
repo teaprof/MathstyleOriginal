@@ -1517,14 +1517,14 @@ bool TPolynomialInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
     return res;
 }
 
-vector<TNumeric> TPolynomialInequality::GetTypes(std::shared_ptr<TNumeric> N)
+vector<std::shared_ptr<TNumeric>> TPolynomialInequality::GetTypes(std::shared_ptr<const TNumeric> N)
 {
-    vector<TNumeric> Types;
+    vector<std::shared_ptr<TNumeric>> Types;
     if(N != Conditions) return Types;
-    Types.push_back(TNumeric(*TPolynomialInequality(GetP(), false, false).Conditions));
-    Types.push_back(TNumeric(*TPolynomialInequality(GetP(), true, false).Conditions));
-    Types.push_back(TNumeric(*TPolynomialInequality(GetP(), false, true).Conditions));
-    Types.push_back(TNumeric(*TPolynomialInequality(GetP(), true, true).Conditions));
+    Types.push_back(TPolynomialInequality(GetP(), false, false).Conditions);
+    Types.push_back(TPolynomialInequality(GetP(), true, false).Conditions);
+    Types.push_back(TPolynomialInequality(GetP(), false, true).Conditions);
+    Types.push_back(TPolynomialInequality(GetP(), true, true).Conditions);
     return Types;
 }
 
@@ -2273,7 +2273,7 @@ void TRationalFunctionDerivative::LoadFromFile(ifstream &f)
 
 
 
-TRationalFunctionConditions::TRationalFunctionConditions(int operation = OperatorEqual, bool HaveRightPart, size_t MaxPowerNominator, size_t MaxPowerDenominator)
+TRationalFunctionConditions::TRationalFunctionConditions(int operation, bool HaveRightPart, size_t MaxPowerNominator, size_t MaxPowerDenominator)
 {
     this->operation = operation;
     this->MaxPowerNominator = MaxPowerNominator;

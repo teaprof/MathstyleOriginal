@@ -41,8 +41,8 @@ public:
     virtual string GetShortTask();
     virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
 
-    virtual vector<TNumeric> GetTypes(TNumeric* N);
-    virtual void SetType(TNumeric* N, size_t Type);    
+    virtual vector<std::shared_ptr<TNumeric>> GetTypes(std::shared_ptr<const TNumeric> N);
+    virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type);
     virtual string GetClassName() { return "TRationalSumEquality";};
     virtual void BuildPhrases();
     virtual vector<string> GetKeyWords();

@@ -257,10 +257,10 @@ void TPaintCanvas::TextOutA(int X, int Y, string Text, QColor Color, QFont Font)
 void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text, QColor Color, QFont Font)
 {
     //Text = Text +"1";
-    Text = Text; // + "│";
+    //Text = Text; // + "│";
     if(Painter)
     {
-        QRect br;
+        //QRect br;
         Painter->setPen(QPen(Color));
         Painter->setFont(Font);
         Painter->drawText(X1 - OriginX, Y1 - OriginY, X2-X1, Y2-Y1, Qt::AlignCenter | Qt::AlignHCenter, QString::fromUtf8(Text.c_str()));
@@ -325,7 +325,7 @@ TRectangleElement::~TRectangleElement()
 }
 
 
-/*int TRectangleElement::GetPageBottom(TNumeric& N,TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth)
+/*int TRectangleElement::GetPageBottom(TNumeric& N,std::shared_ptr<TPaintCanvas> Canvas, int Y, int CurPageBottom, int MaxWidth)
 {
 int W, H, D;
     GetTextRectangle(N, Canvas, W, H, D, MaxWidth);
@@ -342,7 +342,7 @@ int W, H, D;
     else
         return CurPageBottom;
 }*/
-void TRectangleElement::Draw(TPaintCanvas* Canvas, int X, int Y, int MaxWidth) const
+void TRectangleElement::Draw(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
 {
     if(MaxWidth != -1)
     {
@@ -353,11 +353,10 @@ void TRectangleElement::Draw(TPaintCanvas* Canvas, int X, int Y, int MaxWidth) c
     DrawAtBaseLeft(Canvas, X, Y, MaxWidth);
 }
 
-void TRectangleElement::DrawAtTopLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth) const
+void TRectangleElement::DrawAtTopLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
 {
-    int W, H, D;
-    GetTextRectangle(Canvas, W, H, D, MaxWidth);
-    Draw(Canvas, X, Y + H, MaxWidth);
+    Metrics metrics = GetTextRectangle(Canvas, MaxWidth);
+    Draw(Canvas, X, Y + metrics.Height, MaxWidth);
 }
 
 QColor TRectangleElement::GetColor() const
@@ -408,7 +407,7 @@ TLine::~TLine()
         delete at(i);
 }
 
-/*int TLine::GetPageBottom(TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth )
+/*int TLine::GetPageBottom(std::shared_ptr<TPaintCanvas> Canvas, int Y, int CurPageBottom, int MaxWidth )
 {
     for(size_t i = 0; i < size(); i++)
         CurPageBottom = at(i)->GetPageBottom(Canvas, Y, CurPageBottom, MaxWidth);
@@ -416,42 +415,33 @@ TLine::~TLine()
 
 }*/
 
-void TLine::GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, int MaxWidth) const
+Metrics TLine::GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth) const
 {
-    Width = 0;
-    Height = 0;
-    Depth = 0;
+    Metrics res;
     for(size_t i = 0; i < size(); i++)
     {
-        int W, H, D;
         int MaxWidth2 = MaxWidth;
-        if(MaxWidth2 != -1) MaxWidth2 -= Width;
-        at(i)->GetTextRectangle(Canvas, W, H, D, MaxWidth2);
-        Width += W;
-        if(Height < H)
-            Height = H;
-        if(Depth < D)
-            Depth = D;
+        if(MaxWidth2 != -1)
+            MaxWidth2 -= res.Width;
+        auto [W, H, D] = at(i)->GetTextRectangle(Canvas, MaxWidth2);
+        res.Width += W;
+        if(res.Height < H)
+            res.Height = H;
+        if(res.Depth < D)
+            res.Depth = D;
     };
-    Width += PaddingLeft;
-//    Height = Depth = 100;
+    res.Width += PaddingLeft;
+    return res;
+}
 
-};
-
-void TLine::DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth) const
+void TLine::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
 {    
-#ifdef __DEBUG__
-    int W, H, D;
-    GetTextRectangle(Canvas, W, H, D, MaxWidth);
-//    Canvas->Rectangle(X, Y-H, X+W, Y+D, QPen(Qt::red), QBrush(Qt::yellow));
-#endif
     for(size_t i = 0; i < size(); i++)
     {
-        int W, H, D;
-        //at(i)->ColorIndex = this->ColorIndex;
-        at(i)->GetTextRectangle(Canvas, W, H, D);
+        auto [W, H, D] = at(i)->GetTextRectangle(Canvas, -1);
         int MaxWidth2 = MaxWidth;
-        if(MaxWidth2 != -1) MaxWidth2 -= X;
+        if(MaxWidth2 != -1)
+            MaxWidth2 -= X;
         at(i)->Draw(Canvas, X, Y, MaxWidth2);
         X += W;
     };
@@ -490,21 +480,20 @@ TLine* L = new TLine(E);
 
 void TLines::AddLine(TNumeric N)
 {
-    auto fp = new TFormulaPlotter(N);
+    auto fp = new TConstFormulaPlotter(std::make_shared<TNumeric>(N));
     AddLine(fp);
 }
 
 
 #define InterlineDistance Canvas->TextHeight("1");
 
-void TLines::GetXYSize(TPaintCanvas* Canvas, int &XSize, int &YSize, int MaxWidth) const
+void TLines::GetXYSize(std::shared_ptr<TPaintCanvas> Canvas, int &XSize, int &YSize, int MaxWidth) const
 {
     XSize = 0;
     YSize = 0;
     for(size_t i = 0; i < size(); i++)
     {
-        int W, H, D;
-        at(i)->GetTextRectangle(Canvas, W, H, D, MaxWidth);
+        auto [W, H, D] = at(i)->GetTextRectangle(Canvas, MaxWidth);
         YSize += H+D;
         YSize += InterlineDistance;
         if(XSize < W)
@@ -513,18 +502,13 @@ void TLines::GetXYSize(TPaintCanvas* Canvas, int &XSize, int &YSize, int MaxWidt
     XSize += PaddingLeft;
 }
 
-void TLines::DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth) const
+void TLines::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
 {
-int W, H, D;
-    GetTextRectangle(Canvas, W, H, D, MaxWidth);
-#ifdef __DEBUG__
-    Canvas->Rectangle(X+1, Y-H + 1, X + W - 1, Y - D + 1, Qt::green);
-#endif
+    auto [W, H, D] = GetTextRectangle(Canvas, MaxWidth);
     Y -= H;
     for(size_t i = 0; i < size(); i++)
     {
-        int W1, H1, D1;
-        at(i)->GetTextRectangle(Canvas, W1, H1, D1, MaxWidth);
+        auto [W1, H1, D1] = at(i)->GetTextRectangle(Canvas, MaxWidth);
         at(i)->Draw(Canvas, X, Y + H1, MaxWidth);
 #ifdef __DEBUG__
         char Str[20];
@@ -536,7 +520,7 @@ int W, H, D;
     };
 }
 
-/*int TLines::GetPageBottom(TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth)
+/*int TLines::GetPageBottom(std::shared_ptr<TPaintCanvas> Canvas, int Y, int CurPageBottom, int MaxWidth)
 {
 int W, H, D;
     GetTextRectangle(Canvas, W, H, D, MaxWidth);
@@ -579,20 +563,21 @@ TText::TText(string Text2)
 TText::TText()
 {
 }
-void TText::GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, int MaxWidth) const
+Metrics TText::GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth) const
 {
+    Metrics res;
     Canvas->Font = Canvas->TextFont;
     Canvas->Pen.setColor(Canvas->TextColor);
     string RText = Recognize(Text);
     if(MaxWidth == -1 || Canvas->TextWidth(RText) < MaxWidth)
     {
-        Width =Canvas->TextWidth(RText);
-        Height = Canvas->TextHeight(RText);
-        Depth = Canvas->TextDepth(RText);
+        res.Width =Canvas->TextWidth(RText);
+        res.Height = Canvas->TextHeight(RText);
+        res.Depth = Canvas->TextDepth(RText);
     } else {
         int H = 0;
         string EstimatedStr = RText;
-        Width = 0;
+        int Width = 0;
         while(EstimatedStr.empty() == false)
         {
             size_t split_pos = 0;
@@ -615,16 +600,17 @@ void TText::GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int 
             H1 = Canvas->TextHeight(substr);
             D1 = Canvas->TextHeight(substr);
             if(Canvas->TextWidth(substr) > Width)
-                Width = Canvas->TextWidth(substr);
+                res.Width = Canvas->TextWidth(substr);
             H += H1+D1;
         };
-        Height = H/2;
-        Depth = H - Height;
+        res.Height = H/2;
+        res.Depth = H - res.Height;
     };
-    Width += PaddingLeft;
+    res.Width += PaddingLeft;
+    return res;
 }
 
-void TText::DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth) const
+void TText::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
 {
 QString S = QString::fromUtf8(Text.c_str());
     Canvas->Font = Canvas->TextFont;
@@ -634,8 +620,7 @@ QString S = QString::fromUtf8(Text.c_str());
     {
         Canvas->TextOutA(X, Y, RText, GetColor(), Canvas->Font);
     } else {
-        int Height, Depth, Width;
-        GetTextRectangle(Canvas, Width, Height, Depth, MaxWidth);
+        auto [Height, Depth, Width] = GetTextRectangle(Canvas, MaxWidth);
         Y -= Height;
 
         string EstimatedStr = RText;

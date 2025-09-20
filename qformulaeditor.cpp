@@ -59,14 +59,13 @@ void QFormulaArea::paintEvent(QPaintEvent *event)
         int Y = 10;
         int LeftPadding = 20;
         int RightPadding = 20;
-        int Width, Height, Depth;
-        TPaintCanvas Canvas(&painter);
-        Canvas.TextFont = TextFont;
-        Canvas.FormulaFont = FormulaFont;
-        Canvas.Font = Canvas.FormulaFont;
-        Canvas.FormulaColor = FormulaColor;
-        Canvas.EditableColor = EditableColor;
-        TFormulaPlotter(*Formula).PrettyGetTextRectangle(&Canvas, Width, Height, Depth, false, false);
+        auto Canvas = std::make_shared<TPaintCanvas>(&painter);
+        Canvas->TextFont = TextFont;
+        Canvas->FormulaFont = FormulaFont;
+        Canvas->Font = Canvas->FormulaFont;
+        Canvas->FormulaColor = FormulaColor;
+        Canvas->EditableColor = EditableColor;
+        auto [Width, Height, Depth] = TFormulaPlotter(Canvas).PrettyGetTextRectangle(Formula, false, false);
         int GeomWidth = Width + RightPadding;
         if(GeomWidth < minimumWidth()) GeomWidth = minimumWidth();
         int GeomHeight = Height+Depth+br.bottom()+20;
@@ -96,7 +95,7 @@ void QFormulaArea::paintEvent(QPaintEvent *event)
             X = LeftPadding + (GeomWidth - Width - LeftPadding - RightPadding)/2;
             //Y = (br.height() + height()/2 - (Depth-Height)/2; //рисуем формулу по середине
             Y =  br.bottom() + Height + 20; //рисуем формулу сразу после текста задания
-            TFormulaPlotter(*Formula).PrettyDrawAtBaseLeft(&Canvas, X, Y, false, false);
+            TFormulaPlotter(Canvas).PrettyDrawAtBaseLeft(Formula, X, Y, false, false);
         };
     }
 }

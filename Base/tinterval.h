@@ -24,6 +24,7 @@ public:
     bool TestPoint(const TNumeric& P) const; //истина, если точка принадлежит интервалу
     bool operator<(const TInterval& I) const; //true, если самая левая точка интевала *this левее самой левой точки I
 
+    TInterval operator=(const TInterval& I);
     bool operator==(const TInterval& I) const;
 
     TNumeric GetNumeric();
@@ -49,6 +50,7 @@ class TIntervalsSet
         TIntervalsSet(const TIntervalsSet& Set);
         TIntervalsSet(const TInterval& I);
         ~TIntervalsSet();
+
 
         TIntervalsSet operator=(const TIntervalsSet& Set);
         TIntervalsSet operator+(const TIntervalsSet& Set); //find the union of *this and set

@@ -23,16 +23,16 @@ TTaskTypeSelector::~TTaskTypeSelector()
     delete ui;
 }
 
-void TTaskTypeSelector::SetTypes(vector<TNumeric> Types)
+void TTaskTypeSelector::SetTypes(vector<std::shared_ptr<TNumeric>> Types)
 {
 QGraphicsScene *Scene= new QGraphicsScene(ui->graphicsView);
     Scene->setBackgroundBrush(QBrush(BackgroundColor));
-TPaintCanvas Canvas(Scene);
-    Canvas.TextFont = TextFont;
-    Canvas.FormulaFont = FormulaFont;
-    Canvas.Font = Canvas.FormulaFont;
-    Canvas.FormulaColor = FormulaColor;
-    Canvas.EditableColor = EditableColor;
+    auto Canvas = std::make_shared<TPaintCanvas>(Scene);
+    Canvas->TextFont = TextFont;
+    Canvas->FormulaFont = FormulaFont;
+    Canvas->Font = Canvas->FormulaFont;
+    Canvas->FormulaColor = FormulaColor;
+    Canvas->EditableColor = EditableColor;
     this->Types = Types;
     int Y = 0;
     int X = 0;
@@ -40,11 +40,10 @@ TPaintCanvas Canvas(Scene);
     QGraphicsItem *GI;
     for(size_t i = 0; i < Types.size(); i++)
     {
-        int W, H, D;
-        TFormulaPlotter fp(Types[i]);
-        fp.GetTextRectangle(&Canvas, W, H, D);
+        TConstFormulaPlotter fp(Types[i]);
+        auto [W, H, D] = fp.GetTextRectangle(Canvas);
         QGraphicsItem* I = Scene->addRect(X-5, Y-H-5, W+10, H+D+10, QPen(BackgroundColor));
-        fp.Draw(&Canvas, X, Y);
+        fp.Draw(Canvas, X, Y);
         I->setFlag(QGraphicsItem::ItemIsSelectable);
         Y += H + D + (H + D); //one height spacing
         RectToNum.insert(pair<QGraphicsItem*, size_t>(I, i));       

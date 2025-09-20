@@ -536,7 +536,7 @@ TProblem* P = Problems[SelectedProblem];
     {
         if(iterator.value() == P)
             WidgetToProblemMap.erase(iterator);
-        //else
+        else
             iterator++;
 //        cout<<WidgetToProblemMap.size()<<endl;
 
@@ -551,7 +551,7 @@ void MainWindow::OnFormulaSelectionChanged(std::shared_ptr<TNumeric> NewSelectio
 {
     if(Problem)
     {
-        vector<TNumeric> Types = Problem->GetTypes(NewSelection);
+        vector<std::shared_ptr<TNumeric>> Types = Problem->GetTypes(NewSelection);
         if(Types.size() > 0)
         {
             TTaskTypeSelector *S = new TTaskTypeSelector(this);

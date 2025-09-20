@@ -104,13 +104,13 @@ TNumeric SystemOfEquations;
 
     QGraphicsScene *Scene = new QGraphicsScene;
     Scene->setBackgroundBrush(QBrush(Options->BackgroundColor));
-    TPaintCanvas Canvas(Scene);
-    Canvas.FormulaFont = Options->FormulaFont;
-    Canvas.TextFont = Options->TextFont;
-    Canvas.FormulaColor = Options->FormulaColor;
-    Canvas.TextColor = Options->TextColor;
-    Canvas.EditableColor = Options->EditableColor;
-    Solution->Draw(&Canvas, 0, 0, -1);
+    auto Canvas = std::make_shared<TPaintCanvas>(Scene);
+    Canvas->FormulaFont = Options->FormulaFont;
+    Canvas->TextFont = Options->TextFont;
+    Canvas->FormulaColor = Options->FormulaColor;
+    Canvas->TextColor = Options->TextColor;
+    Canvas->EditableColor = Options->EditableColor;
+    Solution->Draw(Canvas, 0, 0, -1);
     ui->graphicsView->setScene(Scene);
 
     delete Solution;

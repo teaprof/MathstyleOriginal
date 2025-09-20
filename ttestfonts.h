@@ -24,8 +24,8 @@ public:
     ~TTestFonts();
     void DrawScene();
     void DrawScene_2();
-    void DrawOnCanvas(TPaintCanvas& Canvas);
-    void NumericOnCanvas(TPaintCanvas& Canvas);
+    void DrawOnCanvas(std::shared_ptr<TPaintCanvas> Canvas);
+    void NumericOnCanvas(std::shared_ptr<TPaintCanvas> Canvas);
 
 private:
     Ui::TTestFonts *ui;

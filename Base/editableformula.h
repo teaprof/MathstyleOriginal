@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <cstdint>
 
 #include "Base/arithmetic.h"
 
@@ -63,8 +64,15 @@ public:
         return false;
     }
 
+    void setMouseXY(int mouse_x, int mouse_y) {
+        this->mouse_x = mouse_x;
+        this->mouse_y = mouse_y;
+    }
+
     int mouse_x;
     int mouse_y;
+    std::shared_ptr<TNumeric> selected{nullptr};
+    std::shared_ptr<TNumeric> active{nullptr};
 private:
     std::vector<std::shared_ptr<const TNumeric>> editables_;
     std::shared_ptr<TNumeric> numeric_;
