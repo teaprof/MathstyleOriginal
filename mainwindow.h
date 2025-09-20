@@ -145,7 +145,7 @@ public slots:
     void ShowEULA();
     void MoveToFavorites();
     void RandomizeConditions();
-    void KeywordClicked(QWidget* Widget);    
+    void KeywordClicked(QWidget* Widget);
     void TestFonts();
 };
 

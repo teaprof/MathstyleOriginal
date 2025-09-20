@@ -962,8 +962,8 @@ void MainWindow::OnKeywordPicked(QString Key)
     B->setMinimumHeight(20);
     SelectedKeywordsLayout->addWidget(B);
 
-    SignalMapper->setMapping(B, B);
-    connect(B, SIGNAL(clicked()), SignalMapper, SLOT(map()));
+    //SignalMapper->setMapping(B, B);
+    connect(B, &QPushButton::clicked, [this, B] {this->KeywordClicked(B);});
 }
 void MainWindow::KeywordClicked(QWidget* Widget)
 {
