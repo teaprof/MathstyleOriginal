@@ -596,7 +596,7 @@ TPolynom P(this->GetCoef());
                 for(size_t i = 0; i < Tang.Roots.size(); i++)
                 {
                     TNumeric Tg = Tang.Roots[i];
-                    TNumeric X = MakeArctg(Tg) + MakeProd(TNumeric("\\pi"), CounterVar);
+                    TNumeric X = MakeArctg(Tg) + MakeProd(TNumeric("\\pi"), TNumeric(CounterVar));
                     X = X.Simplify();
                     TrigRoots.push_back(X);
                     Result.Intervals.push_back(TInterval(X));

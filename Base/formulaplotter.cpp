@@ -1,29 +1,50 @@
 #include "formulaplotter.h"
+#include "symbols.h"
 
-void TFormulaPlotter::PrettyGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+TFormulaPlotter::TFormulaPlotter(const TNumeric& Numeric) : N(Numeric){
+    EditableFlags = NoEditable;
+    CursorPos = -1;
+    DrawMouse = true;
+    Active = 0;
+    Selected = 0;
+    MouseX = MouseY = 0;
+    OwnSizeActual = false;
+    OwnWidth = 0;
+    OwnHeight = 0;
+    OwnDepth = 0;
+}
+
+bool TFormulaPlotter::IsSizeActual() const
 {
-    if(IsSizeActual() && NeedBrackets == this->SizeWithBrackets)
+    /// todo: this function
+    return false;
+}
+
+void TFormulaPlotter::PrettyGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+{
+    if(IsSizeActual() && NeedBrackets == SizeWithBrackets)
     {
         Width = this->OwnWidth;
-        Height = this->OwnHeight;
+        Height = this-> OwnHeight;
         Depth = this->OwnDepth;
+        return;
     };
     string AStr;
     Width = 0;
     Height = 0;
     Depth = 0;
-    switch(Operator)
+    switch(N.operation)
     {
     case OperatorConst:
-        if(K.length() != 0)
+        if(N.K.length() != 0)
         {
-            if(K.find("_") != string::npos)
+            if(N.K.find("_") != string::npos)
             {
-                size_t pos = K.find("_");
-                TNumeric N = MakeSubscript(TNumeric(K.substr(0, pos)), TNumeric(K.substr(pos+1)));
-                N.PrettyGetTextRectangle(Canvas, Width, Height, Depth, false, Simplify);
+                size_t pos = N.K.find("_");
+                TNumeric Nsubs = MakeSubscript(TNumeric(N.K.substr(0, pos)), TNumeric(N.K.substr(pos+1)));
+                TFormulaPlotter(Nsubs).PrettyGetTextRectangle(Canvas, Width, Height, Depth, false, Simplify);
             } else {
-                AStr = Recognize(K);
+                AStr = Recognize(N.K);
                 //Если требуются скобки, то ставим их. Но если число положительное - то скобки никогда не ставятся
                 //if(NeedBrackets)
                 //{
@@ -79,10 +100,6 @@ void TFormulaPlotter::PrettyGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, 
         break;
     case OperatorEqSystem: EqSystemGetTextRectangle(Canvas, Width, Height, Depth, NeedBrackets, Simplify);
         break;
-    case OperatorTab: LinesGetTextRectangle(Canvas, Width, Height, Depth, NeedBrackets, 40, Simplify);
-        break;
-    case OperatorLines: LinesGetTextRectangle(Canvas, Width, Height, Depth, NeedBrackets, 0, Simplify);
-        break;
     case OperatorUnion: UnionGetTextRectangle(Canvas, Width, Height, Depth, NeedBrackets, Simplify);
         break;
     case OperatorIntersection: IntersectionGetTextRectangle(Canvas, Width, Height, Depth, NeedBrackets, Simplify);
@@ -114,14 +131,14 @@ void TFormulaPlotter::PrettyGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, 
         FunctionGetTextRectangle(Canvas, Width, Height, Depth, NeedBrackets, Simplify);
         break;
     };
-    OwnSizeActual = true;
+    this->OwnSizeActual = true;
     this->OwnWidth = Width;
     this->OwnHeight = Height;
     this->OwnDepth = Depth;
     this->SizeWithBrackets = NeedBrackets;
-};
+}
 
-void TFormulaPlotter::DrawAtBaseLeft(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int MaxWidth) const
+void TFormulaPlotter::DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth) const
 {
     Q_UNUSED(MaxWidth);
 #ifdef __DEBUG__
@@ -132,7 +149,7 @@ void TFormulaPlotter::DrawAtBaseLeft(TNumeric& N, TPaintCanvas* Canvas, int X, i
     DrawAtBaseLeft(Canvas, X, Y, false);
 }
 
-int TFormulaPlotter::PrettyDrawAtBaseLeft(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, bool NeedBrackets, bool Simplify) const
+int TFormulaPlotter::PrettyDrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, bool NeedBrackets, bool Simplify) const
 //Y = baseline
 {
     int W, H, D;
@@ -141,14 +158,15 @@ int TFormulaPlotter::PrettyDrawAtBaseLeft(TNumeric& N, TPaintCanvas* Canvas, int
     Canvas->Rectangle(X, Y-H, X+W, Y+D, Qt::gray);
 #endif
 
-    for(size_t i = 0; i < Operands.size(); i++)
+    /*for(size_t i = 0; i < N.Operands.size(); i++)
     {
-        Operands[i].DrawMouse = DrawMouse;
-        Operands[i].MouseX = MouseX;
-        Operands[i].MouseY = MouseY;
-        Operands[i].Active = 0;
-        Operands[i].Selected = Selected;
-    };
+        /// todo: this should be recursive
+        N.Operands[i]->DrawMouse = N.DrawMouse;
+        N.Operands[i]->MouseX = N.MouseX;
+        N.Operands[i]->MouseY = N.MouseY;
+        N.Operands[i]->Active = 0;
+        N.Operands[i]->Selected = N.Selected;
+    };*/
 
     Active = 0;
 
@@ -157,18 +175,18 @@ int TFormulaPlotter::PrettyDrawAtBaseLeft(TNumeric& N, TPaintCanvas* Canvas, int
     else
         Canvas->Pen.setColor(Canvas->FormulaColor);
 
-    switch(Operator)
+    switch(N.operation)
     {
     case OperatorConst:
-        if(K.length() != 0)
+        if(N.K.length() != 0)
         {
-            if(K.find("_") != string::npos)
+            if(N.K.find("_") != string::npos)
             {
-                size_t pos = K.find("_");
-                TNumeric N = MakeSubscript(TNumeric(K.substr(0, pos)), TNumeric(K.substr(pos+1)));
-                return N.PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
+                size_t pos = N.K.find("_");
+                TNumeric Nsubs = MakeSubscript(TNumeric(N.K.substr(0, pos)), TNumeric(N.K.substr(pos+1)));
+                return TFormulaPlotter(Nsubs).PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
             } else {
-                string AStr = Recognize(K);
+                string AStr = Recognize(N.K);
                 //Если требуются скобки, то ставим их. Но если число положительное - то скобки никогда не ставятся
                 /*                    if(NeedBrackets)
                     {*/
@@ -218,10 +236,6 @@ int TFormulaPlotter::PrettyDrawAtBaseLeft(TNumeric& N, TPaintCanvas* Canvas, int
         break;
     case OperatorEqSystem: EqSystemDraw(Canvas, X, Y, W, H, D, NeedBrackets, Simplify);
         break;
-    case OperatorTab: LinesDraw(Canvas, X, Y, W, H, D, NeedBrackets, 40, Simplify);
-        break;
-    case OperatorLines: LinesDraw(Canvas, X, Y, W, H, D, NeedBrackets, 0, Simplify);
-        break;
     case OperatorUnion: UnionDraw(Canvas, X, Y, W, H, D, NeedBrackets, Simplify);
         break;
     case OperatorIntersection: IntersectionDraw(Canvas, X, Y, W, H, D, NeedBrackets, Simplify);
@@ -258,17 +272,17 @@ int TFormulaPlotter::PrettyDrawAtBaseLeft(TNumeric& N, TPaintCanvas* Canvas, int
     {
         //определяем, лежит ли элемент this под мышкой
         if(Active==0 && MouseX > X && MouseX < X+W && MouseY < Y + D && MouseY > Y - H)
-            Active = (TNumeric*) this;
+            Active = const_cast<TNumeric*>(&N); /// \todo: Active = true
         //если кто-то из Operands лежит под мышкой, то это важнее - транслируем Active на верх к корню дерева
-        for(size_t i = 0; i < Operands.size(); i++)
-            if(Operands[i].Active)
-                Active = Operands[i].Active;
+        /*for(size_t i = 0; i < N.Operands.size(); i++)
+            if(N.Operands[i]->Active)
+                N.Active = N.Operands[i]->Active;*/
         //если этот элемент является Active, то рисуем рамку
-        if(Active == this)
+        if(Active == &N)
             Canvas->Rectangle(X - 1, Y + D + 1, X + W + 1, Y - H - 1);
     };
 
-    if(Selected == this)
+    if(Selected == &N)
     {
         Canvas->Rectangle(X - 1, Y + D + 1, X + W + 1, Y - H - 1, Qt::blue);
     };
@@ -338,16 +352,16 @@ int TFormulaPlotter::GetBracketWidth(string Bracket, TPaintCanvas* Canvas, int H
 };
 
 
-void TFormulaPlotter::FracGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::FracGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     int W, H, D;
     int MidLine = Canvas->TextHeight("1")/2;
     Width = Height = Depth = 0;
-    Operands[0].PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
     Height = H + D + 2 + MidLine;
     if(Width < W)
         Width = W;
-    Operands[1].PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
     Depth = H + D + 2 - MidLine;
     if(Depth < 0) Depth = 0;
     if(Width < W)
@@ -357,7 +371,7 @@ void TFormulaPlotter::FracGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, in
         Width = Width + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
     };
 };
-void TFormulaPlotter::FracDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::FracDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     int X1, Y1, D1;
     int WidthOfFrac;
@@ -372,11 +386,11 @@ void TFormulaPlotter::FracDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, 
 
     int MidLine = Y - Canvas->TextHeight("1")/2;
 
-    Operands[0].PrettyGetTextRectangle(Canvas, X1, Y1, D1, false, Simplify);
-    Operands[0].PrettyDrawAtBaseLeft(Canvas, X - X1/2 + WidthOfFrac/2, MidLine - D1 - 2, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, X1, Y1, D1, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyDrawAtBaseLeft(Canvas, X - X1/2 + WidthOfFrac/2, MidLine - D1 - 2, false, Simplify);
 
-    Operands[1].PrettyGetTextRectangle(Canvas, X1, Y1, D1, false, Simplify);
-    Operands[1].PrettyDrawAtBaseLeft(Canvas, X - X1/2 + WidthOfFrac/2, MidLine + Y1 + 2, false, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, X1, Y1, D1, false, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyDrawAtBaseLeft(Canvas, X - X1/2 + WidthOfFrac/2, MidLine + Y1 + 2, false, Simplify);
 
     Canvas->Line(X, MidLine, X+WidthOfFrac, MidLine, Qt::black);
 };
@@ -384,10 +398,10 @@ void TFormulaPlotter::FracDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, 
 
 //==============================================================================
 
-void TFormulaPlotter::FunctionGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::FunctionGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     string Name;
-    switch(Operator)
+    switch(N.operation)
     {
     case OperatorLog: Name = "log"; break;
     case OperatorLn: Name = "ln"; break;
@@ -415,11 +429,11 @@ void TFormulaPlotter::FunctionGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas
     Canvas->Font = FTemp;
     int W1, H1, D1;
     int W2, H2, D2;
-    if(Operator == OperatorLog)
+    if(N.operation == OperatorLog)
     {
         QFont Font;
         Font = DecreaseFont(Canvas);
-        Operands[1].PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
+        TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
 
         Canvas->Font = Font;
         Width = Width + W2;
@@ -427,7 +441,7 @@ void TFormulaPlotter::FunctionGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas
         int dDepth = H2 + D2;
         if(dDepth > Depth)  Depth = dDepth;
     }
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
     Width += W1;
     if(Height < H1) Height = H1;
     if(Depth < D1) Depth = D1;
@@ -437,11 +451,11 @@ void TFormulaPlotter::FunctionGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas
     };
 }
 
-void TFormulaPlotter::FunctionDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::FunctionDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(Width);
     string Name;
-    switch(Operator)
+    switch(N.operation)
     {
     case OperatorLog: Name = "log"; break;
     case OperatorLn: Name = "ln"; break;
@@ -478,20 +492,20 @@ void TFormulaPlotter::FunctionDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int
     int W1, H1, D1;
     int W2, H2, D2;
 
-    if(Operator == OperatorLog)
+    if(N.operation == OperatorLog)
     {
         QFont Font = DecreaseFont(Canvas);
 
-        Operands[1].PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
-        //        Operands[1].PrettyDrawAtBaseLeft(Canvas, X, Y - Height/2 + H1, true, Simplify);
-        Operands[1].PrettyDrawAtBaseLeft(Canvas, X, Y + H1, true, Simplify);
+        TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
+        //TFormulaPlotter(*N.Operands[1]).PrettyDrawAtBaseLeft(Canvas, X, Y - Height/2 + H1, true, Simplify);
+        TFormulaPlotter(*N.operands[1]).PrettyDrawAtBaseLeft(Canvas, X, Y + H1, true, Simplify);
         Canvas->Font = Font;
 
         X += W1;
 
     };
-    Operands[0].PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
-    Operands[0].PrettyDrawAtBaseLeft(Canvas, X, Y, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyDrawAtBaseLeft(Canvas, X, Y, true, Simplify);
     X+= W2;
 
     if(NeedBrackets)
@@ -502,18 +516,18 @@ void TFormulaPlotter::FunctionDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int
 void TFormulaPlotter::StrGetTextRectangle(const char* Str, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     int W, H, D;
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
         bool NeedBrackets = false;
-        if(CompareOperatorsPriority(Operator, Operands[i].Operator)>0) NeedBrackets = true;
-        Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
+        if(TNumeric::CompareOperatorsPriority(N.operation, N.operands[i]->operation)>0) NeedBrackets = true;
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
         Width += W;
         if(H > Height)
             Height = H;
         if(D > Depth)
             Depth = D;
     };
-    Width += (Operands.size()-1)*(Canvas->TextWidth(Str) + Canvas->TextWidth(" "));
+    Width += (N.operands.size()-1)*(Canvas->TextWidth(Str) + Canvas->TextWidth(" "));
     if(WithBrackets)
     {
         Width = Width + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
@@ -527,15 +541,15 @@ void TFormulaPlotter::StrDraw(const char* Str, TPaintCanvas* Canvas, int X, int 
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), Canvas, X, Y, Height, Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth);
     };
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
         int W1, H1, D1;
         bool NeedBrackets = false;
-        if(CompareOperatorsPriority(Operator, Operands[i].Operator)>0) NeedBrackets = true;
-        Operands[i].PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
-        Operands[i].PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
+        if(TNumeric::CompareOperatorsPriority(N.operation, N.operands[i]->operation)>0) NeedBrackets = true;
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
         X = X + W1;
-        if(i+1 < Operands.size())
+        if(i+1 < N.operands.size())
         {
             //          int PlusHeight = Canvas->TextHeight(Str);
             Canvas->TextOutA(X, Y, Str);
@@ -547,22 +561,22 @@ void TFormulaPlotter::StrDraw(const char* Str, TPaintCanvas* Canvas, int X, int 
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::IntervalGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::IntervalGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     Q_UNUSED(WithBrackets);
     int W, H, D;
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
-        Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
         Width += W;
         if(H > Height)
             Height = H;
         if(D > Depth)
             Depth = D;
     };
-    Width += (Operands.size()-1)*Canvas->TextWidth(",");
+    Width += (N.operands.size()-1)*Canvas->TextWidth(",");
     string LeftBracket = UniCode2UTF8String(MyLeftParenthesis),RightBracket = UniCode2UTF8String(MyRightParenthesis);
-    switch(Operator)
+    switch(N.operation)
     {
     case OperatorInterval: LeftBracket=UniCode2UTF8String(MyLeftParenthesis); RightBracket=UniCode2UTF8String(MyRightParenthesis); break;
     case OperatorSegmentInterval: LeftBracket='['; RightBracket=UniCode2UTF8String(MyRightParenthesis); break;
@@ -572,12 +586,12 @@ void TFormulaPlotter::IntervalGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas
 
     Width = Width + GetBracketWidth(LeftBracket, Canvas, Height, Depth) + GetBracketWidth(RightBracket, Canvas, Height, Depth);
 };
-void TFormulaPlotter::IntervalDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::IntervalDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(NeedBrackets);
     Q_UNUSED(Width);
     string LeftBracket = UniCode2UTF8String(MyLeftParenthesis), RightBracket = UniCode2UTF8String(MyRightParenthesis);
-    switch(Operator)
+    switch(N.operation)
     {
     case OperatorInterval: LeftBracket=UniCode2UTF8String(MyLeftParenthesis); RightBracket=UniCode2UTF8String(MyRightParenthesis); break;
     case OperatorSegmentInterval: LeftBracket='['; RightBracket=UniCode2UTF8String(MyRightParenthesis); break;
@@ -586,13 +600,13 @@ void TFormulaPlotter::IntervalDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int
     };
     DrawBracket(LeftBracket, Canvas, X, Y, Height, Depth);
     X = X + GetBracketWidth(LeftBracket, Canvas, Height, Depth);
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
         int W1, H1, D1;
-        Operands[i].PrettyGetTextRectangle(Canvas, W1, H1, D1, false, Simplify);
-        Operands[i].PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W1, H1, D1, false, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
         X = X + W1;
-        if(i+1 < Operands.size())
+        if(i+1 < N.operands.size())
         {
             Canvas->TextOutA(X, Y, ",");
             X = X + Canvas->TextWidth(",");
@@ -602,12 +616,12 @@ void TFormulaPlotter::IntervalDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::InlineGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::InlineGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     int W, H, D;
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
-        Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
         Width += W;
         if(H > Height)
             Height = H;
@@ -617,7 +631,7 @@ void TFormulaPlotter::InlineGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, 
     if(WithBrackets)
         Width = Width + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
 };
-void TFormulaPlotter::InlineDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::InlineDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(Width);
     if(NeedBrackets)
@@ -625,11 +639,11 @@ void TFormulaPlotter::InlineDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), Canvas, X, Y, Height, Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth);
     };
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
         int W1, H1, D1;
-        Operands[i].PrettyGetTextRectangle(Canvas, W1, H1, D1, false, Simplify);
-        Operands[i].PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W1, H1, D1, false, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
         X = X + W1;
     };
     if(NeedBrackets)
@@ -637,9 +651,9 @@ void TFormulaPlotter::InlineDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::SumGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::SumGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
-    TNumeric Temp(*this); //работаем с Temp, так как this = const
+    TNumeric Temp(N); //работаем с Temp, так как this = const
     int W, H, D;
     string StrPlus = UniCode2UTF8String(MyPlusSign);
     string StrMinus = UniCode2UTF8String(MyMinusSign);
@@ -649,35 +663,35 @@ void TFormulaPlotter::SumGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int
 #endif
     if(Simplify)
     {
-        for(size_t i = 0; i < Temp.Operands.size(); i++)
+        for(size_t i = 0; i < Temp.operands.size(); i++)
         {
-            if(Temp.Operands[i].Operator == OperatorConst && Temp.Operands[i].K == "0")Exclude.push_back(i);
-            if(Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorConst && Temp.operands[i]->K == "0")Exclude.push_back(i);
+            if(Temp.operands[i]->operation == OperatorFrac)
             {
-                if(Temp.Operands[i].Operands[0].Operator==OperatorConst && Temp.Operands[i].Operands[0].K == "0")Exclude.push_back(i);
+                if(Temp.operands[i]->operands[0]->operation==OperatorConst && Temp.operands[i]->operands[0]->K == "0")Exclude.push_back(i);
             }
-            if(Temp.Operands[i].Operator == OperatorProd)
+            if(Temp.operands[i]->operation == OperatorProd)
             {
-                for(size_t j = 0; j < Temp.Operands[i].Operands.size(); j++)
-                    if(Temp.Operands[i].Operands[j].Operator==OperatorConst && Temp.Operands[i].Operands[j].K == "0")
+                for(size_t j = 0; j < Temp.operands[i]->operands.size(); j++)
+                    if(Temp.operands[i]->operands[j]->operation==OperatorConst && Temp.operands[i]->operands[j]->K == "0")
                     {
                         Exclude.push_back(i);
                         break;
                     };
             }
         }
-        if(Exclude.size() == Temp.Operands.size() && Temp.Operands.size() > 0)
+        if(Exclude.size() == Temp.operands.size() && Temp.operands.size() > 0)
         //все слагаемые - нули, оставляем только одно из них
         {
             Exclude.erase(Exclude.begin());
         };
     };
     size_t Drawn = 0; //количество уже отрисованных слагаемых
-    for(size_t i = 0; i < Temp.Operands.size(); i++)
+    for(size_t i = 0; i < Temp.operands.size(); i++)
     {
         if(find(Exclude.begin(), Exclude.end(), i) != Exclude.end())continue;
         bool NeedBrackets = false;
-        if(CompareOperatorsPriority(Operator, Temp.Operands[i].Operator)>0) NeedBrackets = true;
+        if(TNumeric::CompareOperatorsPriority(N.operation, Temp.operands[i]->operation)>0) NeedBrackets = true;
         vector<size_t> TakenMinuses; //Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
 
@@ -685,26 +699,26 @@ void TFormulaPlotter::SumGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int
         //Пытаемся вынести минус, эта операция не явлеятся thread-safe
         //у первого (Drawn = 0) слагаемого минус не выносится
         {
-            if(Temp.Operands[i].Operator == OperatorProd || Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac)
             {
-                for(size_t j = 0; j < Temp.Operands[i].Operands.size(); j++)
+                for(size_t j = 0; j < Temp.operands[i]->operands.size(); j++)
                 {
-                    if(Temp.Operands[i].Operands[j].Operator == OperatorConst)
+                    if(Temp.operands[i]->operands[j]->operation == OperatorConst)
                     {
-                        if(Temp.Operands[i].Operands[j].K.length() > 0 && Temp.Operands[i].Operands[j].K[0]=='-')
+                        if(Temp.operands[i]->operands[j]->K.length() > 0 && Temp.operands[i]->operands[j]->K[0]=='-')
                         {
                             TakenMinuses.push_back(j);
-                            Temp.Operands[i].Operands[j].K.erase(Temp.Operands[i].Operands[j].K.begin());
+                            Temp.operands[i]->operands[j]->K.erase(Temp.operands[i]->operands[j]->K.begin());
                             MinusesCount++;
                         }
                     }
                 }
             }
-            if(Temp.Operands[i].Operator == OperatorConst)
-                if(Temp.Operands[i].K.length() > 0 && Temp.Operands[i].K[0]=='-')
+            if(Temp.operands[i]->operation == OperatorConst)
+                if(Temp.operands[i]->K.length() > 0 && Temp.operands[i]->K[0]=='-')
                 {
                     MinusesCount++;
-                    Temp.Operands[i].K.erase(Temp.Operands[i].K.begin());
+                    Temp.operands[i]->K.erase(Temp.operands[i]->K.begin());
                 }
         }
         //рисуем знак
@@ -719,27 +733,27 @@ void TFormulaPlotter::SumGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int
             Width += Canvas->TextWidth(StrMinus);
         }
 
-        if(CompareOperatorsPriority(Operator, Temp.Operands[i].Operator)>0) NeedBrackets = true;
+        if(TNumeric::CompareOperatorsPriority(N.operation, Temp.operands[i]->operation)>0) NeedBrackets = true;
         if(Simplify)
         //если надо было упростить, то рисуем упрощенные слагаемые
         {
-            Temp.Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
+            TFormulaPlotter(*Temp.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
         } else {
             //ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается функцией PrettyDrawAtBaseLeft в корень дерева
-            Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
+            TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
         }
 
         if(Simplify)
         {
             //возвращаем минус обратно
-            if(Temp.Operands[i].Operator == OperatorProd || Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac)
             {
                 for(size_t j = 0; j < TakenMinuses.size(); j++)
-                    Temp.Operands[i].Operands[TakenMinuses[j]].K = string("-")+Temp.Operands[i].Operands[TakenMinuses[j]].K;
+                    Temp.operands[i]->operands[TakenMinuses[j]]->K = string("-")+Temp.operands[i]->operands[TakenMinuses[j]]->K;
             }
-            if(Temp.Operands[i].Operator == OperatorConst && MinusesCount % 2 == 1)
+            if(Temp.operands[i]->operation == OperatorConst && MinusesCount % 2 == 1)
             {
-                Temp.Operands[i].K = string("-") + Temp.Operands[i].K;
+                Temp.operands[i]->K = string("-") + Temp.operands[i]->K;
             }
         };
         Width += W;
@@ -757,13 +771,13 @@ void TFormulaPlotter::SumGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int
     cout<<CodeBasic()<<endl;
 #endif
 };
-void TFormulaPlotter::SumDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::SumDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(Width);
 #ifdef __DEBUG__
     cout<<CodeBasic()<<endl;
 #endif
-    TNumeric Temp(*this); //работаем с Temp, так как this = const
+    TNumeric Temp(N); //работаем с Temp, так как this = const
     if(NeedBrackets)
     {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), Canvas, X, Y, Height, Depth);
@@ -772,24 +786,24 @@ void TFormulaPlotter::SumDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, i
     vector<size_t> Exclude; //слагаемые, равные нулю, их лучше всего исключить
     if(Simplify)
     {
-        for(size_t i = 0; i < Temp.Operands.size(); i++)
+        for(size_t i = 0; i < Temp.operands.size(); i++)
         {
-            if(Temp.Operands[i].Operator == OperatorConst && Temp.Operands[i].K == "0")Exclude.push_back(i);
-            if(Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorConst && Temp.operands[i]->K == "0")Exclude.push_back(i);
+            if(Temp.operands[i]->operation == OperatorFrac)
             {
-                if(Temp.Operands[i].Operands[0].Operator==OperatorConst && Temp.Operands[i].Operands[0].K == "0")Exclude.push_back(i);
+                if(Temp.operands[i]->operands[0]->operation==OperatorConst && Temp.operands[i]->operands[0]->K == "0")Exclude.push_back(i);
             }
-            if(Temp.Operands[i].Operator == OperatorProd)
+            if(Temp.operands[i]->operation == OperatorProd)
             {
-                for(size_t j = 0; j < Temp.Operands[i].Operands.size(); j++)
-                    if(Temp.Operands[i].Operands[j].Operator==OperatorConst && Temp.Operands[i].Operands[j].K == "0")
+                for(size_t j = 0; j < Temp.operands[i]->operands.size(); j++)
+                    if(Temp.operands[i]->operands[j]->operation==OperatorConst && Temp.operands[i]->operands[j]->K == "0")
                     {
                         Exclude.push_back(i);
                         break;
                     };
             }
         }
-        if(Exclude.size() == Temp.Operands.size() && Temp.Operands.size() > 0)
+        if(Exclude.size() == Temp.operands.size() && Temp.operands.size() > 0)
         //все слагаемые - нули, оставляем только одно из них
         {
             Exclude.erase(Exclude.begin());
@@ -800,12 +814,12 @@ void TFormulaPlotter::SumDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, i
     string StrMinus = UniCode2UTF8String(MyMinusSign);
     size_t Drawn = 0; //количество уже отрисованных слагаемых
 
-    for(size_t i = 0; i < Temp.Operands.size(); i++)
+    for(size_t i = 0; i < Temp.operands.size(); i++)
     {
         if(find(Exclude.begin(), Exclude.end(), i) != Exclude.end())continue;
         int W1, H1, D1;
         bool NeedBrackets = false;
-        if(CompareOperatorsPriority(Operator, Temp.Operands[i].Operator)>0) NeedBrackets = true;
+        if(TNumeric::CompareOperatorsPriority(N.operation, Temp.operands[i]->operation)>0) NeedBrackets = true;
         vector<size_t> TakenMinuses; //Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0 ;
 
@@ -813,26 +827,26 @@ void TFormulaPlotter::SumDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, i
         //Пытаемся вынести минус, эта операция не явлеятся thread-safe
         //у первого (Drawn = 0) слагаемого минус не выносится
         {
-            if(Temp.Operands[i].Operator == OperatorProd || Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac)
             {
-                for(size_t j = 0; j < Temp.Operands[i].Operands.size(); j++)
+                for(size_t j = 0; j < Temp.operands[i]->operands.size(); j++)
                 {
-                    if(Temp.Operands[i].Operands[j].Operator == OperatorConst)
+                    if(Temp.operands[i]->operands[j]->operation == OperatorConst)
                     {
-                        if(Temp.Operands[i].Operands[j].K.length() > 0 && Temp.Operands[i].Operands[j].K[0]=='-')
+                        if(Temp.operands[i]->operands[j]->K.length() > 0 && Temp.operands[i]->operands[j]->K[0]=='-')
                         {
                             TakenMinuses.push_back(j);
-                            Temp.Operands[i].Operands[j].K.erase(Temp.Operands[i].Operands[j].K.begin());
+                            Temp.operands[i]->operands[j]->K.erase(Temp.operands[i]->operands[j]->K.begin());
                             MinusesCount++;
                         }
                     }
                 }
             }
-            if(Temp.Operands[i].Operator == OperatorConst)
-                if(Temp.Operands[i].K.length() > 0 && Temp.Operands[i].K[0]=='-')
+            if(Temp.operands[i]->operation == OperatorConst)
+                if(Temp.operands[i]->K.length() > 0 && Temp.operands[i]->K[0]=='-')
                 {
                     MinusesCount++;
-                    Temp.Operands[i].K.erase(Temp.Operands[i].K.begin());
+                    Temp.operands[i]->K.erase(Temp.operands[i]->K.begin());
                 }
         }
         //рисуем знак
@@ -852,29 +866,29 @@ void TFormulaPlotter::SumDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, i
             X = X + Canvas->TextWidth(StrMinus);
         }
 
-        if(CompareOperatorsPriority(Operator, Temp.Operands[i].Operator)>0) NeedBrackets = true;
+        if(TNumeric::CompareOperatorsPriority(N.operation, Temp.operands[i]->operation)>0) NeedBrackets = true;
         if(Simplify)
         //если надо было упростить, то рисуем упрощенные слагаемые
         {
-            Temp.Operands[i].PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
-            Temp.Operands[i].PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
+            TFormulaPlotter(*Temp.operands[i]).PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
+            TFormulaPlotter(*Temp.operands[i]).PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
         } else {
             //ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается функцией PrettyDrawAtBaseLeft в корень дерева
-            Operands[i].PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
-            Operands[i].PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
+            TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
+            TFormulaPlotter(*N.operands[i]).PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
         }
 
         if(Simplify)
         {
             //возвращаем минус обратно
-            if(Temp.Operands[i].Operator == OperatorProd || Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac)
             {
                 for(size_t j = 0; j < TakenMinuses.size(); j++)
-                    Temp.Operands[i].Operands[TakenMinuses[j]].K = string("-")+Temp.Operands[i].Operands[TakenMinuses[j]].K;
+                    Temp.operands[i]->operands[TakenMinuses[j]]->K = string("-")+Temp.operands[i]->operands[TakenMinuses[j]]->K;
             }
-            if(Temp.Operands[i].Operator == OperatorConst && MinusesCount % 2 == 1)
+            if(Temp.operands[i]->operation == OperatorConst && MinusesCount % 2 == 1)
             {
-                Temp.Operands[i].K = string("-") + Temp.Operands[i].K;
+                Temp.operands[i]->K = string("-") + Temp.operands[i]->K;
             }
         };
 
@@ -886,45 +900,45 @@ void TFormulaPlotter::SumDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, i
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::MinusGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::MinusGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
-    TNumeric Temp(*this); //работаем с Temp, так как this = const
+    TNumeric Temp(N); //работаем с Temp, так как this = const
 #ifdef __DEBUG__
     cout<<CodeBasic()<<endl;
 #endif
     int W, H, D;
     string StrPlus = UniCode2UTF8String(MyPlusSign);
     string StrMinus = UniCode2UTF8String(MyMinusSign);
-    for(size_t i = 0; i < Temp.Operands.size(); i++)
+    for(size_t i = 0; i < Temp.operands.size(); i++)
     {
         bool NeedBrackets = false;
-        if(CompareOperatorsPriority(Operator, Temp.Operands[i].Operator)>0) NeedBrackets = true;
+        if(TNumeric::CompareOperatorsPriority(N.operation, Temp.operands[i]->operation)>0) NeedBrackets = true;
         vector<size_t> TakenMinuses; //Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
 
         if(Simplify)
         //Пытаемся вынести минус, эта операция не явлеятся thread-safe
         {
-            if(Temp.Operands[i].Operator == OperatorProd || Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac)
             {
-                for(size_t j = 0; j < Temp.Operands[i].Operands.size(); j++)
+                for(size_t j = 0; j < Temp.operands[i]->operands.size(); j++)
                 {
-                    if(Temp.Operands[i].Operands[j].Operator == OperatorConst)
+                    if(Temp.operands[i]->operands[j]->operation == OperatorConst)
                     {
-                        if(Temp.Operands[i].Operands[j].K.length() > 0 && Temp.Operands[i].Operands[j].K[0]=='-')
+                        if(Temp.operands[i]->operands[j]->K.length() > 0 && Temp.operands[i]->operands[j]->K[0]=='-')
                         {
                             TakenMinuses.push_back(j);
-                            Temp.Operands[i].Operands[j].K.erase(Temp.Operands[i].Operands[j].K.begin());
+                            Temp.operands[i]->operands[j]->K.erase(Temp.operands[i]->operands[j]->K.begin());
                             MinusesCount++;
                         }
                     }
                 }
             }
-            if(Temp.Operands[i].Operator == OperatorConst)
-                if(Temp.Operands[i].K.length() > 0 && Temp.Operands[i].K[0]=='-')
+            if(Temp.operands[i]->operation == OperatorConst)
+                if(Temp.operands[i]->K.length() > 0 && Temp.operands[i]->K[0]=='-')
                 {
                     MinusesCount++;
-                    Temp.Operands[i].K.erase(Temp.Operands[i].K.begin());
+                    Temp.operands[i]->K.erase(Temp.operands[i]->K.begin());
                 }
         }
         //рисуем знак
@@ -942,24 +956,24 @@ void TFormulaPlotter::MinusGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, i
         if(Simplify)
         //если надо было упростить, то рисуем упрощенные слагаемые
         {
-            Temp.Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
+            TFormulaPlotter(*Temp.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
         } else {
             //ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается функцией PrettyDrawAtBaseLeft в корень дерева
-            Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
+            TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
         }
 
 
         if(Simplify)
         {
             //возвращаем минус обратно
-            if(Temp.Operands[i].Operator == OperatorProd || Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac)
             {
                 for(size_t j = 0; j < TakenMinuses.size(); j++)
-                    Temp.Operands[i].Operands[TakenMinuses[j]].K = string("-")+Temp.Operands[i].Operands[TakenMinuses[j]].K;
+                    Temp.operands[i]->operands[TakenMinuses[j]]->K = string("-")+Temp.operands[i]->operands[TakenMinuses[j]]->K;
             }
-            if(Temp.Operands[i].Operator == OperatorConst && (MinusesCount % 2 == 1))
+            if(Temp.operands[i]->operation == OperatorConst && (MinusesCount % 2 == 1))
             {
-                Temp.Operands[i].K = string("-") + Temp.Operands[i].K;
+                Temp.operands[i]->K = string("-") + Temp.operands[i]->K;
             }
         };
         Width += W;
@@ -973,10 +987,10 @@ void TFormulaPlotter::MinusGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, i
         Width = Width + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
     };
 };
-void TFormulaPlotter::MinusDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::MinusDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(Width);
-    TNumeric Temp(*this); //работаем с Temp, так как this = const
+    TNumeric Temp(N); //работаем с Temp, так как this = const
 #ifdef __DEBUG__
     cout<<CodeBasic()<<endl;
 #endif
@@ -987,11 +1001,11 @@ void TFormulaPlotter::MinusDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y,
     };
     string StrPlus = UniCode2UTF8String(MyPlusSign);
     string StrMinus = UniCode2UTF8String(MyMinusSign);
-    for(size_t i = 0; i < Temp.Operands.size(); i++)
+    for(size_t i = 0; i < Temp.operands.size(); i++)
     {
         int W1, H1, D1;
         bool NeedBrackets = false;
-        if(CompareOperatorsPriority(Operator, Temp.Operands[i].Operator)>0) NeedBrackets = true;
+        if(TNumeric::CompareOperatorsPriority(N.operation, Temp.operands[i]->operation)>0) NeedBrackets = true;
         vector<size_t> TakenMinuses; //Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0 ;
 
@@ -999,26 +1013,26 @@ void TFormulaPlotter::MinusDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y,
         //Пытаемся вынести минус, эта операция не явлеятся thread-safe
         //todo: скопировать из SumDraw
         {
-            if(Temp.Operands[i].Operator == OperatorProd || Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac)
             {
-                for(size_t j = 0; j < Temp.Operands[i].Operands.size(); j++)
+                for(size_t j = 0; j < Temp.operands[i]->operands.size(); j++)
                 {
-                    if(Temp.Operands[i].Operands[j].Operator == OperatorConst)
+                    if(Temp.operands[i]->operands[j]->operation == OperatorConst)
                     {
-                        if(Temp.Operands[i].Operands[j].K.length() > 0 && Temp.Operands[i].Operands[j].K[0]=='-')
+                        if(Temp.operands[i]->operands[j]->K.length() > 0 && Temp.operands[i]->operands[j]->K[0]=='-')
                         {
                             TakenMinuses.push_back(j);
-                            Temp.Operands[i].Operands[j].K.erase(Temp.Operands[i].Operands[j].K.begin());
+                            Temp.operands[i]->operands[j]->K.erase(Temp.operands[i]->operands[j]->K.begin());
                             MinusesCount++;
                         }
                     }
                 }
             }
-            if(Temp.Operands[i].Operator == OperatorConst)
-                if(Temp.Operands[i].K.length() > 0 && Temp.Operands[i].K[0]=='-')
+            if(Temp.operands[i]->operation == OperatorConst)
+                if(Temp.operands[i]->K.length() > 0 && Temp.operands[i]->K[0]=='-')
                 {
                     MinusesCount++;
-                    Temp.Operands[i].K.erase(Temp.Operands[i].K.begin());
+                    Temp.operands[i]->K.erase(Temp.operands[i]->K.begin());
                 }
         }
         //рисуем знак
@@ -1048,25 +1062,25 @@ void TFormulaPlotter::MinusDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y,
         if(Simplify)
         //если надо было упростить, то рисуем упрощенные слагаемые
         {
-            Temp.Operands[i].PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
-            Temp.Operands[i].PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
+            TFormulaPlotter(*Temp.operands[i]).PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
+            TFormulaPlotter(*Temp.operands[i]).PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
         } else {
             //ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается функцией PrettyDrawAtBaseLeft в корень дерева
-            Operands[i].PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
-            Operands[i].PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
+            TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
+            TFormulaPlotter(*N.operands[i]).PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
         }
 
         if(Simplify)
         {
             //возвращаем минус обратно
-            if(Temp.Operands[i].Operator == OperatorProd || Temp.Operands[i].Operator == OperatorFrac)
+            if(Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac)
             {
                 for(size_t j = 0; j < TakenMinuses.size(); j++)
-                    Temp.Operands[i].Operands[TakenMinuses[j]].K = string("-")+Temp.Operands[i].Operands[TakenMinuses[j]].K;
+                    Temp.operands[i]->operands[TakenMinuses[j]]->K = string("-")+Temp.operands[i]->operands[TakenMinuses[j]]->K;
             }
-            if(Temp.Operands[i].Operator == OperatorConst && (MinusesCount % 2== 1))
+            if(Temp.operands[i]->operation == OperatorConst && (MinusesCount % 2== 1))
             {
-                Temp.Operands[i].K = string("-") + Temp.Operands[i].K;
+                Temp.operands[i]->K = string("-") + Temp.operands[i]->K;
             }
         };
         X = X + W1;
@@ -1076,14 +1090,14 @@ void TFormulaPlotter::MinusDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y,
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::UnionGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::UnionGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeUnion);
     StrGetTextRectangle(Sign, Canvas, Width, Height, Depth, WithBrackets, Simplify);
 }
 
-void TFormulaPlotter::UnionDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::UnionDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeUnion);
@@ -1092,13 +1106,13 @@ void TFormulaPlotter::UnionDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y,
 
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::PlusMinusGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::PlusMinusGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodePlusMinus);
     StrGetTextRectangle(Sign, Canvas, Width, Height, Depth, WithBrackets, Simplify);
 }
-void TFormulaPlotter::PlusMinusDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::PlusMinusDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodePlusMinus);
@@ -1109,14 +1123,14 @@ void TFormulaPlotter::PlusMinusDraw(TNumeric& N, TPaintCanvas* Canvas, int X, in
 //==============================================================================
 //==============================================================================
 
-void TFormulaPlotter::IntersectionGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::IntersectionGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeIntersection);
     StrGetTextRectangle(Sign, Canvas, Width, Height, Depth, WithBrackets, Simplify);
 }
 
-void TFormulaPlotter::IntersectionDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::IntersectionDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeIntersection);
@@ -1125,30 +1139,30 @@ void TFormulaPlotter::IntersectionDraw(TNumeric& N, TPaintCanvas* Canvas, int X,
 
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::ProdGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::ProdGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     int W, H, D;
     vector<size_t> ExcludeOperands;
     if(Simplify)
     {
-        for(size_t j = 0; j < Operands.size(); j++)
-            if(Operands[j].Operator == OperatorConst && Operands[j].K == "1") ExcludeOperands.push_back(j);
-        if(ExcludeOperands.size() == Operands.size() && ExcludeOperands.size() > 0) ExcludeOperands.erase(ExcludeOperands.begin());
+        for(size_t j = 0; j < N.operands.size(); j++)
+            if(N.operands[j]->operation == OperatorConst && N.operands[j]->K == "1") ExcludeOperands.push_back(j);
+        if(ExcludeOperands.size() == N.operands.size() && ExcludeOperands.size() > 0) ExcludeOperands.erase(ExcludeOperands.begin());
     }
     char Str[10];
     UniCode2UTF8(Str, UnicodeMiddleDot);
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
         if(Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end()) continue;
         bool NeedBrackets = false;
-        if(CompareOperatorsPriority(Operator, Operands[i].Operator)>0) NeedBrackets = true;
-        Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
+        if(TNumeric::CompareOperatorsPriority(N.operation, N.operands[i]->operation)>0) NeedBrackets = true;
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, NeedBrackets, Simplify);
         Width += W;
         if(H > Height)
             Height = H;
         if(D > Depth)
             Depth = D;
-        if(i+1 < Operands.size() && !(Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i+1) != ExcludeOperands.end()))
+        if(i+1 < N.operands.size() && !(Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i+1) != ExcludeOperands.end()))
             Width += Canvas->TextWidth(Str);
     };
     if(WithBrackets)
@@ -1156,7 +1170,7 @@ void TFormulaPlotter::ProdGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, in
         Width = Width + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
     };
 };
-void TFormulaPlotter::ProdDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::ProdDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(Width);
 
@@ -1168,23 +1182,23 @@ void TFormulaPlotter::ProdDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, 
     vector<size_t> ExcludeOperands;
     if(Simplify)
     {
-        for(size_t j = 0; j < Operands.size(); j++)
-            if(Operands[j].Operator == OperatorConst && Operands[j].K == "1") ExcludeOperands.push_back(j);
-        if(ExcludeOperands.size() == Operands.size() && ExcludeOperands.size() > 0) ExcludeOperands.erase(ExcludeOperands.begin());
+        for(size_t j = 0; j < N.operands.size(); j++)
+            if(N.operands[j]->operation == OperatorConst && N.operands[j]->K == "1") ExcludeOperands.push_back(j);
+        if(ExcludeOperands.size() == N.operands.size() && ExcludeOperands.size() > 0) ExcludeOperands.erase(ExcludeOperands.begin());
     }
     char Str[10];
     UniCode2UTF8(Str, UnicodeMiddleDot);
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
         if(Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end())
             continue;
         int W1, H1, D1;
         bool NeedBrackets = false;
-        if(CompareOperatorsPriority(Operator, Operands[i].Operator)>0) NeedBrackets = true;
-        Operands[i].PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
-        Operands[i].PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
+        if(TNumeric::CompareOperatorsPriority(N.operation, N.operands[i]->operation)>0) NeedBrackets = true;
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W1, H1, D1, NeedBrackets, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyDrawAtBaseLeft(Canvas, X, Y, NeedBrackets, Simplify);
         X = X + W1;
-        if(i+1 < Operands.size() && !(Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i+1) != ExcludeOperands.end()))
+        if(i+1 < N.operands.size() && !(Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i+1) != ExcludeOperands.end()))
         {
             //Canvas->TextOutA(X, Y, "*");
 #ifdef __DEBUG__
@@ -1204,23 +1218,23 @@ void TFormulaPlotter::ProdDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, 
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::BelongsToGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::BelongsToGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeElementOf);
     StrGetTextRectangle(Sign, Canvas, Width, Height, Depth, WithBrackets, Simplify);
 };
-void TFormulaPlotter::BelongsToDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::BelongsToDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     char Sign[10];
     UniCode2UTF8(Sign, 0x2208);
     StrDraw(Sign, Canvas, X, Y, Width, Height, Depth, NeedBrackets, Simplify);
 };
 //==============================================================================
-void TFormulaPlotter::EqualGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::EqualGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     string str;
-    switch(Operator)
+    switch(N.operation)
     {
     case OperatorLess: str = UniCode2UTF8String(MyLessThanSign); break;
     case OperatorLessOrEqual:  str = UniCode2UTF8String(MyLessOrEqualSign); break;
@@ -1231,10 +1245,10 @@ void TFormulaPlotter::EqualGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, i
     }
     StrGetTextRectangle(str.c_str(), Canvas, Width, Height, Depth, WithBrackets, Simplify);
 };
-void TFormulaPlotter::EqualDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::EqualDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     string str;
-    switch(Operator)
+    switch(N.operation)
     {
     case OperatorLess: str = UniCode2UTF8String(MyLessThanSign); break;
     case OperatorLessOrEqual:  str = UniCode2UTF8String(MyLessOrEqualSign); break;
@@ -1247,17 +1261,17 @@ void TFormulaPlotter::EqualDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y,
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::PowGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::PowGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     int W1, H1, D1;
     int W2, H2, D2;
     Width = Height = Depth = 0;
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
     Height = H1;
     Depth = D1;
     Width = W1;
     QFont Font = DecreaseFont(Canvas);
-    Operands[1].PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
     Canvas->Font = Font;
     if(Height < H1/2 + H2 + D2)
         Height = H1/2 + H2 + D2;
@@ -1269,7 +1283,7 @@ void TFormulaPlotter::PowGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int
         Width = Width + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
     };
 };
-void TFormulaPlotter::PowDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::PowDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(Width);
     int W1, H1, D1;
@@ -1279,12 +1293,12 @@ void TFormulaPlotter::PowDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, i
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), Canvas, X, Y, Height, Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth);
     };
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
-    Operands[0].PrettyDrawAtBaseLeft(Canvas, X, Y, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyDrawAtBaseLeft(Canvas, X, Y, true, Simplify);
     X += W1;
     QFont Font = DecreaseFont(Canvas);
-    Operands[1].PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
-    Operands[1].PrettyDrawAtBaseLeft(Canvas, X, Y - H1/2 - D2, true, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyDrawAtBaseLeft(Canvas, X, Y - H1/2 - D2, true, Simplify);
     Canvas->Font = Font;
     X+=W2;
 
@@ -1293,18 +1307,18 @@ void TFormulaPlotter::PowDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, i
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::AbsGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::AbsGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     Q_UNUSED(WithBrackets);
     int W1, H1, D1;
     Width = Height = Depth = 0;
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W1, H1, D1, false, Simplify);
     Height = H1;
     Depth = D1;
     Width = W1;
     Width = Width + 2*GetBracketWidth("|", Canvas, Height, Depth);
 };
-void TFormulaPlotter::AbsDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::AbsDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(NeedBrackets);
     Q_UNUSED(Width);
@@ -1312,51 +1326,51 @@ void TFormulaPlotter::AbsDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, i
     DrawBracket("|", Canvas, X, Y, Height, Depth);
     X = X + GetBracketWidth("|", Canvas, Height, Depth);
 
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, false, Simplify);
-    Operands[0].PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W1, H1, D1, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
     X += W1;
 
     DrawBracket("|", Canvas, X , Y, Height, Depth);
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::DerivGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::DerivGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     int W1, H1, D1;
-    int W2, H2, D2;
+    int W2; //, H2, D2;
     Width = Height = Depth = 0;
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
     Height = H1;
     Depth = D1;
     Width = W1;
 
-    H2 = Canvas->TextHeight("'");
-    D2 = Canvas->TextDepth("'");
     W2 = Canvas->TextWidth("'");
+    //H2 = Canvas->TextHeight("'");
+    //D2 = Canvas->TextDepth("'");
 
     Width += W2;
     if(WithBrackets)
     {
         Width = Width + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
-    };
-};
-void TFormulaPlotter::DerivDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+    }
+}
+void TFormulaPlotter::DerivDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(Width);
     int W1, H1, D1;
-    int W2, H2, D2;
+    int W2, H2; //, D2;
     if(NeedBrackets)
     {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), Canvas, X, Y, Height, Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth);
     };
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
-    Operands[0].PrettyDrawAtBaseLeft(Canvas, X, Y, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyDrawAtBaseLeft(Canvas, X, Y, true, Simplify);
     X+=W1;
 
-    H2 = Canvas->TextHeight("'");
-    D2 = Canvas->TextDepth("'");
     W2 = Canvas->TextWidth("'");
+    H2 = Canvas->TextHeight("'");
+    //D2 = Canvas->TextDepth("'");
     Canvas->TextOutA(X, Y - H1 + H2, "'");
     X += W2;
 
@@ -1366,16 +1380,16 @@ void TFormulaPlotter::DerivDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y,
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::SubIndexGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::SubIndexGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     int W, H, D;
     Width = Height = Depth = 0;
-    Operands[0].PrettyGetTextRectangle(Canvas, W, H, D, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W, H, D, true, Simplify);
     Height = H;
     Depth = D;
     Width = W;
     QFont Font = DecreaseFont(Canvas);
-    Operands[1].PrettyGetTextRectangle(Canvas, W, H, D, true, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W, H, D, true, Simplify);
     Canvas->Font = Font;
     if(H + D > 2*Depth)
         Depth = (H + D)/2 + 1;
@@ -1391,7 +1405,7 @@ void TFormulaPlotter::SubIndexGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas
         Width = Width + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
     };
 };
-void TFormulaPlotter::SubIndexDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::SubIndexDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(Width);
     int W1, H1, D1;
@@ -1401,17 +1415,17 @@ void TFormulaPlotter::SubIndexDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), Canvas, X, Y, Height, Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth);
     };
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
-    Operands[0].PrettyDrawAtBaseLeft(Canvas, X, Y, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W1, H1, D1, true, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyDrawAtBaseLeft(Canvas, X, Y, true, Simplify);
     X += W1;
 
     QFont Font = DecreaseFont(Canvas);
-    Operands[1].PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W2, H2, D2, true, Simplify);
     /*    int IndexBaseLine = - H1/2 + H2;
     if(D1 > IndexBaseLine)
         IndexBaseLine = D1 - H2/2;
-    Operands[1].PrettyDrawAtBaseLeft(Canvas, X, Y + IndexBaseLine, true, Simplify);*/
-    Operands[1].PrettyDrawAtBaseLeft(Canvas, X, Y + (H2 - D2)/2, true, Simplify);
+    TFormulaPlotter(*N.Operands[1]).PrettyDrawAtBaseLeft(Canvas, X, Y + IndexBaseLine, true, Simplify);*/
+    TFormulaPlotter(*N.operands[1]).PrettyDrawAtBaseLeft(Canvas, X, Y + (H2 - D2)/2, true, Simplify);
     X+=W2;
     Canvas->Font = Font;
 
@@ -1420,10 +1434,10 @@ void TFormulaPlotter::SubIndexDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int
 };
 //==============================================================================
 //==============================================================================
-void TFormulaPlotter::SqrtGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::SqrtGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     int W, H, D;
-    Operands[0].PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
     Width = W;
     Height = H;
     Width = Width + 10;
@@ -1434,7 +1448,7 @@ void TFormulaPlotter::SqrtGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, in
         Width = Width + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth) +GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
     };
 };
-void TFormulaPlotter::SqrtDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::SqrtDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     Q_UNUSED(Width);
     int W, H, D;
@@ -1443,8 +1457,8 @@ void TFormulaPlotter::SqrtDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, 
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), Canvas, X, Y, Height, Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth);
     };
-    Operands[0].PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
-    Operands[0].PrettyDrawAtBaseLeft(Canvas, X+10, Y, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyDrawAtBaseLeft(Canvas, X+10, Y, false, Simplify);
     QColor Color = Canvas->Pen.color();
     Canvas->Line(X, Y, X+2, Y, Color, 1);
     Canvas->Line(X+2, Y, X+5, Y + Depth, Color, 2);
@@ -1456,7 +1470,7 @@ void TFormulaPlotter::SqrtDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, 
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), Canvas, X+10+W, Y, Height, Depth);
 };
 //==============================================================================
-void  TFormulaPlotter::LinesGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, int LeftMargin, bool Simplify) const
+void  TFormulaPlotter::LinesGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, int LeftMargin, bool Simplify) const
 //одна или несколько строк, объединенных оператором совокупности или пересечения
 {
     Width = 0;
@@ -1464,13 +1478,13 @@ void  TFormulaPlotter::LinesGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, 
     Depth = 0;
 
     int InterLineSpacing = Canvas->TextHeight("A")/3;
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
         int W, H, D;
-        Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
         if(W > Width) Width = W;
         Height += D+H;
-        if(i+1 < Operands.size())
+        if(i+1 < N.operands.size())
             Height += InterLineSpacing;
     };
     Depth = Height/2;
@@ -1482,7 +1496,7 @@ void  TFormulaPlotter::LinesGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, 
 
     Width += LeftMargin;
 };
-void TFormulaPlotter::LinesDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, int LeftMargin, bool Simplify) const
+void TFormulaPlotter::LinesDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, int LeftMargin, bool Simplify) const
 {
     X += LeftMargin;
     if(NeedBrackets)
@@ -1491,25 +1505,25 @@ void TFormulaPlotter::LinesDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y,
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), Canvas, Height, Depth);
     };
     int InterLineSpacing = Canvas->TextHeight("A")/3;
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < N.operands.size(); i++)
     {
         int W, H, D;
-        Operands[i].PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
-        Operands[i].PrettyDrawAtBaseLeft(Canvas, X, Y-Height+H, false, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyGetTextRectangle(Canvas, W, H, D, false, Simplify);
+        TFormulaPlotter(*N.operands[i]).PrettyDrawAtBaseLeft(Canvas, X, Y-Height+H, false, Simplify);
         Y += H+D;
-        if(i+1 < Operands.size())
+        if(i+1 < N.operands.size())
             Y += InterLineSpacing;
     };
     if(NeedBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), Canvas, X + Width - GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth), Y, Height, Depth);
 };
 
-void TFormulaPlotter::EqSystemGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::EqSystemGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     LinesGetTextRectangle(Canvas, Width, Height, Depth, WithBrackets, 0, Simplify);
     Width += GetBracketWidth(UniCode2UTF8String(MyLeftCurlyBracket), Canvas, Height*1, Depth);
 };
-void TFormulaPlotter::EqSystemDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::EqSystemDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     string bracket = UniCode2UTF8String(MyLeftCurlyBracket);
     DrawBracket(bracket, Canvas, X, Y, Height, Depth);
@@ -1517,12 +1531,12 @@ void TFormulaPlotter::EqSystemDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int
     X+=BW;
     LinesDraw(Canvas, X, Y, Width, Height, Depth, NeedBrackets, 0, Simplify);
 }
-void TFormulaPlotter::EqSetGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::EqSetGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     LinesGetTextRectangle(Canvas, Width, Height, Depth, WithBrackets, 0, Simplify);
     Width += GetBracketWidth(UniCode2UTF8String(MyLeftCurlyBracket), Canvas, Height, Depth);
 };
-void TFormulaPlotter::EqSetDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::EqSetDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     string bracket = UniCode2UTF8String(MyLeftCurlyBracket);
     DrawBracket(bracket, Canvas, X, Y, Height, Depth);
@@ -1530,18 +1544,18 @@ void TFormulaPlotter::EqSetDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y,
     X+=BW;
     LinesDraw(Canvas, X, Y, Width, Height, Depth, NeedBrackets, 0, Simplify);
 }
-void TFormulaPlotter::IntegralGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
+void TFormulaPlotter::IntegralGetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, bool WithBrackets, bool Simplify) const
 {
     int W1, H1, D1;
     int W2, H2, D2;
     int dW, dH, dD;
     bool Brackets = false;
-    if(GetOperatorPriority(Operands[0].Operator) < GetOperatorPriority(OperatorIntegral)) Brackets = true;
+    if(TNumeric::GetOperatorPriority(N.operands[0]->operation) < TNumeric::GetOperatorPriority(OperatorIntegral)) Brackets = true;
 
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, Brackets, Simplify);
-    Operands[1].PrettyGetTextRectangle(Canvas, W2, H2, D2, false, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W1, H1, D1, Brackets, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W2, H2, D2, false, Simplify);
     TNumeric d("d");
-    d.PrettyGetTextRectangle(Canvas, dW, dH, dD, false, false);
+    TFormulaPlotter(d).PrettyGetTextRectangle(Canvas, dW, dH, dD, false, false);
     Width = W1 + W2 + dW;
     Height = max(max(H1, H2), dH);
     Depth = max(max(D1, D2), dD);
@@ -1556,7 +1570,7 @@ void TFormulaPlotter::IntegralGetTextRectangle(TNumeric& N, TPaintCanvas* Canvas
 
 }
 
-void TFormulaPlotter::IntegralDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
+void TFormulaPlotter::IntegralDraw(TPaintCanvas* Canvas, int X, int Y, int &Width, int &Height, int &Depth, bool NeedBrackets, bool Simplify) const
 {
     int W1, H1, D1;
     int W2, H2, D2;
@@ -1569,28 +1583,28 @@ void TFormulaPlotter::IntegralDraw(TNumeric& N, TPaintCanvas* Canvas, int X, int
     };
 
     bool Brackets = false;
-    if(GetOperatorPriority(Operands[0].Operator) < GetOperatorPriority(OperatorIntegral)) Brackets = true;
-    Operands[0].PrettyGetTextRectangle(Canvas, W1, H1, D1, Brackets, Simplify);
-    Operands[1].PrettyGetTextRectangle(Canvas, W2, H2, D2, false, Simplify);
-    d.PrettyGetTextRectangle(Canvas, dW, dH, dD, false, false);
+    if(TNumeric::GetOperatorPriority(N.operands[0]->operation) < TNumeric::GetOperatorPriority(OperatorIntegral)) Brackets = true;
+    TFormulaPlotter(*N.operands[0]).PrettyGetTextRectangle(Canvas, W1, H1, D1, Brackets, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyGetTextRectangle(Canvas, W2, H2, D2, false, Simplify);
+    TFormulaPlotter(d).PrettyGetTextRectangle(Canvas, dW, dH, dD, false, false);
 
 
     DrawBracket(UniCode2UTF8String(UnicodeIntegral), Canvas, X, Y, Height, Depth);
     X += GetBracketWidth(UniCode2UTF8String(UnicodeIntegral), Canvas, Height, Depth);
 
-    Operands[0].PrettyDrawAtBaseLeft(Canvas, X, Y, Brackets, Simplify);
+    TFormulaPlotter(*N.operands[0]).PrettyDrawAtBaseLeft(Canvas, X, Y, Brackets, Simplify);
     X += W1;
 
-    d.PrettyDrawAtBaseLeft(Canvas, X, Y, false, false);
+    TFormulaPlotter(d).PrettyDrawAtBaseLeft(Canvas, X, Y, false, false);
     X += dW;
 
-    Operands[1].PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
+    TFormulaPlotter(*N.operands[1]).PrettyDrawAtBaseLeft(Canvas, X, Y, false, Simplify);
     X += W2;
 
     if(NeedBrackets)
     {
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), Canvas, X + Width - GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth), Y, Height, Depth);
-        X = X + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
+        //X = X + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
     };
 }
 

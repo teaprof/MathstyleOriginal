@@ -487,7 +487,7 @@ void MainWindow::DrawConditions()
     if(Problem)
     {
         ui->FormulaEditor->SetTask(Problem->GetTask());
-        ui->FormulaEditor->SetFormula(Problem->Conditions.get());
+        ui->FormulaEditor->SetFormula(Problem->Conditions);
         ui->pushButton_6->setEnabled(Problem->CanRandomize);
     } else  {
         ui->pushButton_6->setEnabled(false);

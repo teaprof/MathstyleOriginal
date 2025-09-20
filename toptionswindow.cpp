@@ -92,15 +92,15 @@ TNumeric Line2 = MakeEquality((A/B)*X + B*MakeLog(X, (X^2)+2), TNumeric(0));
 TNumeric Line3 = MakeEquality(A*MakeSin(X) + B*(X^2), TNumeric(0));
 TNumeric Line4 = MakeEquality(A*X + MakeCos(X^2), TNumeric(0));
 TNumeric SystemOfEquations;
-    SystemOfEquations.Operator = OperatorEqSystem;
+    SystemOfEquations.operation = OperatorEqSystem;
     SystemOfEquations.OperandsPushback(Line1);
     SystemOfEquations.OperandsPushback(Line2);
     SystemOfEquations.OperandsPushback(Line3);
     SystemOfEquations.OperandsPushback(Line4);
-    Solution->AddLine(new TNumeric(SystemOfEquations));
+    Solution->AddLine(TNumeric(SystemOfEquations));
     //Solution->AddLine(new TLine(MyTranslator.tr("Solution:")));
     //Solution->AddLine(new TLine(MyTranslator.tr("Examples:")));
-    Solution->AddLine(new TNumeric(MakeBelongsTo(X, TInterval(TNumeric(-1), TNumeric(2), true, false).GetNumeric())));
+    Solution->AddLine(TNumeric(MakeBelongsTo(X, TInterval(TNumeric(-1), TNumeric(2), true, false).GetNumeric())));
 
     QGraphicsScene *Scene = new QGraphicsScene;
     Scene->setBackgroundBrush(QBrush(Options->BackgroundColor));

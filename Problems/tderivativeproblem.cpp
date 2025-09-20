@@ -5,9 +5,9 @@ TDerivativeProblem::TDerivativeProblem()
 {
     CanRandomize = true;
     Conditions = std::make_shared<TNumeric>();
-    Conditions->Operator = OperatorArctg;
+    Conditions->operation = OperatorArctg;
     Conditions->OperandsPushback(MakePow(TNumeric("x"), TNumeric(2))+TNumeric(2));
-    //Conditions->Operator = OperatorFrac;
+    //Conditions->operation = OperatorFrac;
     //Conditions->OperandsPushback(TNumeric(1));
     //Conditions->OperandsPushback(MakeLog(TNumeric("x"), TNumeric(5)));
     Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);
@@ -89,22 +89,22 @@ void TDerivativeProblem::Randomize(std::mt19937& rng)
     switch(rng() % 3)
     {
         case 0:
-            Res.Operator = OperatorFrac;
+            Res.operation = OperatorFrac;
             Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1, rng));
             Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1, rng));
         break;
         case 1:
-            Res.Operator = OperatorPow;
+            Res.operation = OperatorPow;
             Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2, rng));
             Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum, 1, rng));
         break;
         case 2:
-            Res.Operator = OperatorProd;
+            Res.operation = OperatorProd;
             Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1, rng));
             Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 1, rng));
         break;
         case 3:
-            Res.Operator = OperatorSum;
+            Res.operation = OperatorSum;
             Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2, rng));
             Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2, rng));
         break;

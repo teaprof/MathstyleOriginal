@@ -10,17 +10,13 @@
 
 #define __MULTITHREAD__
 
-
-class THTMLWriter
+class THTMLWriter : public TRectangleElementVisitor
 {
         std::ofstream fout;
         std::string GetUniqueFileName(const char* Path, const char* ext);
         int UniqueFileCounter;
         bool BuildCSS(string filename);
         string Translate(string Str);
-#ifdef __MULTITHREAD__
-        vector<QThread*> Threads;
-#endif
     public:
         vector<TMyTranslator*> Translators;
         vector<string> created_files; //абсолютные пути до создаваемых файлов
@@ -32,9 +28,16 @@ class THTMLWriter
         std::string filename; //имя файла внутри рабочей директории
         THTMLWriter();
         ~THTMLWriter();
+
+        virtual void visit(const TFormulaPlotter& element);
+        virtual void visit(const THSpace& element);
+        virtual void visit(const TLine& element);
+        virtual void visit(const TLines& element);
+        virtual void visit(const TText& element);
+
         bool BeginWrite(const char* filename);
         void WriteRectangleElement(const TRectangleElement *R);
-        void EndWrite();
+        void EndWrite();                
 
         void BeginSubSection();
         void EndSubSection();
@@ -70,6 +73,8 @@ class THTMLWriter
         void AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3, const TNumeric& N4);
 
         void Add(std::string str);
+        void AddFormula(TFormulaPlotter fp); //на отдельной строке <br/> $$FORMULA$$ <br/>
+        void AddInlineFormula(TFormulaPlotter fp); //встроенная в строку формула
         void AddFormula(const TNumeric& N); //на отдельной строке <br/> $$FORMULA$$ <br/>
         void AddInlineFormula(const TNumeric& N); //встроенная в строку формула
 

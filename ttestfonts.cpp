@@ -2,6 +2,7 @@
 #include "ttestfonts.h"
 #include "ui_ttestfonts.h"
 #include <Base/arithmetic.h>
+#include "Base/formulaplotter.h"
 
 
 TTestFonts::TTestFonts(QWidget *parent) :
@@ -69,13 +70,13 @@ void TTestFonts::NumericOnCanvas(TPaintCanvas& Canvas)
     TNumeric Line3 = MakeEquality(A*MakeSin(Var) + B*(Var^2), TNumeric(0));
     TNumeric Line4 = MakeEquality(A*Var + MakeCos(Var^2), TNumeric(0));
     TNumeric SystemOfEquations;
-    SystemOfEquations.Operator = OperatorEqSystem;
+    SystemOfEquations.operation = OperatorEqSystem;
     SystemOfEquations.OperandsPushback(Line1);
     SystemOfEquations.OperandsPushback(Line2);
     SystemOfEquations.OperandsPushback(Line3);
     SystemOfEquations.OperandsPushback(Line4);
     Canvas.Font = FormulaFont;
-    SystemOfEquations.PrettyDrawAtBaseLeft(&Canvas, 0, 0, false, false);
+    TFormulaPlotter(SystemOfEquations).PrettyDrawAtBaseLeft(&Canvas, 0, 0, false, false);
 }
 
 

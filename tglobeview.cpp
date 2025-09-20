@@ -118,8 +118,8 @@ void TGlobeView::paintEvent(QPaintEvent *event)
 void TGlobeView::mouseMoveEvent(QMouseEvent *event)
 {
 Qt::MouseButtons Buttons = event->buttons();
-    int x = event->x();
-    int y = event->y();
+    int x = event->position().x();
+    int y = event->position().y();
     if(Buttons & Qt::LeftButton)
     {
         theta += (x - old_mouse_x);
@@ -132,8 +132,8 @@ Qt::MouseButtons Buttons = event->buttons();
 
 void TGlobeView::mousePressEvent(QMouseEvent *event)
 {
-    old_mouse_x = event->x();
-    old_mouse_y = event->y();
+    old_mouse_x = event->position().x();
+    old_mouse_y = event->position().y();
     int Index = GetItemUnderMouse();
     if(Index < Words.size())
         emit Picked(Words[Index]);

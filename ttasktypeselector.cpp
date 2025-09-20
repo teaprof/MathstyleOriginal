@@ -1,5 +1,7 @@
 #include "ttasktypeselector.h"
 #include "ui_ttasktypeselector.h"
+#include "Base/formulaplotter.h"
+#include "Base/tline.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsItemGroup>
@@ -39,9 +41,10 @@ TPaintCanvas Canvas(Scene);
     for(size_t i = 0; i < Types.size(); i++)
     {
         int W, H, D;
-        Types[i].GetTextRectangle(&Canvas, W, H, D);
+        TFormulaPlotter fp(Types[i]);
+        fp.GetTextRectangle(&Canvas, W, H, D);
         QGraphicsItem* I = Scene->addRect(X-5, Y-H-5, W+10, H+D+10, QPen(BackgroundColor));
-        Types[i].Draw(&Canvas, X, Y);
+        fp.Draw(&Canvas, X, Y);
         I->setFlag(QGraphicsItem::ItemIsSelectable);
         Y += H + D + (H + D); //one height spacing
         RectToNum.insert(pair<QGraphicsItem*, size_t>(I, i));       

@@ -2,6 +2,7 @@
 #define QFORMULAEDITOR_H
 
 #include "Base/arithmetic.h"
+#include "Base/editableformula.h"
 
 #include <QToolButton>
 #include <QPushButton>
@@ -25,20 +26,20 @@ public:
     QScrollArea* ScrollArea;
     QFont TextFont, FormulaFont;
     QColor FormulaColor, EditableColor, BackgroundColor;
-    string Task;
-    TNumeric *Formula;
     explicit QFormulaArea(QWidget *parent = 0);
     ~QFormulaArea();
 
     void DebugPrintBuffer();
-    void SetFormula(TNumeric* Formula);
+    void SetFormula(std::shared_ptr<TNumeric> Formula);
 
+    string Task;
+    std::shared_ptr<TNumeric> Formula;
+    std::shared_ptr<TEditableFormula> EditableFormula;
 signals:
     void OnSelectionChanged(TNumeric *NewSelection);
     void OnButtonsChanged(int EditableFlags, int CanEraseFlag, bool IsConst);
     void OnEnableUndo(bool Enabled);
     void OnEnableRedo(bool Enabled);
-
 
 public slots:
     void Save(); //для команды Undo
@@ -99,7 +100,7 @@ public:
     void SetFonts(const QFont& TextFont, const QFont& FormulaFont);
     void SetColors(const QColor& FormulaColor, const QColor& EditableColor, const QColor& BackgroundColor);
     void SetTask(const string& Task);
-    void SetFormula(TNumeric* Formula);
+    void SetFormula(std::shared_ptr<TNumeric> Formula);
 
     void TranslateButtons();
 

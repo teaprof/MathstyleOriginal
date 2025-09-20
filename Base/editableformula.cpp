@@ -1,0 +1,2 @@
+#include "editableformula.h"
+

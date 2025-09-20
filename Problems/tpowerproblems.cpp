@@ -20,7 +20,7 @@ TPowerProblemConditions::TPowerProblemConditions(size_t MaxPower)
     Left = A^GetPolynom(MaxPower, GetStartID(0));
     Right = B^GetPolynom(MaxPower, GetStartID(1));
     Conditions = std::make_shared<TNumeric>();
-    Conditions->Operator = OperatorEqual;
+    Conditions->operation = OperatorEqual;
     Conditions->OperandsPushback(Left);
     Conditions->OperandsPushback(Right);
 }
@@ -69,14 +69,14 @@ vector<TNumeric> Coef;
 
 void TPowerProblemConditions::SaveToFile(ofstream &f)
 {
-__int16 MaxPower = this->MaxPower;
+    uint16_t MaxPower = this->MaxPower;
     f.write((char*)&MaxPower, sizeof(MaxPower));
     TProblem::SaveToFile(f);
 }
 
 void TPowerProblemConditions::LoadFromFile(ifstream &f)
 {
-__int16 MaxPower;
+    uint16_t MaxPower;
     f.read((char*)&MaxPower, sizeof(MaxPower));
     this->MaxPower = MaxPower;
     TProblem::LoadFromFile(f);

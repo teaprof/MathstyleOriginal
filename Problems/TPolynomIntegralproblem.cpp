@@ -289,7 +289,7 @@ vector<size_t> Multiplicity; //в какой степени стоит коре�
         }
 
 TNumeric BigSum;
-    BigSum.Operator = OperatorSum;
+    BigSum.operation = OperatorSum;
     for(size_t i = 0; i < ElementarFractions.size(); i++)
         BigSum = BigSum + ElementarFractions[i].GetNumeric();
     if(Writer)
@@ -298,12 +298,12 @@ TNumeric BigSum;
     //Приводим подобные члены
 TPolynom BigNominator;
     TNumeric BigNominatorNum;
-    BigNominatorNum.Operator = OperatorSum;
+    BigNominatorNum.operation = OperatorSum;
     for(size_t i = 0; i < ElementarFractions.size(); i++)
     {
         TPolynom Multiplicator = TNumeric("1");
         TNumeric MultiplicatorNum;
-        MultiplicatorNum.Operator = OperatorProd;
+        MultiplicatorNum.operation = OperatorProd;
         for(size_t j = 0; j < Q.Roots.size(); j++)
         {
             size_t power = Q.RootsMultiplicity[j];
@@ -336,9 +336,9 @@ TPolynom BigNominator;
         }
         BigNominator = BigNominator + Multiplicator* ElementarFractions[i].Nominator();
         TNumeric NewTerm;
-        NewTerm.Operator = OperatorFrac;
-        NewTerm.OperandsPushback(ElementarFractionsNum[i].Operands[0]*MultiplicatorNum);
-        NewTerm.OperandsPushback(ElementarFractionsNum[i].Operands[1]*MultiplicatorNum);
+        NewTerm.operation = OperatorFrac;
+        NewTerm.OperandsPushback(*ElementarFractionsNum[i].operands[0]*MultiplicatorNum);
+        NewTerm.OperandsPushback(*ElementarFractionsNum[i].operands[1]*MultiplicatorNum);
         BigNominatorNum.OperandsPushback(NewTerm);
     }
 
@@ -386,7 +386,7 @@ TPolynom BigNominator;
         {
             ElementarFractionsNum[j] = ElementarFractionsNum[j].Substitute(S.Variables[i].K, S.Answer[i]).Simplify();
         };
-    BigNominatorNum.Operands.clear();
+    BigNominatorNum.operands.clear();
     BigNominatorNum.OperandsPushback(MainPart.GetNumeric(UnknownVar));
     for(size_t j = 0; j < ElementarFractions.size(); j++)
         BigNominatorNum.OperandsPushback(ElementarFractionsNum[j]);
@@ -397,7 +397,7 @@ TPolynom BigNominator;
                     );
 
 TNumeric Result;
-    Result.Operator = OperatorSum;
+    Result.operation = OperatorSum;
     for(size_t i = 0; i < ElementarFractionsNum.size(); i++)
     {        
         if(ElementarFractionsNum[i] != TNumeric("0"))
@@ -489,7 +489,7 @@ TNumeric UnknownVar("x");
     R = MakeFrac(Nom, Denom);
 
     Conditions = std::make_shared<TNumeric>();
-    Conditions->Operator = OperatorIntegral;
+    Conditions->operation = OperatorIntegral;
     Conditions->OperandsPushback(R);
     Conditions->OperandsPushback(TNumeric("x"));
 
@@ -572,7 +572,7 @@ void TIntegralProblem::Assign(const TIntegralProblem& S)
 TIntegralProblem::TIntegralProblem()
 {
     Conditions = std::make_shared<TNumeric>();
-    Conditions->Operator = OperatorSin;
+    Conditions->operation = OperatorSin;
     Conditions->OperandsPushback(TNumeric("x"));
     Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);
     BuildPhrases();
@@ -846,7 +846,7 @@ TNumeric Res;
     if(Integrate3(Writer, N, Var, Res) == false)
     if(Integrate4(Writer, N, Var, Res) == false)
     {
-        Res.Operator = OperatorIntegral;
+        Res.operation = OperatorIntegral;
         Res.OperandsPushback(N);
         Res.OperandsPushback(TNumeric(Var));
     };
@@ -943,7 +943,7 @@ TNumeric Res;
     if(Writer)Writer->IncrementNestingLevel();
     if(IntegrateSin(Writer, N, Var, Res) == false)
     {
-        Res.Operator = OperatorIntegral;
+        Res.operation = OperatorIntegral;
         Res.OperandsPushback(N);
         Res.OperandsPushback(TNumeric(Var));
     };

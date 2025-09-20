@@ -70,10 +70,10 @@ TNumeric Res;
     }  else {
         if(Left != Right)
         {
-            if(IncludeLeft && IncludeRight) Res.Operator = OperatorSegment;
-            if(!IncludeLeft && IncludeRight) Res.Operator = OperatorIntervalSegment;
-            if(IncludeLeft && !IncludeRight) Res.Operator = OperatorSegmentInterval;
-            if(!IncludeLeft && !IncludeRight) Res.Operator = OperatorInterval;
+            if(IncludeLeft && IncludeRight) Res.operation = OperatorSegment;
+            if(!IncludeLeft && IncludeRight) Res.operation = OperatorIntervalSegment;
+            if(IncludeLeft && !IncludeRight) Res.operation = OperatorSegmentInterval;
+            if(!IncludeLeft && !IncludeRight) Res.operation = OperatorInterval;
 
             Res.OperandsPushback(Left);
             Res.OperandsPushback(Right);
@@ -385,7 +385,7 @@ TNumeric Res;
         Res = MakeInline(TNumeric("{"), TNumeric("\\empty"), TNumeric("}"));
     else
     {
-        Res.Operator = OperatorUnion;
+        Res.operation = OperatorUnion;
         for(size_t i = 0; i < Intervals.size(); i++)
             Res.OperandsPushback(Intervals[i].GetNumeric());
     };

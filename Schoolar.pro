@@ -13,6 +13,7 @@ RC_FILE = Schoolar.rc
 
 
 SOURCES += \
+    Base/editableformula.cpp \
     Base/formulaplotter.cpp \
     Base/tphrases.cpp \
     Base/tline.cpp \
@@ -53,6 +54,7 @@ SOURCES += \
     ttestfonts.cpp
 
 HEADERS  += \
+    Base/editableformula.h \
     Base/formulaplotter.h \
     Base/tphrases.h \
     Base/tline.h \

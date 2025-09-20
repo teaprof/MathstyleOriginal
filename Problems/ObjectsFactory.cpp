@@ -12,7 +12,7 @@ void FillSignature(char *Signature)
 {
     Signature[SignatureLen-1] = sizeof(char);
     Signature[SignatureLen-2] = sizeof(int);
-    Signature[SignatureLen-3] = sizeof(__int16);
+    Signature[SignatureLen-3] = sizeof(uint16_t);
     Signature[SignatureLen-4] = sizeof(bool);
 }
 
@@ -181,9 +181,9 @@ void SaveToFile(ofstream &f, TProblem *P)
 {
 
 #define BufLen 100
-char Buf[BufLen];
-    Buf[0] = 0;
-    strcpy(Buf, P->GetClassName().c_str());
+char Buf[BufLen];    
+    strncpy(Buf, P->GetClassName().c_str(), 100);
+    Buf[99] = 0;
     FillSignature(Signature);
     f.write(Signature, SignatureLen);
     f.write(Buf, BufLen);

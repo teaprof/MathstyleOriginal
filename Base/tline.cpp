@@ -4,6 +4,7 @@
 #include <iostream>
 #include "tline.h"
 #include "symbols.h"
+#include "formulaplotter.h"
 
 #define FormulaFontName "Courier"
 #define TextFontName "Courier"
@@ -317,20 +318,17 @@ TRectangleElement::TRectangleElement()
 {
     PaddingLeft = 0;
     ColorIndex = 0;
-//    TRectangleElementCount++;
 }
 
 TRectangleElement::~TRectangleElement()
 {
-//    TRectangleElementCount--;
- //   std::cout<<"TRectangleElement::~TRectangleElement: "<<TRectangleElementCount<<std::endl;
 }
 
 
-int TRectangleElement::GetPageBottom(TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth)
+/*int TRectangleElement::GetPageBottom(TNumeric& N,TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth)
 {
 int W, H, D;
-    GetTextRectangle(Canvas, W, H, D, MaxWidth);
+    GetTextRectangle(N, Canvas, W, H, D, MaxWidth);
     if(Y + D > CurPageBottom)
     {
 #ifdef __DEBUG__
@@ -343,7 +341,7 @@ int W, H, D;
     }
     else
         return CurPageBottom;
-}
+}*/
 void TRectangleElement::Draw(TPaintCanvas* Canvas, int X, int Y, int MaxWidth) const
 {
     if(MaxWidth != -1)
@@ -360,12 +358,6 @@ void TRectangleElement::DrawAtTopLeft(TPaintCanvas* Canvas, int X, int Y, int Ma
     int W, H, D;
     GetTextRectangle(Canvas, W, H, D, MaxWidth);
     Draw(Canvas, X, Y + H, MaxWidth);
-}
-
-void TRectangleElement::operator=(const TRectangleElement& R)
-{
-    PaddingLeft = R.PaddingLeft;
-    ColorIndex = R.ColorIndex;
 }
 
 QColor TRectangleElement::GetColor() const
@@ -416,13 +408,13 @@ TLine::~TLine()
         delete at(i);
 }
 
-int TLine::GetPageBottom(TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth )
+/*int TLine::GetPageBottom(TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth )
 {
     for(size_t i = 0; i < size(); i++)
         CurPageBottom = at(i)->GetPageBottom(Canvas, Y, CurPageBottom, MaxWidth);
     return CurPageBottom;
 
-}
+}*/
 
 void TLine::GetTextRectangle(TPaintCanvas* Canvas, int &Width, int &Height, int &Depth, int MaxWidth) const
 {
@@ -465,10 +457,12 @@ void TLine::DrawAtBaseLeft(TPaintCanvas* Canvas, int X, int Y, int MaxWidth) con
     };
 }
 
-void TLine::SetEditableFlags(int Flags)
+void TLine::SetEditableFlags(int flags)
 {
-    for(size_t i = 0; i < size(); i++)
-        at(i)->SetEditableFlags(Flags);
+    /*for(size_t i = 0; i < size(); i++)
+        at(i)->SetEditableFlags(Flags);*/
+    (void)flags;
+    assert(false);
 }
 
 //*************************************************************************************
@@ -492,6 +486,12 @@ void TLines::AddLine(TRectangleElement* E)
 {
 TLine* L = new TLine(E);
     push_back(L);
+}
+
+void TLines::AddLine(TNumeric N)
+{
+    auto fp = new TFormulaPlotter(N);
+    AddLine(fp);
 }
 
 
@@ -536,7 +536,7 @@ int W, H, D;
     };
 }
 
-int TLines::GetPageBottom(TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth)
+/*int TLines::GetPageBottom(TPaintCanvas* Canvas, int Y, int CurPageBottom, int MaxWidth)
 {
 int W, H, D;
     GetTextRectangle(Canvas, W, H, D, MaxWidth);
@@ -551,7 +551,7 @@ int W, H, D;
             return CurPageBottom;        
     };
     return CurPageBottom;
-}
+}*/
 
 //*************************************************************************************
 void TLines::Add(TRectangleElement* R, int NTabs)
@@ -561,10 +561,12 @@ void TLines::Add(TRectangleElement* R, int NTabs)
     push_back(R);
 }
 
-void TLines::SetEditableFlags(int Flags)
+void TLines::SetEditableFlags(int flags)
 {
-    for(size_t i = 0; i < size(); i++)
-        at(i)->SetEditableFlags(Flags);
+    /*for(size_t i = 0; i < size(); i++)
+        at(i)->SetEditableFlags(flags);*/
+    assert(false);
+    (void)flags;
 }
 
 //*************************************************************************************

@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "arithmetic.h"
+#include "formulaplotter.h"
 #include "THTMLWriter.h"
 
 using namespace std;
@@ -31,40 +32,40 @@ THTMLWriter::~THTMLWriter()
 
 bool THTMLWriter::BuildCSS(string filename)
 {
-   ofstream f(filename.c_str(), ios::out | ios::trunc);
-   if(!f)return false;
-   QString FontName = TextFont.family();
-   QString Size;
-   if(TextFont.pixelSize() >= 0) Size = QString::number(TextFont.pixelSize())+"px";
-   if(TextFont.pointSize() >= 0) Size = QString::number(TextFont.pointSize())+"pt";
-   QString InterlineSpacing;
-   if(TextFont.pixelSize() >= 0) InterlineSpacing = QString::number(2.2*TextFont.pixelSize())+"px";
-   if(TextFont.pointSize() >= 0) InterlineSpacing = QString::number(2.2*TextFont.pointSize())+"pt";
-   QString Font = QString("font: normal ")+Size+ "/"+InterlineSpacing+" "+FontName;
-   string font = Font.toLocal8Bit().data();
-   QString Color = QString("color: ") + TextColor.name();
-   string color = Color.toLocal8Bit().data();
+    ofstream f(filename.c_str(), ios::out | ios::trunc);
+    if(!f)return false;
+    QString FontName = TextFont.family();
+    QString Size;
+    if(TextFont.pixelSize() >= 0) Size = QString::number(TextFont.pixelSize())+"px";
+    if(TextFont.pointSize() >= 0) Size = QString::number(TextFont.pointSize())+"pt";
+    QString InterlineSpacing;
+    if(TextFont.pixelSize() >= 0) InterlineSpacing = QString::number(2.2*TextFont.pixelSize())+"px";
+    if(TextFont.pointSize() >= 0) InterlineSpacing = QString::number(2.2*TextFont.pointSize())+"pt";
+    QString Font = QString("font: normal ")+Size+ "/"+InterlineSpacing+" "+FontName;
+    string font = Font.toLocal8Bit().data();
+    QString Color = QString("color: ") + TextColor.name();
+    string color = Color.toLocal8Bit().data();
 
-   f<<"body { margin: 0; padding: 5px; "<<font<<"; "<<color<<"; text-align: left; background: #CCC; }"<<endl;
-   f<<".error { margin: 0; padding: 0; color: #FF0000; background: #FFF; }"<<endl;
-   f<<".nested { margin: 0; padding-left: 100px; border-left: 1px solid;}"<<endl;
-   f<<".cond { background: #EEF; padding: 20px; border: 1px solid; border-radius: 5px;}"<<endl;
-   f<<".sol { background: #DDE; padding: 20px; margin-top: 20px; border: 1px solid; border-radius: 5px;}"<<endl;
-   fout<<".sol h1 { color: #008; font-size: 1.5em; }"<<endl;
-   f.close();
-   return true;
+    f<<"body { margin: 0; padding: 5px; "<<font<<"; "<<color<<"; text-align: left; background: #CCC; }"<<endl;
+    f<<".error { margin: 0; padding: 0; color: #FF0000; background: #FFF; }"<<endl;
+    f<<".nested { margin: 0; padding-left: 100px; border-left: 1px solid;}"<<endl;
+    f<<".cond { background: #EEF; padding: 20px; border: 1px solid; border-radius: 5px;}"<<endl;
+    f<<".sol { background: #DDE; padding: 20px; margin-top: 20px; border: 1px solid; border-radius: 5px;}"<<endl;
+    fout<<".sol h1 { color: #008; font-size: 1.5em; }"<<endl;
+    f.close();
+    return true;
 };
 
 bool THTMLWriter::BeginWrite(const char* filename)
 {
-QFileInfo F(filename);
+    QFileInfo F(filename);
 
     Path = F.absoluteDir().path().toLocal8Bit().data();
     this->filename = F.fileName().toLocal8Bit().data();
-QDir Dir(F.absoluteDir());
+    QDir Dir(F.absoluteDir());
     if(Dir.exists() == false)
         Dir.mkpath(Dir.absolutePath());
-QString CSSFileName = Dir.absolutePath()+"/style.css";
+    QString CSSFileName = Dir.absolutePath()+"/style.css";
     if(BuildCSS(CSSFileName.toLocal8Bit().data()) == false) return false;
 
     fout.clear();
@@ -89,60 +90,41 @@ void THTMLWriter::EndWrite()
 {
     fout<<"</body></html>"<<endl;
     fout.close();
-#ifdef __MULTITHREAD__
-    for(size_t i = 0; i < Threads.size(); i++)
-    {
-        Threads[i]->wait();
-        delete Threads[i];
-    };
-    Threads.clear();
-#endif
 }
+
+void THTMLWriter::visit(const TFormulaPlotter& element) {
+    AddInlineFormula(element);
+    fout<<endl;
+}
+
+void THTMLWriter::visit(const THSpace& element) {
+    Q_UNUSED(element);
+    //nothing to do
+}
+
+void THTMLWriter::visit(const TLine& Line) {
+    fout<<"<p>";
+    for(size_t i = 0; i < Line.size(); i++)
+        WriteRectangleElement(Line[i]);
+    fout<<"</p>"<<endl;
+}
+
+void THTMLWriter::visit(const TLines& Lines) {
+    fout<<"<div style=\"padding: 20px; background-color: #FFCCCC;\">";
+    for(size_t i = 0; i < Lines.size(); i++)
+        WriteRectangleElement(Lines.at(i));
+    fout<<"</div>";
+}
+
+void THTMLWriter::visit(const TText& element) {
+    AddParagraph(element.Text);
+}
+
 
 void THTMLWriter::WriteRectangleElement(const TRectangleElement *R)
 {
-    const THSpace *HSpace = dynamic_cast<const THSpace*>(R);
-    if(HSpace)
-    {
-
-    } else {
-
-    const TText* Text = dynamic_cast<const TText*>(R);
-    if(Text)
-        AddParagraph(Text->Text);
-    else {
-
-    const TLine* Line = dynamic_cast<const TLine*>(R);
-    if(Line)
-    {
-        fout<<"<p>";
-        for(size_t i = 0; i < Line->size(); i++)
-            WriteRectangleElement(Line->at(i));
-        fout<<"</p>"<<endl;
-    } else {
-
-    const TLines* Lines = dynamic_cast<const TLines*>(R);
-    if(Lines)
-    {
-        fout<<"<div style=\"padding: 20px; background-color: #FFCCCC;\">";
-        for(size_t i = 0; i < Lines->size(); i++)
-            WriteRectangleElement(Lines->at(i));
-        fout<<"</div>";
-    } else {
-        const TNumeric* N = dynamic_cast<const TNumeric*>(R);
-        if(N)
-        {
-            AddInlineFormula(*N);
-            fout<<endl;
-        } else {
-            throw "THTMLWriter::WriteRectangleElement: Unknown type of R";
-        };
-    };
-    };
-    };
-    };
-
-};
+    R->accept(*this);
+}
 
 void THTMLWriter::WriteError(string Message)
 {    
@@ -170,7 +152,7 @@ void THTMLWriter::AddParagraph(string str)
 }
 void THTMLWriter::AddParagraph(std::string str, int N)
 {
-vector<const void*> V;
+    vector<const void*> V;
     V.push_back(&N);
     AddParagraph(str, V);
 }
@@ -178,9 +160,9 @@ vector<const void*> V;
 void THTMLWriter::AddParagraph(std::string str, const vector<const void*>& P)
 {
     str = Translate(str);
-size_t startindex = 0;
-size_t len = str.length();
-size_t count = 0;
+    size_t startindex = 0;
+    size_t len = str.length();
+    size_t count = 0;
     BeginParagraph();
     for(size_t curindex = 0; curindex < len; curindex++)
     {
@@ -200,32 +182,32 @@ size_t count = 0;
             };
             switch(code)
             {
-                case 'd':
-                case 'D':
-                {
-                    stringstream str;
-                    const void *Pointer = P[count];
-                    int i = *(reinterpret_cast<const int*> (Pointer));
-                    fout<<i;
-                    break;
-                };
-                case 'n':
-                {
-                    const TRectangleElement *R = reinterpret_cast<const TRectangleElement*> (P[count]);
-                    WriteRectangleElement(R);
-                    break;
-                }
-                case 'N':
-                {
-                    const TRectangleElement *R = reinterpret_cast<const TRectangleElement*> (P[count]);
-                    NewLine();
-                    WriteRectangleElement(R);
-                    NewLine();
-                    break;
-                }
-                default:
-                    cerr<<"THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string, str = "<<str<<endl;
-                    throw "THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string str";
+            case 'd':
+            case 'D':
+            {
+                stringstream str;
+                const void *Pointer = P[count];
+                int i = *(reinterpret_cast<const int*> (Pointer));
+                fout<<i;
+                break;
+            };
+            case 'n':
+            {
+                const TRectangleElement *R = reinterpret_cast<const TRectangleElement*> (P[count]);
+                WriteRectangleElement(R);
+                break;
+            }
+            case 'N':
+            {
+                const TRectangleElement *R = reinterpret_cast<const TRectangleElement*> (P[count]);
+                NewLine();
+                WriteRectangleElement(R);
+                NewLine();
+                break;
+            }
+            default:
+                cerr<<"THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string, str = "<<str<<endl;
+                throw "THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string str";
                 break;
 
             }
@@ -286,7 +268,7 @@ void THTMLWriter::AddParagraph(std::string str, const TNumeric& N1, const TNumer
 }
 void THTMLWriter::AddParagraph(std::string str, const TNumeric& N1, const int &D)
 {
-vector<const void*> V;
+    vector<const void*> V;
     V.push_back(&N1);
     V.push_back(&D);
     AddParagraph(str, V);
@@ -365,89 +347,90 @@ void THTMLWriter::DecrementNestingLevel()
 }
 
 
-#ifdef __MULTITHREAD__
-class TNumericExporter : public QThread
-#else
-class TNumericExporter
-#endif
+class TNumericExporter //: public QThread
 {
-    public:
-        string FullFileName;
-        TNumeric N;
-        QColor EditableColor, TextColor, FormulaColor;
-        QFont FormulaFont, TextFont;
-        void run();
+public:
+    TNumericExporter(TFormulaPlotter& formula_plotter) : fp(formula_plotter) {}
+    TFormulaPlotter& fp;
+    string FullFileName;
+    QColor EditableColor, TextColor, FormulaColor;
+    QFont FormulaFont, TextFont;
+    void run();
 };
 
 void TNumericExporter::run()
 {
     QPicture Pic;
     QPainter Painter;
-        Painter.begin(&Pic);
-        TPaintCanvas C(&Painter);
-        C.EditableColor = EditableColor;
-        C.TextColor = TextColor;
-        C.FormulaColor = FormulaColor;
-        C.FormulaFont = FormulaFont;
-        C.TextFont = TextFont;
+    Painter.begin(&Pic);
+    TPaintCanvas C(&Painter);
+    C.EditableColor = EditableColor;
+    C.TextColor = TextColor;
+    C.FormulaColor = FormulaColor;
+    C.FormulaFont = FormulaFont;
+    C.TextFont = TextFont;
     int W, H, D;
-        N.GetTextRectangle(&C, W, H, D);
-        N.DrawAtBaseLeft(&C, 0, 0);
-        Painter.end();
-        QRect Rect(0, -H, W, H + D);
-        QSize Size = Rect.size();
-        QImage Im(Size, QImage::Format_ARGB32_Premultiplied); //(Size, QImage::Format_RGB888);
-        Im.fill(qRgba(0, 0, 0, 0));
-        QPainter Painter2;
-        if(Painter2.begin(&Im))
-        {
-            //Painter2.fillRect(0, 0, Rect.width(), Rect.height(), QColor(0x80, 0x80, 0x80, 0x80));
-            //Painter2.drawRect(0, 0, Rect.width()-1, Rect.height()-1);
-            Painter2.drawPicture(-Rect.topLeft(), Pic);
-            Painter2.end();
-        } else {
-            cerr<<"THTMLWriter::AddInlineFormula: the size of image is zero"<<endl;
-            N.GetTextRectangle(&C, W, H, D); //for debug purposes only
-        }
+    fp.GetTextRectangle(&C, W, H, D);
+    fp.DrawAtBaseLeft(&C, 0, 0);
+    Painter.end();
+    QRect Rect(0, -H, W, H + D);
+    QSize Size = Rect.size();
+    QImage Im(Size, QImage::Format_ARGB32_Premultiplied); //(Size, QImage::Format_RGB888);
+    Im.fill(qRgba(0, 0, 0, 0));
+    QPainter Painter2;
+    if(Painter2.begin(&Im))
+    {
+        //Painter2.fillRect(0, 0, Rect.width(), Rect.height(), QColor(0x80, 0x80, 0x80, 0x80));
+        //Painter2.drawRect(0, 0, Rect.width()-1, Rect.height()-1);
+        Painter2.drawPicture(-Rect.topLeft(), Pic);
+        Painter2.end();
+    } else {
+        cerr<<"THTMLWriter::AddInlineFormula: the size of image is zero"<<endl;
+        fp.GetTextRectangle(&C, W, H, D); //for debug purposes only
+    }
 
-        Im.save(QString::fromLocal8Bit(FullFileName.c_str()));
+    Im.save(QString::fromLocal8Bit(FullFileName.c_str()));
 }
 
 
-void THTMLWriter::AddInlineFormula(const TNumeric& N)
+void THTMLWriter::AddInlineFormula(TFormulaPlotter fp)
 {
-string FileName = GetUniqueFileName(Path.c_str(), "png");
-QFileInfo FileInfo(QString::fromLocal8Bit(Path.c_str()), QString::fromLocal8Bit(FileName.c_str()));
-string AbsoluteFilePath = FileInfo.absoluteFilePath().toLocal8Bit(  ).data();
+    string FileName = GetUniqueFileName(Path.c_str(), "png");
+    QFileInfo FileInfo(QString::fromLocal8Bit(Path.c_str()), QString::fromLocal8Bit(FileName.c_str()));
+    string AbsoluteFilePath = FileInfo.absoluteFilePath().toLocal8Bit(  ).data();
     created_files.push_back(AbsoluteFilePath);
-TNumericExporter *W = new TNumericExporter;
-    W->N = N;
+    TNumericExporter *W = new TNumericExporter(fp);
     W->FullFileName = AbsoluteFilePath;
     W->FormulaColor = FormulaColor;
     W->EditableColor = EditableColor;
     W->TextColor = TextColor;
     W->FormulaFont = FormulaFont;
     W->TextFont = TextFont;
-#ifdef __MULTITHREAD__
-    Threads.push_back(W);
-#endif
     W->run();
-    //W->wait();
 
     stringstream padstr;
     padstr<<"style=\"vertical-align: middle;\"";  
     //fout<<"<img src=\""<<FileName<<"\" align = \"bottom\" "<<padstr.str()<<" alt = \""<<N.CodeBasic()<<"\"/>";
-    fout<<"<img src=\""<<FileName<<"\" align = \"bottom\" "<<padstr.str()<<" alt = \""<<N.CodeBasic()<<"\"/>";
+    fout<<"<img src=\""<<FileName<<"\" align = \"bottom\" "<<padstr.str()<<" alt = \""<<fp.CodeBasic()<<"\"/>";
     /*fout<<"some text";
     fout<<"<img src=\""<<FileName<<"\" align = \"middle\" "<<padstr.str()<<" alt = \""<<N.CodeBasic()<<"\"/>";*/
 }
 
-void THTMLWriter::AddFormula(const TNumeric& N)
+void THTMLWriter::AddFormula(TFormulaPlotter fp)
 {
     fout<<"<br/>"<<endl;
-    AddInlineFormula(N);
+    AddInlineFormula(fp);
     fout<<"<br/>"<<endl;
 }
+
+void THTMLWriter::AddFormula(const TNumeric& N)
+{
+    AddFormula(TFormulaPlotter(N));
+}
+void THTMLWriter::AddInlineFormula(const TNumeric& N) {
+    AddInlineFormula(TFormulaPlotter(N));
+}
+
 
 string THTMLWriter::GetUniqueFileName(const char* Path, const char* ext)
 {
@@ -479,7 +462,7 @@ void THTMLWriter::PushTranslator(TMyTranslator* T)
 
 void THTMLWriter::PopTranslator()
 {
-   if(Translators.size() > 0)Translators.pop_back();
+    if(Translators.size() > 0)Translators.pop_back();
 }
 string THTMLWriter::Translate(string Str)
 {

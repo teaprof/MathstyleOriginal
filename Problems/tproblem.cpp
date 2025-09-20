@@ -50,7 +50,7 @@ bool TProblem::Solve(std::shared_ptr<THTMLWriter> Writer)
     if(Writer)
     {
         Writer->PushTranslator(&MyTranslator);
-        Conditions->DrawMouse = false;
+        //Conditions->DrawMouse = false;
         Writer->BeginDiv("cond");
         Writer->Add(GetTask());
         Writer->AddFormula(*Conditions);
@@ -104,7 +104,7 @@ vector<TNumeric> TProblem::GetTypes(const std::shared_ptr<TNumeric>& N)
 //********************************************************************************************************
 TSimplifyProblem::TSimplifyProblem() : TProblem()
 {
-    Conditions->Operator = OperatorSum;
+    Conditions->operation = OperatorSum;
     Conditions->OperandsPushback(TNumeric("1"));
     Conditions->OperandsPushback(TNumeric("2"));
     Conditions->Assign("((x^2+(-1*x))+1");

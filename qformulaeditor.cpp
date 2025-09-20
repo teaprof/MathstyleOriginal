@@ -6,8 +6,11 @@
 #include <QErrorMessage>
 #include <sstream>
 #include <QVBoxLayout>
-#include "mathomatic.h"
+#include <QPainter>
 #include <iostream>
+#include "mathomatic.h"
+#include "Base/tline.h"
+#include "Base/formulaplotter.h"
 using namespace std;
 #include "qformulaeditor.h"
 QFormulaArea::QFormulaArea(QWidget *parent) :
@@ -34,15 +37,15 @@ QFormulaArea::~QFormulaArea()
 void QFormulaArea::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
-QWidget *Widget = this;
-int CurWidth = Widget->width();
-int CurHeight = Widget->height();
+    QWidget *Widget = this;
+    int CurWidth = Widget->width();
+    int CurHeight = Widget->height();
     if(!Formula)
     {
         if(minimumWidth() != CurWidth || minimumHeight() != CurHeight)
         {
             Widget->resize(Widget->minimumSize());
-           //размер успешно поменян, мы должны вернуться в главный цикл, чтобы обработать событие об изменении размера
+            //размер успешно поменян, мы должны вернуться в главный цикл, чтобы обработать событие об изменении размера
             Widget->update();
             return;
         } else {
@@ -63,7 +66,7 @@ int CurHeight = Widget->height();
         Canvas.Font = Canvas.FormulaFont;
         Canvas.FormulaColor = FormulaColor;
         Canvas.EditableColor = EditableColor;
-        Formula->PrettyGetTextRectangle(&Canvas, Width, Height, Depth, false, false);
+        TFormulaPlotter(*Formula).PrettyGetTextRectangle(&Canvas, Width, Height, Depth, false, false);
         int GeomWidth = Width + RightPadding;
         if(GeomWidth < minimumWidth()) GeomWidth = minimumWidth();
         int GeomHeight = Height+Depth+br.bottom()+20;
@@ -93,8 +96,8 @@ int CurHeight = Widget->height();
             X = LeftPadding + (GeomWidth - Width - LeftPadding - RightPadding)/2;
             //Y = (br.height() + height()/2 - (Depth-Height)/2; //рисуем формулу по середине
             Y =  br.bottom() + Height + 20; //рисуем формулу сразу после текста задания
-            Formula->PrettyDrawAtBaseLeft(&Canvas, X, Y, false, false);
-         };
+            TFormulaPlotter(*Formula).PrettyDrawAtBaseLeft(&Canvas, X, Y, false, false);
+        };
     }
 }
 
@@ -102,9 +105,8 @@ void QFormulaArea::mouseMoveEvent(QMouseEvent *M)
 {
     if(Formula)
     {
-        Formula->MouseX = M->position().x();
-        Formula->MouseY = M->position().y();
-        Formula->DrawMouse = true;
+        EditableFormula->mouse_x = M->position().x();
+        EditableFormula->mouse_y = M->position().y();
         repaint();
     };
 }
@@ -113,17 +115,18 @@ void QFormulaArea::mousePressEvent(QMouseEvent *)
 {
     if(Formula)
     {
-        if(Formula->Active)
+        /*if(Formula->Active)
         {
             Formula->Selected = Formula->Active;            
             bool CanEraseVar = CanErase(Formula, Formula->Selected);
-            bool IsConst = (Formula->Active->Operator == OperatorConst);
+            bool IsConst = (Formula->Active->operation == OperatorConst);
             emit OnSelectionChanged(Formula->Selected);
             emit OnButtonsChanged(Formula->Selected->EditableFlags, CanEraseVar, IsConst);
         } else {
             Formula->Selected = 0;
             emit OnButtonsChanged(false, false, false);
-        }
+        }*/
+        std::cout<<"todo: mouse press event"<<std::endl;
         repaint();
     }
 }
@@ -162,13 +165,14 @@ void QFormulaArea::DebugPrintBuffer()
 
 }
 
-void QFormulaArea::SetFormula(TNumeric* Formula)
+void QFormulaArea::SetFormula(std::shared_ptr<TNumeric> Formula)
 {
     this->Formula = Formula;
+    EditableFormula = std::make_shared<TEditableFormula>(Formula);
     Saved.clear();
     CurSaved = 0;
     Save();
-    update();
+    update();    
 }
 
 void QFormulaArea::SetUndoRedoEnabled()
@@ -209,7 +213,7 @@ void QFormulaArea::Redo()
     if(Formula == 0) return;
     DebugPrintBuffer();
     if(CurSaved == Saved.size() - 1)
-        //нельзя сделать Redo
+    //нельзя сделать Redo
     {
         return;
     } else {
@@ -224,7 +228,7 @@ void QFormulaArea::Redo()
 
 void QFormulaArea::InsertSum()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {                
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -233,16 +237,16 @@ void QFormulaArea::InsertSum()
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
         Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->Operator = OperatorSum;
+        Formula->Selected->operation = OperatorSum;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;        
         Save();
         repaint();
-    }
-};
+    }*/
+}
 void QFormulaArea::InsertMinus()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {        
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -251,16 +255,16 @@ void QFormulaArea::InsertMinus()
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
         Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->Operator = OperatorMinus;
+        Formula->Selected->operation = OperatorMinus;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
-};
+    }*/
+}
 void QFormulaArea::InsertProd()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {        
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -269,16 +273,16 @@ void QFormulaArea::InsertProd()
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
         Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->Operator = OperatorProd;
+        Formula->Selected->operation = OperatorProd;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
-};
+    }*/
+}
 void QFormulaArea::InsertFrac()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {        
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -287,16 +291,16 @@ void QFormulaArea::InsertFrac()
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
         Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->Operator = OperatorFrac;
+        Formula->Selected->operation = OperatorFrac;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
-};
+    }*/
+}
 void QFormulaArea::InsertPower()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {       
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -305,16 +309,16 @@ void QFormulaArea::InsertPower()
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
         Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->Operator = OperatorPow;
+        Formula->Selected->operation = OperatorPow;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
-};
+    }*/
+}
 void QFormulaArea::InsertSqrt()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {      
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -322,17 +326,17 @@ void QFormulaArea::InsertSqrt()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorSqrt;
+        Formula->Selected->operation = OperatorSqrt;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
-};
+    }*/
+}
 
 void QFormulaArea::InsertSin()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {      
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -340,17 +344,17 @@ void QFormulaArea::InsertSin()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorSin;
+        Formula->Selected->operation = OperatorSin;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
+    }*/
 }
 
 void QFormulaArea::InsertCos()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -358,17 +362,17 @@ void QFormulaArea::InsertCos()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorCos;
+        Formula->Selected->operation = OperatorCos;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
+    }*/
 }
 
 void QFormulaArea::InsertTg()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -376,17 +380,17 @@ void QFormulaArea::InsertTg()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorTg;
+        Formula->Selected->operation = OperatorTg;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
+    }*/
 }
 
 void QFormulaArea::InsertArcsin()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -394,17 +398,17 @@ void QFormulaArea::InsertArcsin()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorArcsin;
+        Formula->Selected->operation = OperatorArcsin;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
+    }*/
 }
 
 void QFormulaArea::InsertArccos()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -412,17 +416,17 @@ void QFormulaArea::InsertArccos()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorArccos;
+        Formula->Selected->operation = OperatorArccos;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
+    }*/
 }
 
 void QFormulaArea::InsertArctg()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -430,17 +434,17 @@ void QFormulaArea::InsertArctg()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorArctg;
+        Formula->Selected->operation = OperatorArctg;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
+    }*/
 }
 
 void QFormulaArea::InsertLn()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -448,18 +452,17 @@ void QFormulaArea::InsertLn()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorLn;
+        Formula->Selected->operation = OperatorLn;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
-
+    }*/
 }
 
 void QFormulaArea::InsertLog()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -468,31 +471,31 @@ void QFormulaArea::InsertLog()
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
         Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->Operator = OperatorLog;
+        Formula->Selected->operation = OperatorLog;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
+    }*/
 }
 
 void QFormulaArea::InsertX()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         int EditableFlags = Formula->Selected->EditableFlags;
         Formula->Selected->Operands.clear();
-        Formula->Selected->Operator = OperatorConst;
+        Formula->Selected->operation = OperatorConst;
         Formula->Selected->K = "x";
         Formula->Selected->SetEditableFlags(EditableFlags);
         Save();
         repaint();
-    }
+    }*/
 }
 
 void QFormulaArea::InsertExp()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -500,18 +503,17 @@ void QFormulaArea::InsertExp()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorExp;
+        Formula->Selected->operation = OperatorExp;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
-
+    }*/
 }
 
 void QFormulaArea::InsertSh()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -519,18 +521,17 @@ void QFormulaArea::InsertSh()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorSh;
+        Formula->Selected->operation = OperatorSh;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
-
+    }*/
 }
 
 void QFormulaArea::InsertCh()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         TNumeric Temp = *Formula->Selected;
         int EditableFlags = Formula->Selected->EditableFlags;
@@ -538,32 +539,31 @@ void QFormulaArea::InsertCh()
         Temp.ID = -1;
         Formula->Selected->Operands.clear();
         Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->Operator = OperatorCh;
+        Formula->Selected->operation = OperatorCh;
         Formula->Selected->SetEditableFlags(EditableFlags);
         Formula->Selected->ID = OldID;
         Save();
         repaint();
-    }
-
+    }*/
 }
 
 void QFormulaArea::Clear()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         int EditableFlags = Formula->Selected->EditableFlags;
-        Formula->Selected->Operator = OperatorConst;
+        Formula->Selected->operation = OperatorConst;
         Formula->Selected->Operands.clear();
         Formula->Selected->K ="";
         Formula->Selected->SetEditableFlags(EditableFlags);
         Save();
         repaint();
-    }
+    }*/
 }
 
 void QFormulaArea::Edit()
 {
-    if(Formula && Formula->Selected && Formula->Selected->Operator == OperatorConst)
+    /*if(Formula && Formula->Selected && Formula->Selected->operation == OperatorConst)
     {
         if(Formula->Selected->EditableFlags == NoEditable)
             return;
@@ -580,24 +580,24 @@ void QFormulaArea::Edit()
             Save();
         };
         repaint();
-    }
+    }*/
 }
 
 
 void QFormulaArea::Erase()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
         EraseNumeric(Formula, Formula->Selected);
         Save();
         repaint();
-    }
+    }*/
 }
 
 
 void QFormulaArea::Simplify()
 {
-    if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
     {
             int EditableFlags = Formula->Selected->EditableFlags;
             TNumeric *S = Formula->Selected; //это сделано на случай, если Formula будет совпадать с Selected. Тогда Formula->Selected=N будет вести себя неадекватно
@@ -622,7 +622,7 @@ void QFormulaArea::Simplify()
         QErrorMessage EM;
         EM.showMessage(tr("The equation to simplify is not selected or can not simplify selected equation."));
         EM.exec();
-    }
+    }*/
 }
 
 
@@ -735,7 +735,7 @@ QFormulaEditor::QFormulaEditor(QWidget *parent) :
     SetArithmeticsEnabled(true);
     SetFunctionsEnabled(false);
 
-stringstream StyleSheet;
+    stringstream StyleSheet;
     StyleSheet<<"QToolButton {";
     StyleSheet<<"border: 1px solid #8f8f91;";
     StyleSheet<<"border-radius: 6px;";
@@ -771,9 +771,9 @@ void QFormulaEditor::SetBoxGeometry(QGroupBox *Box, int Height)
 
 QFormulaEditor::~QFormulaEditor()
 {
-/*    if(Formula)
+    /*    if(Formula)
         delete Formula;*/
-//    delete PlusIcon;
+    //    delete PlusIcon;
     /*delete BPlus;
     delete BMinus;
     delete BProd;
@@ -876,7 +876,7 @@ void QFormulaEditor::OnEnableRedo(bool Enabled)
 void QFormulaEditor::paintEvent(QPaintEvent *event)
 {
     QWidget::paintEvent(event);
-/*    QPainter painter(this);
+    /*    QPainter painter(this);
     painter.setBrush(Qt::yellow);
     QRect R = this->rect();
     painter.fillRect(R, QBrush(Qt::blue));*/
@@ -914,7 +914,7 @@ void QFormulaEditor::mousePressEvent(QMouseEvent *)
 
 /*void QFormulaEditor::mouseDoubleClickEvent(QMouseEvent *)
 {
-    if(Formula && Formula->Selected && Formula->Selected->Operator == OperatorConst)
+    if(Formula && Formula->Selected && Formula->Selected->operation == OperatorConst)
     {
         if(Formula->Selected->Editable == false)
             return;
@@ -947,7 +947,7 @@ void QFormulaEditor::resizeEvent(QResizeEvent* E)
     R.setHeight(this->height());
     ArithmeticsBox->setGeometry(R);*/
 
-/*    FormulaArea->MinWidth = ScrollArea->width();
+    /*    FormulaArea->MinWidth = ScrollArea->width();
     FormulaArea->MinHeight = ScrollArea->height();*/
     FormulaArea->setMinimumSize(ScrollArea->size());
     FormulaArea->update();
@@ -977,7 +977,7 @@ void QFormulaEditor::SetTask(const string& Task)
     FormulaArea->update();
 }
 
-void QFormulaEditor::SetFormula(TNumeric* Formula)
+void QFormulaEditor::SetFormula(std::shared_ptr<TNumeric> Formula)
 {
     FormulaArea->SetFormula(Formula);
 }

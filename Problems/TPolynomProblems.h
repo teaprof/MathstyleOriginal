@@ -18,9 +18,9 @@ class TPolynomConditions:  public TProblem
     public:
         TNumeric UnknownVar; //обозначение неизвестной переменной
         size_t MaxPower;
-        TPolynomConditions(size_t MaxPower = 8, bool HaveRightPart = true, int Operator = OperatorEqual);
+        TPolynomConditions(size_t MaxPower = 8, bool HaveRightPart = true, int operation = OperatorEqual);
         //Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
-        TPolynomConditions(const TPolynom& P, bool HaveRightPart = true, int Operator = OperatorEqual, bool AllCoef = true);
+        TPolynomConditions(const TPolynom& P, bool HaveRightPart = true, int operation = OperatorEqual, bool AllCoef = true);
         ~TPolynomConditions();
 
         vector<TNumeric> GetCoef() const;
@@ -38,7 +38,7 @@ class TPolynomConditions:  public TProblem
         //sets left part to ax^2+bx+c
         virtual void SetLeftPart(const TNumeric &a, const TNumeric &b, const TNumeric& c);
         //устанавливает максимальную степень многочлена MaxPower
-        virtual void SetMaxPower(size_t MaxPower, int Operator);
+        virtual void SetMaxPower(size_t MaxPower, int operation);
 
         void SetRightPart(const TNumeric& N);
 
@@ -274,7 +274,7 @@ template <class TInequalityClass, const char* ClassName>
 TSetOfInequalities<TInequalityClass, ClassName>::TSetOfInequalities()
 {
     this->Conditions = std::make_shared<TNumeric>();
-    this->Conditions->Operator = OperatorEqSet;
+    this->Conditions->operation = OperatorEqSet;
     this->Conditions->OperandsPushback(*(FirstInequality.Conditions));
     this->Conditions->OperandsPushback(*(SecondInequality.Conditions));
     //this->Solution = 0;
@@ -340,14 +340,14 @@ template <class TInequalityClass, const char* ClassName>
 bool TSetOfInequalities<TInequalityClass, ClassName>::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
 
-    *FirstInequality.Conditions = TProblem::Conditions->Operands[0];
+    FirstInequality.Conditions = std::make_shared<TNumeric>(*(this->Conditions->operands[0]));
     if(Writer)Writer->AddParagraph("Solving first inequality");
     if(Writer)Writer->IncrementNestingLevel();
     bool res1 = this->FirstInequality.GetSolution(Writer);
     if(Writer)Writer->DecrementNestingLevel();
     if(res1 == false) return false;
 
-    *SecondInequality.Conditions = TProblem::Conditions->Operands[1];
+    SecondInequality.Conditions = std::make_shared<TNumeric>(*(this->Conditions->operands[1]));
     if(Writer)Writer->AddParagraph("Solving second inequality");
     if(Writer)Writer->IncrementNestingLevel();
     bool res2 =  this->SecondInequality.GetSolution(Writer);
@@ -368,12 +368,12 @@ template <class TInequalityClass, const char* ClassName>
 vector<TNumeric> TSetOfInequalities<TInequalityClass, ClassName>::GetTypes(std::shared_ptr<TNumeric> N)
 {
 vector<TNumeric> Res;
-    if(*N == this->Conditions->Operands[0])
+    if(*N == *this->Conditions->operands[0])
     {
         FirstInequality.Conditions = std::make_shared<TNumeric>(*N);
         Res = FirstInequality.GetTypes(FirstInequality.Conditions);
     };
-    if(*N == this->Conditions->Operands[1])
+    if(*N == *this->Conditions->operands[1])
     {
         SecondInequality.Conditions = std::make_shared<TNumeric>(*N);
         Res = SecondInequality.GetTypes(SecondInequality.Conditions);
@@ -384,15 +384,15 @@ vector<TNumeric> Res;
 template <class TInequalityClass, const char* ClassName>
 void TSetOfInequalities<TInequalityClass, ClassName>::SetType(std::shared_ptr<TNumeric> N, size_t Type)
 {
-    if(*N == Conditions->Operands[0])
+    if(*N == *Conditions->operands[0])
     {
         FirstInequality.SetType(FirstInequality.Conditions, Type);
-        Conditions->Operands[0] = *FirstInequality.Conditions;
+        Conditions->operands[0] = std::make_shared<TNumeric>(*FirstInequality.Conditions);
     };
-    if(*N == this->Conditions->Operands[1])
+    if(*N == *this->Conditions->operands[1])
     {
         SecondInequality.SetType(SecondInequality.Conditions, Type);
-        Conditions->Operands[1] = *SecondInequality.Conditions;
+        Conditions->operands[1] = std::make_shared<TNumeric>(*SecondInequality.Conditions);
     }
 }
 
@@ -403,7 +403,7 @@ void TSetOfInequalities<TInequalityClass, ClassName>::Randomize(std::mt19937& rn
         FirstInequality.Randomize(rng);
     if(SecondInequality.CanRandomize)
         SecondInequality.Randomize(rng);
-    this->Conditions->Operator = OperatorEqSet;
+    this->Conditions->operation = OperatorEqSet;
     this->Conditions->OperandsClear();
     this->Conditions->OperandsPushback(*(FirstInequality.Conditions));
     this->Conditions->OperandsPushback(*(SecondInequality.Conditions));
@@ -413,14 +413,14 @@ void TSetOfInequalities<TInequalityClass, ClassName>::Randomize(std::mt19937& rn
 template <class TInequalityClass, const char* ClassName>
 TSystemOfInequalities<TInequalityClass, ClassName>::TSystemOfInequalities() : TSetOfInequalities<TInequalityClass, ClassName>()
 {
-    this->Conditions->Operator = OperatorEqSystem;
+    this->Conditions->operation = OperatorEqSystem;
     BuildPhrases();
 };
 
 template <class TInequalityClass, const char* ClassName>
 bool TSystemOfInequalities<TInequalityClass, ClassName>::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
-    *(this->FirstInequality.Conditions) = this->Conditions->Operands[0];
+    this->FirstInequality.Conditions = std::make_shared<TNumeric>(*(this->Conditions->operands[0]));
     if(Writer)Writer->AddParagraph("Solving first inequality");
     if(Writer)Writer->IncrementNestingLevel();
     bool res1 = this->FirstInequality.GetSolution(Writer);
@@ -429,7 +429,7 @@ bool TSystemOfInequalities<TInequalityClass, ClassName>::GetSolution(std::shared
 
 
 
-    *(this->SecondInequality.Conditions) = this->Conditions->Operands[1];
+    this->SecondInequality.Conditions = std::make_shared<TNumeric>(*(this->Conditions->operands[1]));
     if(Writer)Writer->AddParagraph("Solving second inequality");
     if(Writer)Writer->IncrementNestingLevel();
     bool res2 = this->SecondInequality.GetSolution(Writer);
@@ -515,12 +515,12 @@ class TRationalFunctionConditions : public TProblem
     TNumeric GetVarPower(size_t power); //возвращает UnknownVar^power
 public:
     TNumeric UnknownVar; //обозначение неизвестной переменной
-    int Operator;
+    int operation;
     size_t MaxPowerNominator, MaxPowerDenominator;
-    TRationalFunctionConditions(int Operator, bool HaveRightPart = true, size_t MaxPowerNominator = 4, size_t MaxPowerDenominator = 4);
+    TRationalFunctionConditions(int operation, bool HaveRightPart = true, size_t MaxPowerNominator = 4, size_t MaxPowerDenominator = 4);
     ~TRationalFunctionConditions();
 
-    //void operator=(const TRationalFunctionConditions& R);
+    //void operation=(const TRationalFunctionConditions& R);
 
     TNumeric *GetNominator();
     TNumeric *GetDenominator();

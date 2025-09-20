@@ -87,7 +87,7 @@ class TRationalFunction
         //TRationalFunction operator=(const TRationalFunction& R);
         TRationalFunction operator+(const TRationalFunction& R);
         TRationalFunction operator-(const TRationalFunction& R);
-        TRationalFunction operator*(const TRationalFunction& R);               
+        TRationalFunction operator*(const TRationalFunction& R);
         TRationalFunction operator/(const TRationalFunction& R);
 
         TNumeric GetNumeric(const TNumeric& UnknownVar) { return MakeFrac(P.GetNumeric(UnknownVar), Q.GetNumeric(UnknownVar));}

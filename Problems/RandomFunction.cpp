@@ -33,10 +33,10 @@ vector<int> Operators;
         return TNumeric("x"); //Only const is allowed
     }
     size_t Index = rng() % Operators.size();
-    int Operator = Operators[Index];
+    int operation = Operators[Index];
     TNumeric Res;
-    Res.Operator = Operator;
-    switch(Operator)
+    Res.operation = operation;
+    switch(operation)
     {
         case OperatorSin:
         case OperatorCos:

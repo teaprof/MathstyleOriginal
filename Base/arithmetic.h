@@ -14,11 +14,7 @@
 #include <fstream>
 #include <optional>
 #include <functional>
-
-#ifndef __int16
-#define __int16 short int
-#endif
-
+#include <memory>
 
 using namespace std;
 
@@ -35,7 +31,6 @@ const int OperatorFrac = 5;
 const int OperatorEqSet = 8; //совокупность уравнений
 const int OperatorEqSystem = 9; //система уравнений
 
-const int OperatorLines = 10; //просто набор строк
 
 const int OperatorBelongsTo = 11;
 const int OperatorInterval = 12; // (x1, x2)
@@ -43,8 +38,7 @@ const int OperatorSegmentInterval = 13; //[x1, x2)
 const int OperatorIntervalSegment = 14; //(x1, x2]
 const int OperatorSegment = 15; //[x1, x2]
 
-const int OperatorInline = 16; //все операнды в одну строчку
-const int OperatorTab = 17; //отступ, а в остальном - как OperatorLines
+const int OperatorInline = 16; //все операнды в одну строчку /// \wtf?
 
 const int OperatorUnion = 18;
 const int OperatorIntersection = 19;
@@ -55,8 +49,8 @@ const int OperatorLess = 21;
 const int OperatorGreater = 22;
 const int OperatorGreaterOrEqual = 23;
 
-const int OperatorSubIndex = 24;
-const int OperatorSupIndex = 25;
+const int OperatorSubIndex = 24; /// \todo: wtf? this is not an arithmetic operator
+const int OperatorSupIndex = 25; /// \todo: wtf? this is not an arithmetic operator
 
 const int OperatorDeriv = 26;
 
@@ -97,128 +91,118 @@ enum TEditableFlags
 
 class TNumeric
 {
-      void CreateClear(); //создает чистый TNumeric
-      void Assign(const TNumeric& N);
-
-      int GetOperatorPriority(int OpCode) const;
-      int CompareOperatorsPriority(int OpCode1, int OpCode2) const;
-
-      TNumeric SimplifyTrig() const; //упрощает выражение, где последним оператором является тригонометрическая функция
-      TNumeric SimplifyInverseTrig() const; //упрощает выражение, где последним оператором является обратная тригонометрическая функция
-      TNumeric SimplifyLog() const; //упрощает выражение, где последним оператором является Log(A, B)
-      bool GetRational(int &Nominator, int &Denominator); //если это возможно, представляет объект в виде рациональной дроби; если не возможно, то false
-      void SimplifyFunctions(); //упрощает функции везде, где возможно
-
-      TNumeric MathoCmd(const string& Cmd) const; //интерфейс к mathomatic
-
-      void CheckInitialized() const; //проверяет, был ли чем-нибудь инициализирован объект ранее; если не был, то вызывает исключение
-
-      //Для ускорения отрисовки
-      mutable bool OwnSizeActual; //true, если нижеуказанные размеры актуальны
-      mutable int OwnWidth, OwnHeight, OwnDepth;
-      mutable bool SizeWithBrackets; //при проверке актуальности размеров нужно сравнивать SizeWithBrackets с NeedBrackets только для корневого элемента
-      //Для остальных SizeWidthBrackets можно не проверять, так как корневой элемент отвечает за расстановку скобок ниже него самого,
-      //лишь бы он сам был вызван с тем же значением NeedBrackets
-      bool IsSizeActual() const; //true, если размеры всех Operands актуальны
-    public:
-      mutable int ID; //идентификатор, по которому можно получить указатель на объект TNumeric
-      mutable int EditableFlags; //определяет, какого типа значения может принимать это поле
-      mutable int MouseX, MouseY;
-      mutable bool DrawMouse;
-      mutable TNumeric* Active; //элемент под мышкой
-      mutable TNumeric* Selected; //выбранный элемент
-      mutable int CursorPos; //позиция курсора
-
-      vector<TNumeric> Operands; //на прямую можно вызывать только Operands.operator[] и const-функции (типа size())
-      void OperandsPushback(const TNumeric &Val);
-      void OperandsClear();
-
-      string K; // todo: wtf?
-      int Operator;
-      TNumeric();
-      virtual ~TNumeric();
-      explicit TNumeric(double d);
-      explicit TNumeric(int d);
-      explicit TNumeric(size_t d);
-      explicit TNumeric(string d);
-      TNumeric(const TNumeric& N);     
-
-      bool IsVariable() const; //returns true if object is like "x" or "x_{something}" (object designates variable)
-      bool IsEqual(const TNumeric &N) const; //Если *this и N совпадают полностью друг с другом
-      bool DependsOn(const char* variable) const; //Если variable хоть как-то входит в выражение, то true
-      bool operator==(const TNumeric& N) const; //Если *this - N символьно равно нулю, то true
-      bool operator!=(const TNumeric& N) const
-      {
-          return !operator == (N);
-      }
+    void CreateClear(); //создает чистый TNumeric
+    void Assign(const TNumeric& N);
 
 
+    TNumeric SimplifyTrig() const; //упрощает выражение, где последним оператором является тригонометрическая функция
+    TNumeric SimplifyInverseTrig() const; //упрощает выражение, где последним оператором является обратная тригонометрическая функция
+    TNumeric SimplifyLog() const; //упрощает выражение, где последним оператором является Log(A, B)
+    bool GetRational(int &Nominator, int &Denominator); //если это возможно, представляет объект в виде рациональной дроби; если не возможно, то false
+    void SimplifyFunctions(); //упрощает функции везде, где возможно
 
-      bool operator==(double Value) const
-      {
-          TNumeric Temp = Simplify();
-          if(Temp.CanCalculate()) return Temp.Calculate() == Value;
-          else return false;
-      }
-      bool operator!=(double Value) const
-      {
-          return !operator ==(Value);
-      }           
+    TNumeric MathoCmd(const string& Cmd) const; //интерфейс к mathomatic
 
-      void operator=(const TNumeric& N);
-      TNumeric operator*(const TNumeric& N) const;
-      TNumeric operator*(int N) const  { return this->operator *(TNumeric(N)); }
-      TNumeric operator+(const TNumeric& N) const;
-      TNumeric operator+(int N) const  { return this->operator +(TNumeric(N)); }
-      TNumeric operator-(const TNumeric& N) const;
-      TNumeric operator-(int N) const  { return this->operator -(TNumeric(N)); }
-      TNumeric operator-() const ;
-      TNumeric operator/(const TNumeric& N) const;
-      TNumeric operator/(int N) const  { return this->operator /(TNumeric(N)); }
-      TNumeric sqrt() const;
-      TNumeric operator^(const TNumeric& N) const;
-      TNumeric operator^(int N) const  { return this->operator ^(TNumeric(N)); }
+    void CheckInitialized() const; //проверяет, был ли чем-нибудь инициализирован объект ранее; если не был, то вызывает исключение
 
-      TNumeric Derivative(const string VarName = "x") const;
+public:
+    static int GetOperatorPriority(int OpCode);
+    static int CompareOperatorsPriority(int OpCode1, int OpCode2);
+    bool EditableFlags{NoEditable}; /// \todo: rename to isEditable
+    mutable int ID; //идентификатор, по которому можно получить указатель на объект TNumeric
 
-      //Создает совокупоность из двух уравнений: N1 | N2
-      void MakeEqSet(const TNumeric& N1, const TNumeric& N2);
-      //Создает систему из двух уравнений: N1 & N2
-      void MakeEqSystem(const TNumeric& N1, const TNumeric& N2);
+    vector<std::shared_ptr<TNumeric>> operands; //на прямую можно вызывать только Operands.operation[] и const-функции (типа size())
+    void OperandsPushback(const TNumeric &Val);
+    void OperandsPushback(TNumeric &&Val);
+    void OperandsPushback(std::shared_ptr<TNumeric> val);
+    void OperandsClear();
 
-      void Assign(const char* str);
-      void Assign(char* str);
+    string K; // todo: wtf?
+    int operation;
+    TNumeric();
+    TNumeric(TNumeric&& numeric);
+    virtual ~TNumeric();
+    std::shared_ptr<TNumeric> deepCopy();
+    explicit TNumeric(double d);
+    explicit TNumeric(int d);
+    explicit TNumeric(size_t d);
+    explicit TNumeric(string d);
+    TNumeric(const TNumeric& N);
 
-      string CodeBasic() const;
-      void SimplifyPresentation(); //упрощает представление формулы (заменяет a^(1/2) на sqrt(a))
+    bool IsVariable() const; //returns true if object is like "x" or "x_{something}" (object designates variable)
+    bool IsEqual(const TNumeric &N) const; //Если *this и N совпадают полностью друг с другом
+    bool DependsOn(const char* variable) const; //Если variable хоть как-то входит в выражение, то true
+    bool operator==(const TNumeric& N) const; //Если *this - N символьно равно нулю, то true
+    bool operator!=(const TNumeric& N) const
+    {
+        return !operator == (N);
+    }
+    bool operator==(double Value) const
+    {
+        TNumeric Temp = Simplify();
+        if(Temp.CanCalculate()) return Temp.Calculate() == Value;
+        else return false;
+    }
+    bool operator!=(double Value) const
+    {
+        return !operator ==(Value);
+    }
 
-      double Calculate() const;
-      TNumeric Substitute(const string& var, const TNumeric& Val) const;
+    void operator=(const TNumeric& N);
+    TNumeric operator*(const TNumeric& N) const;
+    TNumeric operator*(int N) const  { return this->operator *(TNumeric(N)); }
+    TNumeric operator+(const TNumeric& N) const;
+    TNumeric operator+(int N) const  { return this->operator +(TNumeric(N)); }
+    TNumeric operator-(const TNumeric& N) const;
+    TNumeric operator-(int N) const  { return this->operator -(TNumeric(N)); }
+    TNumeric operator-() const ;
+    TNumeric operator/(const TNumeric& N) const;
+    TNumeric operator/(int N) const  { return this->operator /(TNumeric(N)); }
+    TNumeric sqrt() const;
+    TNumeric operator^(const TNumeric& N) const;
+    TNumeric operator^(int N) const  { return this->operator ^(TNumeric(N)); }
 
-      bool hasID(int ID);
-      std::optional<std::reference_wrapper<TNumeric>> GetByID(int ID);
-      void ClearID(); //устанавливает ID у себя и всех потомков в -1
+    TNumeric Derivative(const string VarName = "x") const;
 
-      TNumeric Simplify() const;
-      TNumeric Unfactor() const;
+    //Создает совокупоность из двух уравнений: N1 | N2
+    void MakeEqSet(const TNumeric& N1, const TNumeric& N2);
+    //Создает систему из двух уравнений: N1 & N2
+    void MakeEqSystem(const TNumeric& N1, const TNumeric& N2);
 
-      bool CanCalculate() const; //true, если выражение является арифметическим выражением и является полным, то есть не содержит пустых прямоугольников
-      virtual void SetEditableFlags(int Flags); //устанавливает значение Editable у себя и у всех потомков
+    void Assign(const char* str);
+    void Assign(char* str);
 
-      void LoadFromFile(ifstream &f);
-      void WriteToFile(ofstream &f);
+    string CodeBasic() const;
+    void SimplifyPresentation(); //упрощает представление формулы (заменяет a^(1/2) на sqrt(a))
 
-      bool IsInteger(int* Int = 0) const; //возвращает true, если коэффициент является целым числом. Число записывает в Int
+    double Calculate() const;
+    TNumeric Substitute(const string& var, const TNumeric& Val) const;
 
-      void EliminateFunctions(size_t &StartID, map<string, TNumeric>& Map); //обозначаем функции, которых нет в пакете mathomatic, за новые переменные a_i; первая переменная получает номер StartID;
-      //StartID постепенно увеличивается
-      void RestoreFunctions(const map<string, TNumeric>& V); //заменяем переменные обратно на функции
+    bool hasID(int ID);
+    std::optional<std::reference_wrapper<TNumeric>> GetByID(int ID);
+    void ClearID(); //устанавливает ID у себя и всех потомков в -1
 
+    TNumeric Simplify() const;
+    TNumeric Unfactor() const;
+
+    bool CanCalculate() const; //true, если выражение является арифметическим выражением и является полным, то есть не содержит пустых прямоугольников
+    void SetEditableFlags(int Flags) {  //устанавливает значение Editable у себя и у всех потомков
+        (void)Flags;
+        ///\todo: todo
+    }
+
+    void LoadFromFile(ifstream &f);
+    void WriteToFile(ofstream &f);
+
+    bool IsInteger(int* Int = 0) const; //возвращает true, если коэффициент является целым числом. Число записывает в Int
+
+    void EliminateFunctions(size_t &StartID, map<string, TNumeric>& Map); //обозначаем функции, которых нет в пакете mathomatic, за новые переменные a_i; первая переменная получает номер StartID;
+    //StartID постепенно увеличивается
+    void RestoreFunctions(const map<string, TNumeric>& V); //заменяем переменные обратно на функции
 };
 
 
 string DeleteExternalBrackets(string q);
-TNumeric MakeTab(const TNumeric& N1);
 TNumeric MakeEquality(const TNumeric& N1, const TNumeric& N2);
 TNumeric MakeBelongsTo(const TNumeric& N1, const TNumeric& N2);
 TNumeric MakeInterval(const TNumeric &X1, const TNumeric& X2, bool includeleft = false, bool includeright = false);
@@ -234,7 +218,7 @@ TNumeric MakeSh(const TNumeric &N);
 TNumeric MakeSqrt(const TNumeric& N);
 
 TNumeric MakeFrac(const TNumeric &N1, const TNumeric &N2);
-TNumeric MakeProd(const TNumeric& N1, const TNumeric &N2);
+TNumeric MakeProd(TNumeric&& N1, TNumeric &&N2);
 TNumeric MakeLn(const TNumeric& N1);
 TNumeric MakeLog(const TNumeric& N, const TNumeric& Base);
 
@@ -261,9 +245,9 @@ TNumeric MakeIntegral(const TNumeric& N, const string& dx);
 TNumeric GetPolynom(size_t Power, size_t StartID); //конструирует многочлен с нулевыми коэффициентами. ID устанавливаются от StartID до StartID+Power
 
 //---------------------------------------------------------------------------
-TNumeric* FindParent(TNumeric* Root, TNumeric* Child);
-bool CanErase(TNumeric* Root, TNumeric* WhatToDelete);
-void EraseNumeric(TNumeric* Root, TNumeric* WhatToDelete);
+std::shared_ptr<TNumeric> FindParent(std::shared_ptr<TNumeric> Root, std::shared_ptr<TNumeric> Child);
+bool CanErase(std::shared_ptr<TNumeric> Root, std::shared_ptr<TNumeric>* WhatToDelete);
+void EraseNumeric(std::shared_ptr<TNumeric>* Root, std::shared_ptr<TNumeric>* WhatToDelete);
 //---------------------------------------------------------------------------
 
 extern TNumeric NumPi;
@@ -275,10 +259,6 @@ extern TNumeric Num3Pi4;
 extern TNumeric Num2Pi3;
 extern TNumeric Num5Pi6;
 extern TNumeric Num2Pi3;
-
-//Operands.clear() OperandsClear()
-//Operands.push_back(N) OperandsPushback(N)
-//Operands(i) FOperands(i)
 
 //---------------------------------------------------------------------------
 #endif

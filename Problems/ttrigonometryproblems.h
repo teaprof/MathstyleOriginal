@@ -67,7 +67,7 @@ public:
     virtual string GetClassName() { return "THomogeneousTrigEquality";};
 
     //virtual void SetLeftPartP(const TPolynom &P, bool AllCoef = true); //Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
-    //virtual void SetMaxPower(size_t MaxPower, int Operator); //устанавливает максимальную степень многочлена MaxPower
+    //virtual void SetMaxPower(size_t MaxPower, int operation); //устанавливает максимальную степень многочлена MaxPower
 
 
     virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);

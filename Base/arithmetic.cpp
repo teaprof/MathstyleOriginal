@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <sstream>
 #include <cstring>
+#include <cassert>
 
 #include "symbols.h"
 #include "arithmetic.h"
@@ -16,29 +17,35 @@
 
 void TNumeric::CreateClear()
 {
-    EditableFlags = NoEditable;
-    CursorPos = -1;
-    DrawMouse = true;
-    Operator = OperatorConst;
+    operation = OperatorConst;
     OperandsClear();
     K.clear();
-    Active = 0;
-    Selected = 0;
     ID = -1;
-    MouseX = MouseY = 0;
-    OwnSizeActual = false;
-    OwnWidth = 0;
-    OwnHeight = 0;
-    OwnDepth = 0;
 }
 
 TNumeric::TNumeric()
 {
     CreateClear();
-};
+}
+TNumeric::TNumeric(TNumeric&& numeric) : operands(std::move(numeric.operands)) {
+    K = numeric.K;
+    ID = numeric.ID;
+    operation = numeric.operation;
+}
+
 TNumeric::~TNumeric()
 {
-};
+}
+std::shared_ptr<TNumeric> TNumeric::deepCopy() {
+    auto res = std::make_shared<TNumeric>();
+    res->K = K;
+    res->operation = operation;
+    res->ID = ID;
+    for(size_t n = 0; n < operands.size(); n++) {
+        res->operands.push_back(operands[n]->deepCopy());
+    }
+    return res;
+}
 TNumeric::TNumeric(double d)
 {
     CreateClear();
@@ -47,7 +54,7 @@ TNumeric::TNumeric(double d)
     {
         K = "0";
     } else {
-        Operator = OperatorConst;
+        operation = OperatorConst;
         char p[256];
         sprintf(p, "%g", d);
         K = p;
@@ -61,7 +68,7 @@ TNumeric::TNumeric(int d)
     {
         K = "0";
     } else {
-        Operator = OperatorConst;
+        operation = OperatorConst;
         char p[256];
         sprintf(p, "%d", d);
         K = p;
@@ -75,7 +82,7 @@ TNumeric::TNumeric(size_t d)
     {
         K = "0";
     } else {
-        Operator = OperatorConst;
+        operation = OperatorConst;
         char p[256];
         sprintf(p, "%d", (int)d);
         K = p;
@@ -85,26 +92,26 @@ TNumeric::TNumeric(size_t d)
 TNumeric::TNumeric(string d)
 {
     CreateClear();
-
     if(d=="-inf") K="-\\infty"; else
-    if(d=="inf") K="\\infty"; else
-    if(d=="+inf") K="+\\infty"; else
-    K = d;
+        if(d=="inf") K="\\infty"; else
+            if(d=="+inf") K="+\\infty"; else
+                K = d;
 };
 TNumeric::TNumeric(const TNumeric& N)
 {
-	Assign(N);
-};
+    Assign(N);
+}
 
 void TNumeric::LoadFromFile(ifstream &f)
 {
-    CursorPos = -1;
+    (void)f;
+    /*CursorPos = -1;
     Active = 0;
     Selected = 0;
 
     f.read((char*)&EditableFlags, sizeof(EditableFlags));
     f.read((char*)&DrawMouse, sizeof(DrawMouse));
-    f.read((char*)&Operator, sizeof(Operator));
+    f.read((char*)&operation, sizeof(operation));
     f.read((char*)&ID, sizeof(ID));
 unsigned __int16 KLen;
     f.read((char*)&KLen, sizeof(KLen));
@@ -124,14 +131,15 @@ unsigned __int16 OpCount;
         TNumeric N;
         N.LoadFromFile(f);
         OperandsPushback(N);
-    }
+    }*/
 }
 
 void TNumeric::WriteToFile(ofstream &f)
 {
-    f.write((char*)&EditableFlags, sizeof(EditableFlags));
+    (void)f;
+    /*    f.write((char*)&EditableFlags, sizeof(EditableFlags));
     f.write((char*)&DrawMouse, sizeof(DrawMouse));
-    f.write((char*)&Operator, sizeof(Operator));
+    f.write((char*)&operation, sizeof(operation));
     f.write((char*)&ID, sizeof(ID));
 unsigned __int16 KLen = K.length();
     f.write((char*)&KLen, sizeof(KLen));
@@ -139,38 +147,37 @@ unsigned __int16 KLen = K.length();
 unsigned __int16 OpCount = Operands.size();
     f.write((char*)&OpCount, sizeof(OpCount));
     for(size_t i = 0; i < Operands.size(); i++)
-        Operands[i].WriteToFile(f);
+        Operands[i]->WriteToFile(f);*/
 }
 
-bool TNumeric::IsSizeActual() const
-{
-    if(OwnSizeActual == false) return false;
-    for(size_t i = 0; i < Operands.size(); i++)
-        if(Operands[i].IsSizeActual() == false)
-            return false;
-    return true;
-
-}
 
 void TNumeric::OperandsPushback(const TNumeric &Val)
 {
-    OwnSizeActual = false;
-    this->Operands.push_back(Val);
+    this->operands.push_back(std::make_shared<TNumeric>(Val));
+}
+
+void TNumeric::OperandsPushback(TNumeric &&Val)
+{
+    this->operands.push_back(std::make_shared<TNumeric>(std::move(Val)));
+}
+
+void TNumeric::OperandsPushback(std::shared_ptr<TNumeric> val)
+{
+    this->operands.push_back(val);
 }
 
 void TNumeric::OperandsClear()
 {
-    OwnSizeActual = false;
-    this->Operands.clear();
+    this->operands.clear();
 }
 
 void TNumeric::MakeEqSet(const TNumeric& N1, const TNumeric& N2)
 {
-   CreateClear();
+    CreateClear();
 
-   OperandsPushback(N1);
-   OperandsPushback(N2);
-   Operator = OperatorEqSet;
+    OperandsPushback(N1);
+    OperandsPushback(N2);
+    operation = OperatorEqSet;
 };
 void TNumeric::MakeEqSystem(const TNumeric& N1, const TNumeric& N2)
 {
@@ -178,48 +185,35 @@ void TNumeric::MakeEqSystem(const TNumeric& N1, const TNumeric& N2)
 
     OperandsPushback(N1);
     OperandsPushback(N2);
-    Operator = OperatorEqSystem;
+    operation = OperatorEqSystem;
 };
 
 void TNumeric::CheckInitialized() const
 {
-    if(Operator == OperatorConst && K.empty())
+    if(operation == OperatorConst && K.empty())
         throw "TNumeric::CheckInitialized: object is not initialized yet";
 }
 
 void TNumeric::Assign(const TNumeric& N)
 {
-   EditableFlags = N.EditableFlags;
-   K = N.K;
-   OperandsClear();
-   if(N.Operands.size() > 0)
-   {
-       Operands.assign(N.Operands.size(), TNumeric(0));
-       for(size_t i = 0; i < N.Operands.size(); i++)
-           Operands[i] = N.Operands[i];
-   };
-   Operator = N.Operator;
-
-   MouseX = N.MouseX;
-   MouseY = N.MouseY;
-   DrawMouse = N.DrawMouse;
-   Selected = N.Selected;
-   Active = N.Active;
-   CursorPos = N.CursorPos;
-   ID = N.ID;
-   OwnSizeActual = N.OwnSizeActual;
-   OwnWidth = N.OwnWidth;
-   OwnHeight = N.OwnHeight;
-   OwnDepth = N.OwnDepth;
+    K = N.K;
+    operation = N.operation;
+    ID = N.ID;
+    OperandsClear();
+    if(N.operands.size() > 0)
+    {
+        for(size_t n = 0; n < N.operands.size(); n++)
+            operands.push_back(N.operands[n]->deepCopy());
+    };
 }
 
 bool TNumeric::hasID(int ID) {
     if(ID == this->ID) {
         return true;
     }
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < operands.size(); i++)
     {
-        if(Operands[i].hasID(ID))
+        if(operands[i]->hasID(ID))
             return true;
     }
     return false;
@@ -230,10 +224,10 @@ std::optional<std::reference_wrapper<TNumeric>> TNumeric::GetByID(int ID)
     if(ID == this->ID) {
         return *this;
     }
-    for(size_t i = 0; i < Operands.size(); i++)
+    for(size_t i = 0; i < operands.size(); i++)
     {
-        if(Operands[i].hasID(ID)) {
-            return Operands[i].GetByID(ID);
+        if(operands[i]->hasID(ID)) {
+            return operands[i]->GetByID(ID);
         }
     };
     return std::nullopt;
@@ -242,15 +236,15 @@ std::optional<std::reference_wrapper<TNumeric>> TNumeric::GetByID(int ID)
 void TNumeric::ClearID()
 {
     this->ID = -1;
-    for(size_t i = 0; i < Operands.size(); i++)
-        Operands[i].ClearID();
+    for(size_t i = 0; i < operands.size(); i++)
+        operands[i]->ClearID();
 }
 
 
 bool TNumeric::IsInteger(int* Int) const
 {
-TNumeric Simplified = Simplify();
-    if(Simplified.Operator == OperatorConst)
+    TNumeric Simplified = Simplify();
+    if(Simplified.operation == OperatorConst)
     {
         double d;
         if(sscanf(Simplified.K.c_str(), "%lf", &d) == 1)
@@ -267,7 +261,7 @@ TNumeric Simplified = Simplify();
 
 bool TNumeric::IsVariable() const
 {
-    if(Operator == OperatorConst)
+    if(operation == OperatorConst)
     {
         //first letter should be non-nomeric and non-minus
         if(K.length() == 0) throw "TNumeric::IsVariable(): K.length = 0";
@@ -276,36 +270,36 @@ bool TNumeric::IsVariable() const
         if(p == '-') return false;
         return true;
     };
-    if(Operator == OperatorSubIndex)
+    if(operation == OperatorSubIndex)
     {
-        return Operands[0].IsVariable() == true;
+        return operands[0]->IsVariable() == true;
     }
     return false;
 }
 
 bool TNumeric::IsEqual(const TNumeric &N) const
 {
-    if(Operator != N.Operator) return false;
-    if(Operator == OperatorConst) return K == N.K;
-    if(Operands.size() != N.Operands.size())return false;
-    for(size_t i = 0; i < Operands.size(); i++)
-        if(Operands[i].IsEqual(N.Operands[i]) == false) return false;
+    if(operation != N.operation) return false;
+    if(operation == OperatorConst) return K == N.K;
+    if(operands.size() != N.operands.size())return false;
+    for(size_t i = 0; i < operands.size(); i++)
+        if(operands[i]->IsEqual(*N.operands[i]) == false) return false;
     return true;
 }
 
 bool TNumeric::DependsOn(const char* variable) const
 {
-    if(Operator == OperatorConst && K == variable) return true;
-    for(size_t i = 0; i < Operands.size(); i++)
-        if(Operands[i].DependsOn(variable))return true;
+    if(operation == OperatorConst && K == variable) return true;
+    for(size_t i = 0; i < operands.size(); i++)
+        if(operands[i]->DependsOn(variable))return true;
     return false;
 }
 
 
 bool TNumeric::operator==(const TNumeric& N) const
 {
-/*    if(Operator != N.Operator) return false;
-    if(Operator == OperatorConst)
+    /*    if(operation != N.operation) return false;
+    if(operation == OperatorConst)
     {
         return K == N.K;
     };
@@ -313,16 +307,16 @@ bool TNumeric::operator==(const TNumeric& N) const
     for(size_t i = 0; i < Operands.size(); i++)
         if(Operands[i] != N.Operands[i]) return false;
     return true;*/
-    if(Operator == OperatorEqual)
+    if(operation == OperatorEqual)
     {
-        if(Operands.size() != N.Operands.size()) return false;
-        for(size_t i = 0; i < Operands.size(); i++)
-            if(Operands[i] != N.Operands[i]) return false;
+        if(operands.size() != N.operands.size()) return false;
+        for(size_t i = 0; i < operands.size(); i++)
+            if(operands[i] != N.operands[i]) return false;
         return true;
     }else{
         TNumeric Diff = *this - N;
         Diff = Diff.Simplify();
-        if(Diff.Operator == OperatorConst && Diff.K == "0") return true;
+        if(Diff.operation == OperatorConst && Diff.K == "0") return true;
         return false;
     };
 }
@@ -335,7 +329,7 @@ void TNumeric::operator=(const TNumeric& N)
 TNumeric TNumeric::operator*(const TNumeric& N) const
 {
     N.CheckInitialized();
-/*    if(Operator == OperatorProd)
+    /*    if(operation == OperatorProd)
     {
     //В этом случае просто добавляем в уже существующий список множителей ещё один множитель
     //2do: перенести преобразование (a*b)*c => a*b*c (два произведения в одно) в функцию Simplify
@@ -343,27 +337,27 @@ TNumeric TNumeric::operator*(const TNumeric& N) const
         Result.OperandsPushback(N);
         return Result;
    } else {*/
-//структуру выражения менять не вправе, оставляем всё, как есть
-        TNumeric Result;
-        Result.Operator = OperatorProd;
-        Result.OperandsPushback(*this);
-        Result.OperandsPushback(N);
-        return Result;
+    //структуру выражения менять не вправе, оставляем всё, как есть
+    TNumeric Result;
+    Result.operation = OperatorProd;
+    Result.OperandsPushback(*this);
+    Result.OperandsPushback(N);
+    return Result;
     //};
 };
 TNumeric TNumeric::operator-() const
 {
     CheckInitialized();
-TNumeric Res;
-   Res.Operator = OperatorProd;
-   Res.OperandsPushback(TNumeric(-1));
-   Res.OperandsPushback(*this);
-   return Res;
+    TNumeric Res;
+    Res.operation = OperatorProd;
+    Res.OperandsPushback(TNumeric(-1));
+    Res.OperandsPushback(*this);
+    return Res;
 };
 TNumeric TNumeric::operator+(const TNumeric& N) const
 {
     N.CheckInitialized();
-/*    if(Operator == OperatorSum)
+    /*    if(operation == OperatorSum)
     {
         //В этом случае просто добавляем в уже существующий список множителей ещё один множитель
         //2do: перенести преобразование (a+b)+c => a+b+c (две суммы в одну) в функцию Simplify
@@ -371,201 +365,202 @@ TNumeric TNumeric::operator+(const TNumeric& N) const
         Result.OperandsPushback(N);
         return Result;
     } else {*/
-        TNumeric Result;
-        Result.Operator = OperatorSum;
-        Result.OperandsPushback(*this);
-        Result.OperandsPushback(N);
-        return Result;
-   //};
+    TNumeric Result;
+    Result.operation = OperatorSum;
+    Result.OperandsPushback(*this);
+    Result.OperandsPushback(N);
+    return Result;
+    //};
 };
 
 TNumeric TNumeric::operator-(const TNumeric& N) const
 {
     N.CheckInitialized();
-        TNumeric Result;
-   Result.Operator = OperatorMinus;
-   Result.OperandsPushback(*this);
-        Result.OperandsPushback(N);
-        return Result;
+    TNumeric Result;
+    Result.operation = OperatorMinus;
+    Result.OperandsPushback(*this);
+    Result.OperandsPushback(N);
+    return Result;
 };
 
 TNumeric TNumeric::operator/(const TNumeric& N) const
 {
     N.CheckInitialized();
-TNumeric Result;
-	Result.Operator = OperatorFrac;
-   Result.OperandsPushback(*this);
-   Result.OperandsPushback(N);
-   return Result;
+    TNumeric Result;
+    Result.operation = OperatorFrac;
+    Result.OperandsPushback(*this);
+    Result.OperandsPushback(N);
+    return Result;
 };
 TNumeric TNumeric::operator^(const TNumeric& N) const
 {
     N.CheckInitialized();
-TNumeric Result;
-	Result.Operator = OperatorPow;
-   Result.OperandsPushback(*this);
-   Result.OperandsPushback(N);
-   return Result;
+    TNumeric Result;
+    Result.operation = OperatorPow;
+    Result.OperandsPushback(*this);
+    Result.OperandsPushback(N);
+    return Result;
 };
 
 TNumeric TNumeric::sqrt() const
 {
     CheckInitialized();
-TNumeric Result;
-	Result.Operator = OperatorSqrt;
-   Result.OperandsPushback(*this);
-   return Result;
+    TNumeric Result;
+    Result.operation = OperatorSqrt;
+    Result.OperandsPushback(*this);
+    return Result;
 };
 
 
 TNumeric TNumeric::Derivative(const string VarName) const
 {
-    switch(this->Operator)
+    switch(this->operation)
     {
-       case OperatorLog:
+    case OperatorLog:
+    {
+        TNumeric Nom = MakeLn(*operands[0]);
+        TNumeric Denom = MakeLn(*operands[1]);
+        return (Nom/Denom).Derivative(VarName);
+    }
+    case OperatorLn: return operands[0]->Derivative(VarName)/(*operands[0]);
+    case OperatorLg: return operands[0]->Derivative(VarName)/(MakeLn(TNumeric(10))*(*operands[0]));
+    case OperatorSin: return MakeCos(*operands[0])*operands[0]->Derivative(VarName);
+    case OperatorCos: return -MakeSin(*operands[0])*operands[0]->Derivative(VarName);
+    case OperatorTg: return TNumeric(1)/MakePow(MakeCos(*operands[0]), TNumeric(2)) * operands[0]->Derivative(VarName);
+    case OperatorArcsin: return TNumeric(1)/MakeSqrt(TNumeric(1) - MakePow(*operands[0], TNumeric(2)))*operands[0]->Derivative(VarName);
+    case OperatorArccos: return -TNumeric(1)/MakeSqrt(TNumeric(1) - MakePow(*operands[0], TNumeric(2)))*operands[0]->Derivative(VarName);
+    case OperatorArctg: return TNumeric(1)/(TNumeric(1)+ MakePow(*operands[0], TNumeric(2)))*operands[0]->Derivative(VarName);
+    case OperatorCtg: return -TNumeric(1)/MakePow(MakeSin(*operands[0]), TNumeric(2)) * operands[0]->Derivative(VarName);
+    case OperatorAbs: return MakeSign(*operands[0])*operands[0]->Derivative(VarName);
+    case OperatorSign: return TNumeric("0");
+    case OperatorSum:
+    {
+        TNumeric Res("0");
+        Res.operation = OperatorSum;
+        for(size_t i = 0; i < operands.size(); i++)
         {
-           TNumeric Nom = MakeLn(Operands[0]);
-           TNumeric Denom = MakeLn(Operands[1]);
-           return (Nom/Denom).Derivative(VarName);
+            Res.OperandsPushback(operands[i]->Derivative(VarName));
         }
-       case OperatorLn: return Operands[0].Derivative(VarName)/Operands[0];
-       case OperatorLg: return Operands[0].Derivative(VarName)/(MakeLn(TNumeric(10))*Operands[0]);
-       case OperatorSin: return MakeCos(Operands[0])*Operands[0].Derivative(VarName);
-       case OperatorCos: return -MakeSin(Operands[0])*Operands[0].Derivative(VarName);
-       case OperatorTg: return TNumeric(1)/MakePow(MakeCos(Operands[0]), TNumeric(2)) * Operands[0].Derivative(VarName);
-       case OperatorArcsin: return TNumeric(1)/MakeSqrt(TNumeric(1) - MakePow(Operands[0], TNumeric(2)))*Operands[0].Derivative(VarName);
-       case OperatorArccos: return -TNumeric(1)/MakeSqrt(TNumeric(1) - MakePow(Operands[0], TNumeric(2)))*Operands[0].Derivative(VarName);
-       case OperatorArctg: return TNumeric(1)/(TNumeric(1)+ MakePow(Operands[0], TNumeric(2)))*Operands[0].Derivative(VarName);
-       case OperatorCtg: return -TNumeric(1)/MakePow(MakeSin(Operands[0]), TNumeric(2)) * Operands[0].Derivative(VarName);
-       case OperatorAbs: return MakeSign(Operands[0])*Operands[0].Derivative(VarName);
-       case OperatorSign: return TNumeric("0");
-       case OperatorSum:
+        return Res;
+    }
+    case OperatorPlusMinus:
+    {
+        TNumeric Res("0");
+        Res.operation = OperatorPlusMinus;
+        for(size_t i = 0; i < operands.size(); i++)
         {
-            TNumeric Res("0");
-            Res.Operator = OperatorSum;
-            for(size_t i = 0; i < Operands.size(); i++)
-            {
-                Res.OperandsPushback(Operands[i].Derivative(VarName));
-            }
-            return Res;
+            Res.OperandsPushback(operands[i]->Derivative(VarName));
         }
-       case OperatorPlusMinus:
+        return Res;
+    }
+    case OperatorMinus:
+    {
+        TNumeric Res("0");
+        Res.operation = OperatorMinus;
+        for(size_t i = 0; i < operands.size(); i++)
         {
-            TNumeric Res("0");
-            Res.Operator = OperatorPlusMinus;
-            for(size_t i = 0; i < Operands.size(); i++)
-            {
-                Res.OperandsPushback(Operands[i].Derivative(VarName));
-            }
-            return Res;
+            Res.OperandsPushback(operands[i]->Derivative(VarName));
         }
-       case OperatorMinus:
-        {
-            TNumeric Res("0");
-            Res.Operator = OperatorMinus;
-            for(size_t i = 0; i < Operands.size(); i++)
-            {
-                Res.OperandsPushback(Operands[i].Derivative(VarName));
-            }
-            return Res;
-        }
-       case OperatorConst: if(K != VarName) return TNumeric("0");
+        return Res;
+    }
+    case OperatorConst: if(K != VarName) return TNumeric("0");
         else return TNumeric("1");
-       case OperatorProd:
-       {
-            TNumeric Res("0");
-            Res.Operator = OperatorSum;
-            for(size_t i = 0; i < Operands.size(); i++)
-            {
-                TNumeric Term;
-                for(size_t j = 0; j < Operands.size(); j++)
-                {
-                    TNumeric Multiplier;
-                    if(i == j) Multiplier = Operands[j].Derivative(VarName);
-                    else Multiplier = Operands[j];
-                    if(j == 0) Term = Multiplier;
-                    else Term = Term*Multiplier;
-
-                }
-                Res.OperandsPushback(Term);
-            }
-            return Res;
-       }
-       case OperatorFrac: return (Operands[0].Derivative(VarName)*Operands[1] - Operands[0]*Operands[1].Derivative(VarName))/MakePow(Operands[1], TNumeric(2));
-       case OperatorSqrt: return TNumeric(1)/(TNumeric(2)*MakeSqrt(Operands[0]))*Operands[0].Derivative(VarName);
-       case OperatorExp: return MakeExp(Operands[0])*Operands[0].Derivative(VarName);
-       case OperatorSh: return MakeCh(Operands[0])*Operands[0].Derivative(VarName);
-       case OperatorCh: return MakeSh(Operands[0])*Operands[0].Derivative(VarName);
-       case OperatorPow:
-        if(Operands[1].DependsOn(VarName.c_str()) == false)
+    case OperatorProd:
+    {
+        TNumeric Res("0");
+        Res.operation = OperatorSum;
+        for(size_t i = 0; i < operands.size(); i++)
         {
-            return Operands[1]*(Operands[0]^(Operands[1]-TNumeric(1)))*Operands[0].Derivative(VarName);
+            TNumeric Term;
+            for(size_t j = 0; j < operands.size(); j++)
+            {
+                TNumeric Multiplier;
+                if(i == j) Multiplier = operands[j]->Derivative(VarName);
+                else Multiplier = *operands[j];
+                if(j == 0) Term = Multiplier;
+                else Term = Term*Multiplier;
+
+            }
+            Res.OperandsPushback(Term);
+        }
+        return Res;
+    }
+    case OperatorFrac: return (operands[0]->Derivative(VarName)*(*operands[1]) - (*operands[0])*operands[1]->Derivative(VarName))/MakePow(*operands[1], TNumeric(2));
+    case OperatorSqrt: return TNumeric(1)/(TNumeric(2)*MakeSqrt(*operands[0]))*operands[0]->Derivative(VarName);
+    case OperatorExp: return MakeExp(*operands[0])*operands[0]->Derivative(VarName);
+    case OperatorSh: return MakeCh(*operands[0])*operands[0]->Derivative(VarName);
+    case OperatorCh: return MakeSh(*operands[0])*operands[0]->Derivative(VarName);
+    case OperatorPow:
+        if(operands[1]->DependsOn(VarName.c_str()) == false)
+        {
+            return (*operands[1])*((*operands[0])^((*operands[1])-TNumeric(1)))*operands[0]->Derivative(VarName);
         };
-        return MakeExp(Operands[1]*MakeLn(Operands[0])).Derivative(VarName);
-       case OperatorIntegral:
-       case OperatorDeriv:       
-       default: throw "TNumeric::Derivative:: function is not realized for this type of OpCode";
+        return MakeExp((*operands[1])*MakeLn(*operands[0])).Derivative(VarName);
+    case OperatorIntegral:
+    case OperatorDeriv:
+    default: throw "TNumeric::Derivative:: function is not realized for this type of OpCode";
     };
 }
 
 
-int TNumeric::GetOperatorPriority(int OpCode) const
+int TNumeric::GetOperatorPriority(int OpCode)
 {
-   switch(OpCode)
-   {   
-      case OperatorInline: return 10;
-      case OperatorLess:
-      case OperatorLessOrEqual:
-      case OperatorGreater:
-      case OperatorGreaterOrEqual:
-      case OperatorBelongsTo:
-      case OperatorEqual: return 0;
-      case OperatorInterval:
-      case OperatorIntervalSegment:
-      case OperatorSegmentInterval:
-      case OperatorSegment:            
-      case OperatorLog:
-      case OperatorLn:
-      case OperatorLg:
-      case OperatorSin:
-      case OperatorCos:
-      case OperatorTg:
-      case OperatorArcsin:
-      case OperatorArccos:
-      case OperatorArctg:
-      case OperatorExp:
-      case OperatorSh:
-      case OperatorCh:
-      case OperatorCtg:
-      case OperatorSmallO:
-      case OperatorBigO:
-       return 6;
-      case OperatorDeriv: return 0;
-      case OperatorUnion:
-      case OperatorSum: return 1;
-      case OperatorPlusMinus:
-      case OperatorMinus: return 2;
-      case OperatorConst: return 2; //если константа - положительное число, то скобки никогда не ставятся. Если со знаком минус - то скобки ставятся тогда, когда ставились бы скобки у выражения 0-a
-      case OperatorIntersection:
-      case OperatorIntegral:
-      case OperatorProd: return 3;
-      case OperatorFrac: return 3;
-      case OperatorSqrt: return 4;
-      case OperatorSubIndex:
-      case OperatorSupIndex:
-      case OperatorSign:
-      case OperatorAbs:
-      case OperatorPow: return 5;
-      default: throw "TNumeric::GetOperatorPriority:: function is not realized for this type of OpCode";
-   };
-};
-int TNumeric::CompareOperatorsPriority(int OpCode1, int OpCode2) const
+    switch(OpCode)
+    {
+    case OperatorInline: return 10;
+    case OperatorLess:
+    case OperatorLessOrEqual:
+    case OperatorGreater:
+    case OperatorGreaterOrEqual:
+    case OperatorBelongsTo:
+    case OperatorEqual: return 0;
+    case OperatorInterval:
+    case OperatorIntervalSegment:
+    case OperatorSegmentInterval:
+    case OperatorSegment:
+    case OperatorLog:
+    case OperatorLn:
+    case OperatorLg:
+    case OperatorSin:
+    case OperatorCos:
+    case OperatorTg:
+    case OperatorArcsin:
+    case OperatorArccos:
+    case OperatorArctg:
+    case OperatorExp:
+    case OperatorSh:
+    case OperatorCh:
+    case OperatorCtg:
+    case OperatorSmallO:
+    case OperatorBigO:
+        return 6;
+    case OperatorDeriv: return 0;
+    case OperatorUnion:
+    case OperatorSum: return 1;
+    case OperatorPlusMinus:
+    case OperatorMinus: return 2;
+    case OperatorConst: return 2; //если константа - положительное число, то скобки никогда не ставятся. Если со знаком минус - то скобки ставятся тогда, когда ставились бы скобки у выражения 0-a
+    case OperatorIntersection:
+    case OperatorIntegral:
+    case OperatorProd: return 3;
+    case OperatorFrac: return 3;
+    case OperatorSqrt: return 4;
+    case OperatorSubIndex:
+    case OperatorSupIndex:
+    case OperatorSign:
+    case OperatorAbs:
+    case OperatorPow: return 5;
+    default: throw "TNumeric::GetOperatorPriority:: function is not realized for this type of OpCode";
+    };
+}
+
+int TNumeric::CompareOperatorsPriority(int OpCode1, int OpCode2)
 {
-int p1 = GetOperatorPriority(OpCode1);
-int p2 = GetOperatorPriority(OpCode2);
-   if(p1<p2) return -1;
-   if(p1 == p2) return 0;
-   return 1;
+    int p1 = GetOperatorPriority(OpCode1);
+    int p2 = GetOperatorPriority(OpCode2);
+    if(p1<p2) return -1;
+    if(p1 == p2) return 0;
+    return 1;
 };
 
 bool TNumeric::CanCalculate() const
@@ -582,293 +577,284 @@ bool TNumeric::CanCalculate() const
 
 double TNumeric::Calculate() const
 {
-size_t i;
-double A;
-vector<double> Vals;
-    Vals.assign(Operands.size(), 0);
-    for(size_t i = 0; i < Operands.size(); i++)
+    size_t i;
+    double A;
+    vector<double> Vals;
+    Vals.assign(operands.size(), 0);
+    for(size_t i = 0; i < operands.size(); i++)
     {
-        Vals[i] = Operands[i].Calculate();
+        Vals[i] = operands[i]->Calculate();
         if(isnan(Vals[i]))return NaN;
     };
-    switch(Operator)
+    switch(operation)
+    {
+    case OperatorConst:
+        if(K.length() != 0)
         {
-        case OperatorConst:
-            if(K.length() != 0)
+            if(K == "-\\infty") return -INFINITY;
+            if(K == "\\infty" || K == "+\\infty") return INFINITY;
+            if(K == "\\pi") return M_PI;
+            try {
+                double d;
+                if(sscanf(K.c_str(), "%lf", &d) == 0) return NaN;
+                A = d;
+            }catch(...)
             {
-                if(K == "-\\infty") return -INFINITY;
-                if(K == "\\infty" || K == "+\\infty") return INFINITY;
-                if(K == "\\pi") return M_PI;
-                try {
-                    double d;
-                    if(sscanf(K.c_str(), "%lf", &d) == 0) return NaN;
-                    A = d;
-                }catch(...)
-                {
-                   return NaN;
-                };
-                return A;
-             } else return NaN;
-        break;
-        case OperatorEqual: return Vals[1];
-        break;
-        case OperatorSum:
-             A = 0;
-             for(i = 0; i < Operands.size(); i++)
-                A += Vals[i];
-             return A;
-        break;
-        case OperatorMinus:
-           A = Vals[0];
-            for(i = 1; i < Operands.size(); i++)
-               A -= Vals[i];
-            return A;
-        break;
-        case OperatorProd:
-            A = 1;
-            for(i = 0; i < Operands.size(); i++)
-               A*=Vals[i];
-            return A;
-        break;
-        case OperatorFrac:
-           if(Vals[1] == 0)
-            {
-               if(Vals[0]>=0) return Infinity;
-                else return -Infinity;
-            } return Vals[0]/Vals[1];
-        break;
-        case OperatorSqrt:
-            if(Vals[0]>=0) return sqrtl(Vals[0]);
-            else return NaN;
-        break;
-        case OperatorPow:
-            if(Vals[1] == 0) return 1;
-            if(Vals[0]>0) return exp(Vals[1]*log(Vals[0]));
-            else {
-                if(ceil(Vals[1]) == Vals[1]) //показатель целый
-                {
-                    //BInt нужно только для определения знака
-                    int BInt = ceil(Vals[1]);
-                    if(BInt < 0) BInt = -BInt;
-                    int sign;
-                    if(BInt % 2 == 0) sign = 1;
-                    else sign = -1;
-                    return exp(Vals[1]*log(-Vals[0]))*sign;
-                } return NaN;
+                return NaN;
             };
+            return A;
+        } else return NaN;
         break;
-        case OperatorExp:
-            if(Vals[0] == 0) return 1;
-            return exp(Vals[0]);
+    case OperatorEqual: return Vals[1];
         break;
-        case OperatorSh:
-            if(Vals[0] == 0) return 0;
-            return sinh(Vals[0]);
+    case OperatorSum:
+        A = 0;
+        for(i = 0; i < operands.size(); i++)
+            A += Vals[i];
+        return A;
         break;
-        case OperatorCh:
-            if(Vals[0] == 0) return 1;
-            return cosh(Vals[0]);
+    case OperatorMinus:
+        A = Vals[0];
+        for(i = 1; i < operands.size(); i++)
+            A -= Vals[i];
+        return A;
         break;
-        case OperatorLog:
-            if(Vals[0] <= 0 || Vals[1] <= 0) return NaN;
-            return log(Vals[0])/log(Vals[1]);
-        case OperatorLn:
-            if(Vals[0] <= 0) return NaN;
-            return log(Vals[0]);
-        case OperatorLg:
-            if(Vals[0] <= 0) return NaN;
-            return log(Vals[0])/log(10.0L);
-        case OperatorSin:
-            return sin(Vals[0]);
-        case OperatorCos:
-            return cos(Vals[0]);
-        case OperatorTg:
-            if(cos(Vals[0]) == 0)
+    case OperatorProd:
+        A = 1;
+        for(i = 0; i < operands.size(); i++)
+            A*=Vals[i];
+        return A;
+        break;
+    case OperatorFrac:
+        if(Vals[1] == 0)
+        {
+            if(Vals[0]>=0) return Infinity;
+            else return -Infinity;
+        } return Vals[0]/Vals[1];
+        break;
+    case OperatorSqrt:
+        if(Vals[0]>=0) return sqrtl(Vals[0]);
+        else return NaN;
+        break;
+    case OperatorPow:
+        if(Vals[1] == 0) return 1;
+        if(Vals[0]>0) return exp(Vals[1]*log(Vals[0]));
+        else {
+            if(ceil(Vals[1]) == Vals[1]) //показатель целый
             {
-                if(sin(Vals[0])>0) return +Infinity;
-                else return -Infinity;
-            }
-            return sin(Vals[0])/cos(Vals[0]);
-        case OperatorCtg:
-            if(sin(Vals[0]) == 0)
-            {
-                if(cos(Vals[0])>0) return +Infinity;
-                else return -Infinity;
-            }
-           return cos(Vals[0])/sin(Vals[0]);
-        case OperatorArcsin:
-            if(fabs(Vals[0]) > 1) return NaN;
-            else return asin(Vals[0]);
-        case OperatorArccos:
-            if(fabs(Vals[0]) > 1) return NaN;
-            else return acos(Vals[0]);
-        case OperatorArctg:
-            return atan(Vals[0]);
-        case OperatorSign:
-            if(Vals[0] > 0) return 1;
-            else if(Vals[0] < 0) return -1;
-            else return 0;
-        case OperatorAbs: return fabs(Vals[0]);
-        case OperatorLess:
-        case OperatorLessOrEqual:
-        case OperatorGreater:
-        case OperatorGreaterOrEqual:
-        case OperatorEqSet:
-        case OperatorEqSystem:
-        case OperatorLines:
-        case OperatorInterval:
-        case OperatorIntervalSegment:
-        case OperatorSegmentInterval:
-        case OperatorSegment:
-        case OperatorInline:
-        case OperatorTab:
-        case OperatorUnion:
-        case OperatorIntersection:
-        case OperatorSubIndex:
-        case OperatorSupIndex:
-        case OperatorDeriv:
-        case OperatorPlusMinus:
-        case OperatorIntegral:
-        default:
-        throw "TNumeric::Calculate(): Can't calculate the EqSet, EqSystem or lines operator etc";
-      break;
-   };
-   return NaN;
+                //BInt нужно только для определения знака
+                int BInt = ceil(Vals[1]);
+                if(BInt < 0) BInt = -BInt;
+                int sign;
+                if(BInt % 2 == 0) sign = 1;
+                else sign = -1;
+                return exp(Vals[1]*log(-Vals[0]))*sign;
+            } return NaN;
+        };
+        break;
+    case OperatorExp:
+        if(Vals[0] == 0) return 1;
+        return exp(Vals[0]);
+        break;
+    case OperatorSh:
+        if(Vals[0] == 0) return 0;
+        return sinh(Vals[0]);
+        break;
+    case OperatorCh:
+        if(Vals[0] == 0) return 1;
+        return cosh(Vals[0]);
+        break;
+    case OperatorLog:
+        if(Vals[0] <= 0 || Vals[1] <= 0) return NaN;
+        return log(Vals[0])/log(Vals[1]);
+    case OperatorLn:
+        if(Vals[0] <= 0) return NaN;
+        return log(Vals[0]);
+    case OperatorLg:
+        if(Vals[0] <= 0) return NaN;
+        return log(Vals[0])/log(10.0L);
+    case OperatorSin:
+        return sin(Vals[0]);
+    case OperatorCos:
+        return cos(Vals[0]);
+    case OperatorTg:
+        if(cos(Vals[0]) == 0)
+        {
+            if(sin(Vals[0])>0) return +Infinity;
+            else return -Infinity;
+        }
+        return sin(Vals[0])/cos(Vals[0]);
+    case OperatorCtg:
+        if(sin(Vals[0]) == 0)
+        {
+            if(cos(Vals[0])>0) return +Infinity;
+            else return -Infinity;
+        }
+        return cos(Vals[0])/sin(Vals[0]);
+    case OperatorArcsin:
+        if(fabs(Vals[0]) > 1) return NaN;
+        else return asin(Vals[0]);
+    case OperatorArccos:
+        if(fabs(Vals[0]) > 1) return NaN;
+        else return acos(Vals[0]);
+    case OperatorArctg:
+        return atan(Vals[0]);
+    case OperatorSign:
+        if(Vals[0] > 0) return 1;
+        else if(Vals[0] < 0) return -1;
+        else return 0;
+    case OperatorAbs: return fabs(Vals[0]);
+    case OperatorLess:
+    case OperatorLessOrEqual:
+    case OperatorGreater:
+    case OperatorGreaterOrEqual:
+    case OperatorEqSet:
+    case OperatorEqSystem:
+    case OperatorInterval:
+    case OperatorIntervalSegment:
+    case OperatorSegmentInterval:
+    case OperatorSegment:
+    case OperatorInline:
+    case OperatorUnion:
+    case OperatorIntersection:
+    case OperatorSubIndex:
+    case OperatorSupIndex:
+    case OperatorDeriv:
+    case OperatorPlusMinus:
+    case OperatorIntegral:
+    default:
+        throw "TNumeric::Calculate(): Can't calculate the EqSet, EqSystem or lines operation etc";
+        break;
+    };
+    return NaN;
 };
 
 TNumeric TNumeric::Substitute(const string &var, const TNumeric& Val) const
 {
-    if(Operator == OperatorConst)
+    if(operation == OperatorConst)
     {
         if(K == var) return Val;
         else return *this;
     };
-TNumeric Res;
-    Res.Operator = Operator;
-    for(size_t i = 0; i < Operands.size(); i++)
-        Res.OperandsPushback(Operands[i].Substitute(var, Val));
+    TNumeric Res;
+    Res.operation = operation;
+    for(size_t i = 0; i < operands.size(); i++)
+        Res.OperandsPushback(operands[i]->Substitute(var, Val));
     return Res;
-}
-
-void TNumeric::SetEditableFlags(int Flags)
-{
-    this->EditableFlags = Flags;
-    for(size_t i = 0; i < Operands.size(); i++)
-        Operands[i].SetEditableFlags(Flags);
 }
 
 string TNumeric::CodeBasic() const
 {
-string Str;
-size_t i;
-    switch(Operator)
+    string Str;
+    size_t i;
+    switch(operation)
     {
-        case OperatorConst:
-            if(K == "-\\infty") Str="(-inf)"; else
+    case OperatorConst:
+        if(K == "-\\infty") Str="(-inf)"; else
             if(K == "\\infty" || K == "+\\infty") Str="(inf)"; else
-            Str = K;
+                Str = K;
         break;
-        case OperatorEqual:  Str = Operands[0].CodeBasic()+"="+Operands[1].CodeBasic();
+    case OperatorEqual:  Str = operands[0]->CodeBasic()+"="+operands[1]->CodeBasic();
         break;
-        case OperatorSum:
-            Str = '(';
-            for(i = 0; i < Operands.size(); i++)
-            {
-                Str += Operands[i].CodeBasic();
-                if(i+1 < Operands.size())
+    case OperatorSum:
+        Str = '(';
+        for(i = 0; i < operands.size(); i++)
+        {
+            Str += operands[i]->CodeBasic();
+            if(i+1 < operands.size())
                 Str += '+';
-            };
-            Str += ')';
-            return Str;
-            break;
-        case OperatorMinus:
-            Str = string("(")+Operands[0].CodeBasic()+"-";
-            for(i = 1; i < Operands.size(); i++)
-            {
-                Str += Operands[i].CodeBasic();
-                if(i+1 < Operands.size())
-                    Str += '-';
-            };
-            Str += ')';
-            return Str;
-            break;
-        case OperatorProd:
-            Str = '(';
-            for(i = 0; i < Operands.size(); i++)
-            {
-                Str += Operands[i].CodeBasic();
-                if(i+1 < Operands.size())
+        };
+        Str += ')';
+        return Str;
+        break;
+    case OperatorMinus:
+        Str = string("(")+operands[0]->CodeBasic()+"-";
+        for(i = 1; i < operands.size(); i++)
+        {
+            Str += operands[i]->CodeBasic();
+            if(i+1 < operands.size())
+                Str += '-';
+        };
+        Str += ')';
+        return Str;
+        break;
+    case OperatorProd:
+        Str = '(';
+        for(i = 0; i < operands.size(); i++)
+        {
+            Str += operands[i]->CodeBasic();
+            if(i+1 < operands.size())
                 Str += '*';
-            };
-            Str += ')';
-            return Str;
-            break;
-        case OperatorFrac: Str = string("(")+Operands[0].CodeBasic() + ")/(" + Operands[1].CodeBasic() + ")";
+        };
+        Str += ')';
+        return Str;
         break;
-        case OperatorSqrt: Str = string("((")+Operands[0].CodeBasic() + ")^(1/2))";
+    case OperatorFrac: Str = string("(")+operands[0]->CodeBasic() + ")/(" + operands[1]->CodeBasic() + ")";
         break;
-        case OperatorPow: Str = string("((")+Operands[0].CodeBasic() + ")^(" + Operands[1].CodeBasic() + "))";
+    case OperatorSqrt: Str = string("((")+operands[0]->CodeBasic() + ")^(1/2))";
         break;
-        case OperatorSubIndex: Str = Operands[0].CodeBasic()+"_"+Operands[1].CodeBasic(); break;
-        case OperatorIntegral: Str = string("integral(") + Operands[0].CodeBasic() +") d" + Operands[1].CodeBasic(); break;
-        case OperatorExp: Str = string("exp(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorSh: Str = string("sh(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorCh: Str = string("ch(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorCos: Str = string("cos(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorSin: Str = string("sin(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorTg: Str = string("tg(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorArccos: Str = string("acos(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorArcsin: Str = string("asin(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorArctg: Str = string("atg(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorCtg: Str = string("ctg(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorLg: Str = string("lg(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorLn: Str = string("ln(") + Operands[0].CodeBasic() +")"; break;
-        case OperatorLog: Str = string("log(")+Operands[0].CodeBasic()+", "+Operands[1].CodeBasic()+")"; break;
-        default: Str = string("f(");
-            for(size_t i = 0; i < Operands.size(); i++)
-                if(i+1<Operands.size()) Str = Str +Operands[0].CodeBasic()+", ";
-                else Str = Str +Operands[0].CodeBasic()+")";
-                //throw "TNumeric::CodeBasic(): function not fully realized yet";
+    case OperatorPow: Str = string("((")+operands[0]->CodeBasic() + ")^(" + operands[1]->CodeBasic() + "))";
+        break;
+    case OperatorSubIndex: Str = operands[0]->CodeBasic()+"_"+operands[1]->CodeBasic(); break;
+    case OperatorIntegral: Str = string("integral(") + operands[0]->CodeBasic() +") d" + operands[1]->CodeBasic(); break;
+    case OperatorExp: Str = string("exp(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorSh: Str = string("sh(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorCh: Str = string("ch(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorCos: Str = string("cos(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorSin: Str = string("sin(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorTg: Str = string("tg(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorArccos: Str = string("acos(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorArcsin: Str = string("asin(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorArctg: Str = string("atg(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorCtg: Str = string("ctg(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorLg: Str = string("lg(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorLn: Str = string("ln(") + operands[0]->CodeBasic() +")"; break;
+    case OperatorLog: Str = string("log(")+operands[0]->CodeBasic()+", "+operands[1]->CodeBasic()+")"; break;
+    default: Str = string("f(");
+        for(size_t i = 0; i < operands.size(); i++)
+            if(i+1<operands.size()) Str = Str +operands[0]->CodeBasic()+", ";
+            else Str = Str +operands[0]->CodeBasic()+")";
+        //throw "TNumeric::CodeBasic(): function not fully realized yet";
     };
     return Str;
 };
 //==============================================================================
 string DeleteExternalBrackets(string Str)
 {
-   //Удаляем внешние скобки
-char* p = (char*)Str.c_str();
-int BracketLevel = 0;
-bool External = true; //true, если найденная пара скобок StartIndex EndIndex является внешними скобками - за пределами их нет арифеметических операций
-size_t StartIndex, EndIndex; //начало и конец результирующей подстроки, не включая последений символ
-//то есть Result = [StartIndex, EndIndex)
-   StartIndex = 0;
-   EndIndex = Str.length();
-   while(*p)
-   {
-      if(*p == '(')
-      {
-         if(BracketLevel == 0)
-            StartIndex = p - Str.c_str()+1;
-         BracketLevel ++;
-      };
-      if(*p == ')')
-      {
-         if(BracketLevel == 1)
-            EndIndex = p - Str.c_str();
-         BracketLevel --;
-      };
-      if(*p != '(' && *p != ')' && *p != ' ')
-          //найдено или цифра, или буква или арифметическое действие
-      {
-          if(BracketLevel == 0)
-              //найдено за пределами самых внешних скобок
-              External = false; //значит, эти скобки уже не внешние, их удалять не будем
-      }
-      p++;
-   };
-   if(StartIndex == 1 && External)
-    return Str.substr(StartIndex, EndIndex-StartIndex);
-   else return Str;
+    //Удаляем внешние скобки
+    char* p = (char*)Str.c_str();
+    int BracketLevel = 0;
+    bool External = true; //true, если найденная пара скобок StartIndex EndIndex является внешними скобками - за пределами их нет арифеметических операций
+    size_t StartIndex, EndIndex; //начало и конец результирующей подстроки, не включая последений символ
+    //то есть Result = [StartIndex, EndIndex)
+    StartIndex = 0;
+    EndIndex = Str.length();
+    while(*p)
+    {
+        if(*p == '(')
+        {
+            if(BracketLevel == 0)
+                StartIndex = p - Str.c_str()+1;
+            BracketLevel ++;
+        };
+        if(*p == ')')
+        {
+            if(BracketLevel == 1)
+                EndIndex = p - Str.c_str();
+            BracketLevel --;
+        };
+        if(*p != '(' && *p != ')' && *p != ' ')
+        //найдено или цифра, или буква или арифметическое действие
+        {
+            if(BracketLevel == 0)
+                //найдено за пределами самых внешних скобок
+                External = false; //значит, эти скобки уже не внешние, их удалять не будем
+        }
+        p++;
+    };
+    if(StartIndex == 1 && External)
+        return Str.substr(StartIndex, EndIndex-StartIndex);
+    else return Str;
 };
 //==============================================================================
 int DecodeFunctionName(const char* str)
@@ -930,7 +916,7 @@ bool CheckFunctionTemplate(const char* str, TNumeric* Res)
     //Выделяем аргументы
     bracketlevel = 0;
     const char* q = leftbracket + 1;
-    Res->Operator = DecodeFunctionName(FunctionName.c_str());
+    Res->operation = DecodeFunctionName(FunctionName.c_str());
     string Str(str);
     for(p = leftbracket+1; p < rightbracket; p++)
     {
@@ -948,51 +934,51 @@ bool CheckFunctionTemplate(const char* str, TNumeric* Res)
     TNumeric Op;
     string S = Str.substr(q - str, p-q);
     Op.Assign(S.c_str());
-    q = p + 1;
     Res->OperandsPushback(Op);
     return true;
 }
 
 void TNumeric::Assign(const char* str)
 {    
-   char *p;
-   p = new char[strlen(str)+1];
-   strcpy(p, str);
-   Assign(p);
-   delete [] p;
+    char *p;
+    size_t len = strlen(str);
+    p = new char[len+1];
+    strcpy(p, str);
+    Assign(p);
+    delete [] p;
 };
 
 void TNumeric::Assign(char* str)
 {    
-string Str = str;
-   Str = DeleteExternalBrackets(Str);
-   while(1)
-   {
-   	size_t pos = Str.find("**");
-      if(pos == string::npos) break;
-      Str.replace(pos, 2, "^");
-   };
-   while(1)
-   {
-   	size_t pos = Str.find(" ");
-      if(pos == string::npos) break;
-      Str.replace(pos, 1, "");
-   };
-   TNumeric Res;
-   if(CheckFunctionTemplate(Str.c_str(), &Res))
-   {
-       this->Assign(Res);
-       return;
-   }
+    string Str = str;
+    Str = DeleteExternalBrackets(Str);
+    while(1)
+    {
+        size_t pos = Str.find("**");
+        if(pos == string::npos) break;
+        Str.replace(pos, 2, "^");
+    };
+    while(1)
+    {
+        size_t pos = Str.find(" ");
+        if(pos == string::npos) break;
+        Str.replace(pos, 1, "");
+    };
+    TNumeric Res;
+    if(CheckFunctionTemplate(Str.c_str(), &Res))
+    {
+        this->Assign(Res);
+        return;
+    }
 
-int OpCode = -1;
-int OpPriority = -1;
-int BracketLevel = -1;
-int OpPos = -1;
+    int OpCode = -1;
+    int OpPriority = -1;
+    int BracketLevel = -1;
+    int OpPos = -1;
 
-char *p;
-int i =0;
-int CurBracketLevel = 0;
+    char *p;
+    int i =0;
+    int CurBracketLevel = 0;
     p = (char*)Str.c_str();    
     while(*p)
     {
@@ -1018,9 +1004,9 @@ int CurBracketLevel = 0;
             //1. OpCode == -1 - это первая найденная операция в выражении
             //2. CurBracketLevel < BracketLevel - эта операция находится во внешних скобках по отношению к найденной
             //3. CurBracketLevel == BracketLevel - в тех же скобках, но при этом должно выполнять одно из условий
-                //3a. CurOpPrior < OpPriority - операция имеет меньший приоритет, чем найденная
-                //3b. CurOpPrior = OpPriority - операция имеет тот же приоритет, но при этом нас интересует самая правая операция (i > OpPos)
-                //    (Последнее условие, чтобы правильно обрабатывать a-b-c = (a-b) -c != a - (b - c)
+            //3a. CurOpPrior < OpPriority - операция имеет меньший приоритет, чем найденная
+            //3b. CurOpPrior = OpPriority - операция имеет тот же приоритет, но при этом нас интересует самая правая операция (i > OpPos)
+            //    (Последнее условие, чтобы правильно обрабатывать a-b-c = (a-b) -c != a - (b - c)
             {
                 BracketLevel = CurBracketLevel;
                 OpPriority = CurOpPrior;
@@ -1029,9 +1015,9 @@ int CurBracketLevel = 0;
             };
         p++;
         i++;
-   };
-   if(OpCode == -1)
-   {
+    };
+    if(OpCode == -1)
+    {
         if(Str.empty())
         {
             TNumeric Res("0");
@@ -1040,121 +1026,121 @@ int CurBracketLevel = 0;
             TNumeric Res(Str.c_str());            
             this->Assign(Res);
         };
-   } else {
-       string Str1, Str2;
-       Str1 = Str.substr(0, OpPos);
-       Str2 = Str.substr(OpPos + 1);
-/*#ifdef __DEBUG__
+    } else {
+        string Str1, Str2;
+        Str1 = Str.substr(0, OpPos);
+        Str2 = Str.substr(OpPos + 1);
+        /*#ifdef __DEBUG__
        cout<<Str1.c_str()<<"  "<<Str[OpPos]<<":"<<OpPriority<<"   "<<Str2.c_str()<<endl;
 #endif*/
-       TNumeric N1, N2, Res;
-       N1.Assign((char*)Str1.c_str());
-       N2.Assign((char*)Str2.c_str());
+        TNumeric N1, N2, Res;
+        N1.Assign((char*)Str1.c_str());
+        N2.Assign((char*)Str2.c_str());
 
         switch(OpCode)
         {
-            case OperatorSum: Res = N1 + N2;
+        case OperatorSum: Res = N1 + N2;
             break;
-            case OperatorMinus: Res = N1 - N2;
+        case OperatorMinus: Res = N1 - N2;
             break;
-            case OperatorProd: Res = N1 * N2;
+        case OperatorProd: Res = N1 * N2;
             break;
-            case OperatorPow: Res = N1^N2;
+        case OperatorPow: Res = N1^N2;
             break;
-            case OperatorFrac: Res = N1/N2;
+        case OperatorFrac: Res = N1/N2;
             break;
-            default:
+        default:
             break;
         };
         this->Assign(Res);
-   };
-   SimplifyPresentation();
+    };
+    SimplifyPresentation();
 };
 void TNumeric::SimplifyPresentation()
 {
-    for(size_t i = 0; i < Operands.size(); i++)
-        Operands[i].SimplifyPresentation();
-    switch(Operator)
+    for(size_t i = 0; i < operands.size(); i++)
+        operands[i]->SimplifyPresentation();
+    switch(operation)
     {
-        case OperatorConst:
+    case OperatorConst:
         break;
-        case OperatorEqual:
+    case OperatorEqual:
         break;
-        case OperatorSum: //(a+b)+c = a + b + c
+    case OperatorSum: //(a+b)+c = a + b + c
     {
-            size_t i = 0;
-            while(i<Operands.size())
+        size_t i = 0;
+        while(i<operands.size())
+        {
+            if(operands[i]->operation == OperatorSum)
             {
-                if(Operands[i].Operator == OperatorSum)
+                for(size_t j = 0; j < operands[i]->operands.size(); j++)
                 {
-                    for(size_t j = 0; j < Operands[i].Operands.size(); j++)
-                    {
-                        Operands.insert(Operands.begin()+i, Operands[i].Operands[j]);
-                        i++;
-                    };
-                    Operands.erase(Operands.begin() +  i);
-                } else i++;
-            };
+                    operands.insert(operands.begin()+i, operands[i]->operands[j]);
+                    i++;
+                };
+                operands.erase(operands.begin() +  i);
+            } else i++;
+        };
     }
-        break;
-        case OperatorProd: //a*(b*c) = a*b*c
+    break;
+    case OperatorProd: //a*(b*c) = a*b*c
     {
-            size_t i = 0;
-            while(i<Operands.size())
+        size_t i = 0;
+        while(i<operands.size())
+        {
+            if(operands[i]->operation == OperatorProd)
             {
-                if(Operands[i].Operator == OperatorProd)
+                for(size_t j = 0; j < operands[i]->operands.size(); j++)
                 {
-                    for(size_t j = 0; j < Operands[i].Operands.size(); j++)
-                    {
-                        Operands.insert(Operands.begin()+i, Operands[i].Operands[j]);
-                        i++;
-                    };
-                    Operands.erase(Operands.begin() +  i);
-                } else i++;
-            };
+                    operands.insert(operands.begin()+i, operands[i]->operands[j]);
+                    i++;
+                };
+                operands.erase(operands.begin() +  i);
+            } else i++;
+        };
     }
+    break;
+    case OperatorFrac:
         break;
-        case OperatorFrac:
+    case OperatorSqrt:
         break;
-        case OperatorSqrt:
-        break;
-        case OperatorPow:
+    case OperatorPow:
         //1. упрощаем, если показатель степени равен 1/2
-            TNumeric *N = &Operands[1];
-            if(N->Operator == OperatorFrac)
-                if(N->Operands[0].K == "1" && N->Operands[1].K == "2")
-                {
-                    TNumeric N2 = Operands[0];
-                   Operands.erase(Operands.end()); //удаляем второй (он же последний) элемент
-                    Operator = OperatorSqrt;
-                };            
-      break;
-   };
+        std::shared_ptr<TNumeric> N = operands[1];
+        if(N->operation == OperatorFrac)
+            if(N->operands[0]->K == "1" && N->operands[1]->K == "2")
+            {
+                //std::shared_ptr<TNumeric> N2 = operands[0];
+                operands.erase(operands.end()); //удаляем второй (он же последний) элемент
+                operation = OperatorSqrt;
+            };
+        break;
+    };
 };
 
 
 void TNumeric::EliminateFunctions(size_t &StartID, map<string, TNumeric>& Map)
 {
     bool NeedToEliminate = true;
-    switch(Operator)
+    switch(operation)
     {
-        case OperatorConst:
+    case OperatorConst:
         //проводим переобзначение "\var" -> "an"
-            if(!(K.length() > 0 && K[0] == '\\')) NeedToEliminate = false;
-            break;
-        //ниже список функций, реализованных в mathomatic, которые можно не упрощать        
-        case OperatorSum:
-        case OperatorMinus:
-        case OperatorProd:
-        case OperatorFrac:
-        case OperatorSqrt:
-        case OperatorPow:
-        case OperatorEqual:
+        if(!(K.length() > 0 && K[0] == '\\')) NeedToEliminate = false;
+        break;
+    //ниже список функций, реализованных в mathomatic, которые можно не упрощать
+    case OperatorSum:
+    case OperatorMinus:
+    case OperatorProd:
+    case OperatorFrac:
+    case OperatorSqrt:
+    case OperatorPow:
+    case OperatorEqual:
         NeedToEliminate = false; break;
     }
     if(NeedToEliminate)
     {
-    //проверяем, вдруг эта функция уже есть и как-то обозначена
+        //проверяем, вдруг эта функция уже есть и как-то обозначена
         map<string, TNumeric>::iterator It;
         It = Map.begin();
         while(It!=Map.end())
@@ -1162,7 +1148,7 @@ void TNumeric::EliminateFunctions(size_t &StartID, map<string, TNumeric>& Map)
             if(It->second.IsEqual(*this))
             //нашли, используем уже существующее обозначение
             {
-                Operator = OperatorConst;
+                operation = OperatorConst;
                 K = It->first;
                 break;
             }
@@ -1173,12 +1159,12 @@ void TNumeric::EliminateFunctions(size_t &StartID, map<string, TNumeric>& Map)
             //не нашли, придумываем новое обозначение
             pair<string, TNumeric> NewItem;
             NewItem.second = *this;
-            for(size_t i = 0;  i<NewItem.second.Operands.size(); i++)
-                NewItem.second.Operands[i] = NewItem.second.Operands[i].Simplify();
+            for(size_t i = 0;  i<NewItem.second.operands.size(); i++)
+                NewItem.second.operands[i] = std::make_shared<TNumeric>(NewItem.second.operands[i]->Simplify());
 
             char Buf[128];
             sprintf(Buf, "a%d", (int)StartID++);
-            Operator = OperatorConst;
+            operation = OperatorConst;
 
             K = Buf;
             NewItem.first = Buf;
@@ -1186,29 +1172,29 @@ void TNumeric::EliminateFunctions(size_t &StartID, map<string, TNumeric>& Map)
         }
     }
     //упрощаем аргументы
-    for(size_t i = 0; i < Operands.size(); i++)
-        Operands[i].EliminateFunctions(StartID, Map);
+    for(size_t i = 0; i < operands.size(); i++)
+        operands[i]->EliminateFunctions(StartID, Map);
 }
 
 void TNumeric::RestoreFunctions(const map<string, TNumeric>& V)
 {
-    switch(Operator)
+    switch(operation)
     {
-        case OperatorConst:
+    case OperatorConst:
+    {
+        map<string, TNumeric>::const_iterator it = V.find(K);
+        if(it == V.end())
+            break;
+        else
         {
-            map<string, TNumeric>::const_iterator it = V.find(K);
-            if(it == V.end())
-                break;
-            else
-            {
-                *this = it->second;
-            }
-        }; break;
-        default:
-        {
-            for(size_t i = 0; i < Operands.size(); i++)
-                Operands[i].RestoreFunctions(V);
-        };
+            *this = it->second;
+        }
+    }; break;
+    default:
+    {
+        for(size_t i = 0; i < operands.size(); i++)
+            operands[i]->RestoreFunctions(V);
+    };
     }
 
 }
@@ -1216,7 +1202,7 @@ void TNumeric::RestoreFunctions(const map<string, TNumeric>& V)
 bool TNumeric::GetRational(int &Nominator, int &Denominator)
 {
     if(CanCalculate() == false) return false;
-    if(Operator == OperatorConst)
+    if(operation == OperatorConst)
     {
         if(IsInteger(&Nominator))
         {
@@ -1224,9 +1210,9 @@ bool TNumeric::GetRational(int &Nominator, int &Denominator)
             return true;
         }
     };
-    if(Operator == OperatorFrac)
+    if(operation == OperatorFrac)
     {
-        if(Operands[0].IsInteger(&Nominator) && Operands[1].IsInteger(&Denominator))
+        if(operands[0]->IsInteger(&Nominator) && operands[1]->IsInteger(&Denominator))
         {
             return true;
         }
@@ -1237,165 +1223,165 @@ bool TNumeric::GetRational(int &Nominator, int &Denominator)
 
 TNumeric TNumeric::SimplifyTrig() const
 {
-bool OperatorOk = false;
-    switch(Operator)
+    bool OperatorOk = false;
+    switch(operation)
     {
-        case OperatorSin:
-        case OperatorCos:
-        case OperatorTg:
-        case OperatorCtg: OperatorOk = true;
+    case OperatorSin:
+    case OperatorCos:
+    case OperatorTg:
+    case OperatorCtg: OperatorOk = true;
     };
     if(!OperatorOk) return *this;
     TNumeric Res = *this;
-    Res.Operands[0] = Res.Operands[0].Simplify();
-//double Val = Operands[0].Calculate();
+    Res.operands[0] = std::make_shared<TNumeric>(Res.operands[0]->Simplify());
+    //double Val = Operands[0]->Calculate();
     //if(Val == 0)
-    if(Res.Operands[0] == TNumeric(0))
+    if(*Res.operands[0] == TNumeric(0))
     {        
-        switch(Operator)
+        switch(operation)
         {
-            case OperatorSin: return TNumeric("0");
-            case OperatorCos: return TNumeric("1");
-            case OperatorTg: return TNumeric("0");
-            case OperatorCtg: return MakeCtg(TNumeric("0"));
+        case OperatorSin: return TNumeric("0");
+        case OperatorCos: return TNumeric("1");
+        case OperatorTg: return TNumeric("0");
+        case OperatorCtg: return MakeCtg(TNumeric("0"));
         };
     } else
-    if(Res.Operands[0] == NumPi)
-    {
-        switch(Operator)
+        if(*Res.operands[0] == NumPi)
         {
+            switch(operation)
+            {
             case OperatorSin: return TNumeric("0");
             case OperatorCos: return TNumeric("-1");
             case OperatorTg: return TNumeric("0");
             case OperatorCtg: return MakeCtg(TNumeric(NumPi));
-        };
-    } else
-    if(Res.Operands[0] == NumPi2)
-    {
-        switch(Operator)
-        {
-            case OperatorSin: return TNumeric("1");
-            case OperatorCos: return TNumeric("0");
-            case OperatorTg: return MakeTg(TNumeric(NumPi2));
-            case OperatorCtg: return TNumeric("0");
-        };
-    } else
-    if(Res.Operands[0] == NumPi3)
-    {
-//todo
-    } else
-    if(Res.Operands[0] == Num2Pi3)
-    {
-//todo
-    };
+            };
+        } else
+            if(*Res.operands[0] == NumPi2)
+            {
+                switch(operation)
+                {
+                case OperatorSin: return TNumeric("1");
+                case OperatorCos: return TNumeric("0");
+                case OperatorTg: return MakeTg(TNumeric(NumPi2));
+                case OperatorCtg: return TNumeric("0");
+                };
+            } else
+                if(*Res.operands[0] == NumPi3)
+                {
+                    //todo
+                } else
+                    if(*Res.operands[0] == Num2Pi3)
+                    {
+                        //todo
+                    };
     //todo Нужно  сделать попытку привести угол к отрезку [0, pi/2], а потом с учетом знака вычислить ответ
     return Res;
 }
 
 TNumeric TNumeric::SimplifyInverseTrig() const
 {
-bool OperatorOk = false;
-    switch(Operator)
+    bool OperatorOk = false;
+    switch(operation)
     {
-        case OperatorArcsin:
-        case OperatorArccos:
-        case OperatorArctg: OperatorOk = true;
+    case OperatorArcsin:
+    case OperatorArccos:
+    case OperatorArctg: OperatorOk = true;
     };
     if(!OperatorOk) return *this;
 
     TNumeric Res = *this;
-    Res.Operands[0] = Res.Operands[0].Simplify();
-//double Val = Operands[0].Calculate();
+    Res.operands[0] = std::make_shared<TNumeric>(Res.operands[0]->Simplify());
+    //double Val = Operands[0]->Calculate();
 
-    if(Res.Operands[0] == TNumeric(0))
+    if(*Res.operands[0] == TNumeric(0))
     {
-        switch(Operator)
+        switch(operation)
         {
-            case OperatorArcsin: return TNumeric("0");
-            case OperatorArccos: return NumPi2;
-            case OperatorArctg: return TNumeric("0");
+        case OperatorArcsin: return TNumeric("0");
+        case OperatorArccos: return NumPi2;
+        case OperatorArctg: return TNumeric("0");
         };
     } else
-    if(Res.Operands[0] == TNumeric(1))
-    {
-        switch(Operator)
+        if(*Res.operands[0] == TNumeric(1))
         {
+            switch(operation)
+            {
             case OperatorArcsin: return NumPi2;
             case OperatorArccos: return TNumeric("0");
             case OperatorArctg: return NumPi4;
-        };
-    } else
-    if(Res.Operands[0] == TNumeric(-1))
-    {
-        switch(Operator)
-        {
-            case OperatorArcsin: return -NumPi2;
-            case OperatorArccos: return NumPi;
-            case OperatorArctg: return -NumPi4;
-        };
-    } else
-    if(Res.Operands[0] == MakeFrac(TNumeric(1), TNumeric(2)))
-    {
-        switch(Operator)
-        {
-            case OperatorArcsin: return NumPi6;
-            case OperatorArccos: return NumPi3;
-            case OperatorArctg: return MakeArctg(MakeFrac(TNumeric("1"), TNumeric("2")));
-        };
-    } else
-    if(Res.Operands[0] == -MakeFrac(TNumeric(1), TNumeric(2)))
-    {
-        switch(Operator)
-        {
-            case OperatorArcsin: return -NumPi6;
-            case OperatorArccos: return Num2Pi3;
-            case OperatorArctg: return -MakeArctg(MakeFrac(TNumeric("1"), TNumeric("2")));
-        };
-    } else
-    if(Res.Operands[0] == MakeFrac(MakeSqrt(TNumeric("3")), TNumeric(2)))
-    {
-        switch(Operator)
-        {
-            case OperatorArcsin: return NumPi3;
-            case OperatorArccos: return NumPi6;
-            case OperatorArctg: return MakeArctg(MakeFrac(MakeSqrt(TNumeric("3")), TNumeric(2)));
-        };
-    } else
-    if(Res.Operands[0] == -MakeFrac(MakeSqrt(TNumeric("3")), TNumeric(2)))
-    {
-        switch(Operator)
-        {
-            case OperatorArcsin: return -NumPi3;
-            case OperatorArccos: return Num5Pi6;
-            case OperatorArctg: return -MakeArctg(MakeFrac(MakeSqrt(TNumeric("3")), TNumeric(2)));
-        };
-    } else
-    if(Res.Operands[0] == MakeFrac(TNumeric(1), MakeSqrt(TNumeric(2))))
-    {
-        switch(Operator)
-        {
-            case OperatorArcsin: return NumPi4;
-            case OperatorArccos: return NumPi4;
-            case OperatorArctg: return MakeArctg(MakeFrac(TNumeric("1"), MakeSqrt(TNumeric("2"))));
-        };
-    } else
-    if(Res.Operands[0] == MakeFrac(TNumeric(1), MakeSqrt(TNumeric(2))))
-    {
-        switch(Operator)
-        {
-            case OperatorArcsin: return -NumPi4;
-            case OperatorArccos: return Num3Pi4;
-            case OperatorArctg: return -MakeArctg(MakeFrac(TNumeric("1"), MakeSqrt(TNumeric("2"))));
-        };
-    };
+            };
+        } else
+            if(*Res.operands[0] == TNumeric(-1))
+            {
+                switch(operation)
+                {
+                case OperatorArcsin: return -NumPi2;
+                case OperatorArccos: return NumPi;
+                case OperatorArctg: return -NumPi4;
+                };
+            } else
+                if(*Res.operands[0] == MakeFrac(TNumeric(1), TNumeric(2)))
+                {
+                    switch(operation)
+                    {
+                    case OperatorArcsin: return NumPi6;
+                    case OperatorArccos: return NumPi3;
+                    case OperatorArctg: return MakeArctg(MakeFrac(TNumeric("1"), TNumeric("2")));
+                    };
+                } else
+                    if(*Res.operands[0] == -MakeFrac(TNumeric(1), TNumeric(2)))
+                    {
+                        switch(operation)
+                        {
+                        case OperatorArcsin: return -NumPi6;
+                        case OperatorArccos: return Num2Pi3;
+                        case OperatorArctg: return -MakeArctg(MakeFrac(TNumeric("1"), TNumeric("2")));
+                        };
+                    } else
+                        if(*Res.operands[0] == MakeFrac(MakeSqrt(TNumeric("3")), TNumeric(2)))
+                        {
+                            switch(operation)
+                            {
+                            case OperatorArcsin: return NumPi3;
+                            case OperatorArccos: return NumPi6;
+                            case OperatorArctg: return MakeArctg(MakeFrac(MakeSqrt(TNumeric("3")), TNumeric(2)));
+                            };
+                        } else
+                            if(*Res.operands[0] == -MakeFrac(MakeSqrt(TNumeric("3")), TNumeric(2)))
+                            {
+                                switch(operation)
+                                {
+                                case OperatorArcsin: return -NumPi3;
+                                case OperatorArccos: return Num5Pi6;
+                                case OperatorArctg: return -MakeArctg(MakeFrac(MakeSqrt(TNumeric("3")), TNumeric(2)));
+                                };
+                            } else
+                                if(*Res.operands[0] == MakeFrac(TNumeric(1), MakeSqrt(TNumeric(2))))
+                                {
+                                    switch(operation)
+                                    {
+                                    case OperatorArcsin: return NumPi4;
+                                    case OperatorArccos: return NumPi4;
+                                    case OperatorArctg: return MakeArctg(MakeFrac(TNumeric("1"), MakeSqrt(TNumeric("2"))));
+                                    };
+                                } else
+                                    if(*Res.operands[0] == MakeFrac(TNumeric(1), MakeSqrt(TNumeric(2))))
+                                    {
+                                        switch(operation)
+                                        {
+                                        case OperatorArcsin: return -NumPi4;
+                                        case OperatorArccos: return Num3Pi4;
+                                        case OperatorArctg: return -MakeArctg(MakeFrac(TNumeric("1"), MakeSqrt(TNumeric("2"))));
+                                        };
+                                    };
     return Res;
 }
 
 TNumeric TNumeric::SimplifyLog() const
 {
-    if(Operator != OperatorLog) return *this;
-    TNumeric A = Operands[0].Simplify();
-    TNumeric B = Operands[1].Simplify();    
+    if(operation != OperatorLog) return *this;
+    TNumeric A = operands[0]->Simplify();
+    TNumeric B = operands[1]->Simplify();
     if(A.CanCalculate() && B.CanCalculate())
     {
         TNumeric Res;
@@ -1409,7 +1395,7 @@ TNumeric TNumeric::SimplifyLog() const
             return TNumeric(1);
         if(a == 1) return TNumeric(0);
         int AN, AD, BN, BD;
-        Res.Operator = OperatorLog;
+        Res.operation = OperatorLog;
         int N, D; //коэффициент перед логарифмом
         if(A.GetRational(AN, AD))
         {
@@ -1432,46 +1418,46 @@ TNumeric TNumeric::SimplifyLog() const
         Res.OperandsPushback(A);
         Res.OperandsPushback(B);
         if(N == 1 && D!=1) Res = MakeFrac(Res, TNumeric(D));
-        if(N != 1 && D==1) Res = MakeProd(TNumeric(N), Res);
-        if(N != 1 && D!=1) Res = MakeProd(MakeFrac(TNumeric(N), TNumeric(D)), Res);
+        if(N != 1 && D==1) Res = MakeProd(TNumeric(N), std::move(Res));
+        if(N != 1 && D!=1) Res = MakeProd(MakeFrac(TNumeric(N), TNumeric(D)), std::move(Res));
         return Res;
     } else return *this;    
 }
 
 void TNumeric::SimplifyFunctions()
 {
-    switch(Operator)
+    switch(operation)
     {
-        case OperatorLog: *this = SimplifyLog(); break;
-        /*case OperatorLn:
+    case OperatorLog: *this = SimplifyLog(); break;
+    /*case OperatorLn:
         case OperatorLg:*/
-        case OperatorSin:
-        case OperatorCos:
-        case OperatorTg:
-        case OperatorCtg: *this = SimplifyTrig(); break;
-        case OperatorArcsin:
-        case OperatorArccos:
-        case OperatorArctg:
+    case OperatorSin:
+    case OperatorCos:
+    case OperatorTg:
+    case OperatorCtg: *this = SimplifyTrig(); break;
+    case OperatorArcsin:
+    case OperatorArccos:
+    case OperatorArctg:
         *this = SimplifyInverseTrig(); break;
-/*        default:
+        /*        default:
             for(size_t i = 0; i < Operands.size(); i++)
-                Operands[i].SimplifyFunctions();
+                Operands[i]->SimplifyFunctions();
             break;*/
-        case OperatorLn:
-        case OperatorLg:
-            if(Operands[0] == TNumeric(1))
-                *this = TNumeric(0);
+    case OperatorLn:
+    case OperatorLg:
+        if(*operands[0] == TNumeric(1))
+            *this = TNumeric(0);
         break;
     }
-    for(size_t i = 0; i < Operands.size(); i++)
-        Operands[i] = Operands[i].Simplify();
+    for(size_t i = 0; i < operands.size(); i++)
+        operands[i] = std::make_shared<TNumeric>(operands[i]->Simplify());
 }
 
 
 TNumeric TNumeric::MathoCmd(const string& Cmd) const
 {
-TNumeric Res = *this;
-//ходим по всему дереву и упрощаем все функции
+    TNumeric Res = *this;
+    //ходим по всему дереву и упрощаем все функции
 
     //1.Устраняем все нереализованные в mathomatic функции
     size_t StartID = 0;
@@ -1480,10 +1466,10 @@ TNumeric Res = *this;
     //2. вызываем mathomatic
     string SourceCode = Res.CodeBasic();
 #ifdef __DEBUG__
-                cout<<SourceCode<<"->";
-                cout.flush();
+    cout<<SourceCode<<"->";
+    cout.flush();
 #endif
-static string VarName = "vartosimplify";
+    static string VarName = "vartosimplify";
     SourceCode = VarName +" = " + SourceCode;
     string ResCode;
     ResCode = math_process(SourceCode.c_str());
@@ -1505,13 +1491,13 @@ static string VarName = "vartosimplify";
 
 TNumeric TNumeric::Simplify() const
 {    
-    if(Operator == OperatorConst) return *this;
-TNumeric Res = *this;    
+    if(operation == OperatorConst) return *this;
+    TNumeric Res = *this;
     Res.SimplifyFunctions();    
-    if(Operator == OperatorEqual)
+    if(operation == OperatorEqual)
     {
-        TNumeric A = Operands[0].MathoCmd("simplify");
-        TNumeric B = Operands[1].MathoCmd("simplify");
+        TNumeric A = operands[0]->MathoCmd("simplify");
+        TNumeric B = operands[1]->MathoCmd("simplify");
         return MakeEquality(A, B);
     } else {
         Res = Res.MathoCmd("simplify");
@@ -1525,18 +1511,10 @@ TNumeric TNumeric::Unfactor() const
 }
 
 
-TNumeric MakeTab(const TNumeric& N1)
-{
-TNumeric Res;
-    Res.Operator = OperatorTab;
-    Res.OperandsPushback(N1);
-    return Res;
-}
-
 TNumeric MakeUnion(const TNumeric &N1, const TNumeric &N2)
 {
-TNumeric Res;
-    Res.Operator = OperatorUnion;
+    TNumeric Res;
+    Res.operation = OperatorUnion;
     Res.OperandsPushback(N1);
     Res.OperandsPushback(N2);
     return Res;
@@ -1544,19 +1522,19 @@ TNumeric Res;
 TNumeric MakeSubscript(const TNumeric &N1, const TNumeric &N2)
 {
     TNumeric Res;
-        Res.Operator = OperatorSubIndex;
-        Res.OperandsPushback(N1);
-        Res.OperandsPushback(N2);
-        return Res;
+    Res.operation = OperatorSubIndex;
+    Res.OperandsPushback(N1);
+    Res.OperandsPushback(N2);
+    return Res;
 }
 
 TNumeric MakeSuperscript(const TNumeric &N1, const TNumeric &N2)
 {
     TNumeric Res;
-        Res.Operator = OperatorSupIndex;
-        Res.OperandsPushback(N1);
-        Res.OperandsPushback(N2);
-        return Res;
+    Res.operation = OperatorSupIndex;
+    Res.OperandsPushback(N1);
+    Res.OperandsPushback(N2);
+    return Res;
 }
 
 TNumeric MakeFrac(const TNumeric &N1, const TNumeric &N2)
@@ -1567,14 +1545,14 @@ TNumeric MakeFrac(const TNumeric &N1, const TNumeric &N2)
 TNumeric GetPolynom(size_t Power, size_t StartID)
 //конструирует многочлен с нулевыми коэффициентами. ID устанавливаются от StartID до StartID+Power
 {
-   TNumeric Res;
-   for(size_t i = 0; i <= Power; i++)
+    TNumeric Res;
+    for(size_t i = 0; i <= Power; i++)
     {
         TNumeric a(0);
         a.ID = i + StartID;
-        a.EditableFlags = ConstAllowed;
+        //a.EditableFlags = ConstAllowed;
 
-/*        char Buf[10]; //может быть полезно, присваивает ID значению коэфициента
+        /*        char Buf[10]; //может быть полезно, присваивает ID значению коэфициента
         sprintf(Buf, "%d", a.ID);
         a.K = Buf;*/
         if(i == 0)
@@ -1591,24 +1569,32 @@ TNumeric GetPolynom(size_t Power, size_t StartID)
 }
 //****************************************************************************
 
-TNumeric MakeFunction(const int Operator, const TNumeric& N)
+TNumeric MakeFunction(const int operation, const TNumeric& N)
 {
- TNumeric Res;
-   Res.Operator = Operator;
-   Res.OperandsPushback(N);
-   return Res;
+    TNumeric Res;
+    Res.operation = operation;
+    Res.OperandsPushback(N);
+    return Res;
 }
-TNumeric MakeFunction(const int Operator, const TNumeric& N1, const TNumeric& N2)
+TNumeric MakeFunction(const int operation, const TNumeric& N1, const TNumeric& N2)
 {
- TNumeric Res;
-   Res.Operator = Operator;
-   Res.OperandsPushback(N1);
-   Res.OperandsPushback(N2);
-   return Res;
+    TNumeric Res;
+    Res.operation = operation;
+    Res.OperandsPushback(N1);
+    Res.OperandsPushback(N2);
+    return Res;
 }
-TNumeric MakeProd(const TNumeric& N1, const TNumeric &N2)
+TNumeric MakeFunction(const int operation, TNumeric&& N1, TNumeric&& N2)
 {
-   return MakeFunction(OperatorProd, N1, N2);
+    TNumeric Res;
+    Res.operation = operation;
+    Res.OperandsPushback(std::move(N1));
+    Res.OperandsPushback(std::move(N2));
+    return Res;
+}
+TNumeric MakeProd(TNumeric&& N1, TNumeric &&N2)
+{
+    return MakeFunction(OperatorProd, std::move(N1), std::move(N2));
 }
 
 TNumeric MakeLn(const TNumeric& N)
@@ -1648,11 +1634,11 @@ TNumeric MakeBelongsTo(const TNumeric& N1, const TNumeric& N2)
 
 TNumeric MakeInterval(const TNumeric &X1, const TNumeric& X2, bool includeleft, bool includeright)
 {
-TNumeric Res;
-    if(includeleft && includeright) Res.Operator = OperatorSegment;
-    if(!includeleft && includeright) Res.Operator = OperatorIntervalSegment;
-    if(includeleft && !includeright) Res.Operator = OperatorSegmentInterval;
-    if(!includeleft && !includeright) Res.Operator = OperatorInterval;
+    TNumeric Res;
+    if(includeleft && includeright) Res.operation = OperatorSegment;
+    if(!includeleft && includeright) Res.operation = OperatorIntervalSegment;
+    if(includeleft && !includeright) Res.operation = OperatorSegmentInterval;
+    if(!includeleft && !includeright) Res.operation = OperatorInterval;
     Res.OperandsPushback(X1);
     Res.OperandsPushback(X2);
     return Res;
@@ -1664,8 +1650,8 @@ TNumeric MakeInline(const TNumeric &N1, const TNumeric &N2)
 
 TNumeric MakeInline(const TNumeric &N1, const TNumeric &N2, const TNumeric &N3)
 {
-TNumeric Res;
-    Res.Operator = OperatorInline;
+    TNumeric Res;
+    Res.operation = OperatorInline;
     Res.OperandsPushback(N1);
     Res.OperandsPushback(N2);
     Res.OperandsPushback(N3);
@@ -1744,16 +1730,16 @@ TNumeric MakeSmallO(const TNumeric& N)
 
 TNumeric MakeSystemOfEquations(const TNumeric& N1, const TNumeric& N2)
 {
-TNumeric Res;
-    Res.Operator = OperatorEqSystem;
+    TNumeric Res;
+    Res.operation = OperatorEqSystem;
     Res.OperandsPushback(N1);
     Res.OperandsPushback(N2);
     return Res;
 }
 TNumeric MakeSetOfEquations(const TNumeric& N1, const TNumeric& N2)
 {
-TNumeric Res;
-    Res.Operator = OperatorEqSet;
+    TNumeric Res;
+    Res.operation = OperatorEqSet;
     Res.OperandsPushback(N1);
     Res.OperandsPushback(N2);
     return Res;
@@ -1761,8 +1747,8 @@ TNumeric Res;
 
 TNumeric MakeIntegral(const TNumeric& N, const TNumeric& dx)
 {
-TNumeric Res;
-    Res.Operator = OperatorIntegral;
+    TNumeric Res;
+    Res.operation = OperatorIntegral;
     Res.OperandsPushback(N);
     Res.OperandsPushback(dx);
     return Res;
@@ -1771,63 +1757,64 @@ TNumeric Res;
 TNumeric MakeIntegral(const TNumeric& N, const string& dx)
 {
     TNumeric Res;
-        Res.Operator = OperatorIntegral;
-        Res.OperandsPushback(N);
-        Res.OperandsPushback(TNumeric(dx));
-        return Res;
+    Res.operation = OperatorIntegral;
+    Res.OperandsPushback(N);
+    Res.OperandsPushback(TNumeric(dx));
+    return Res;
 }
 
-TNumeric* FindParent(TNumeric* Root, TNumeric* Child)
+std::shared_ptr<TNumeric> FindParent(std::shared_ptr<TNumeric> Root, std::shared_ptr<TNumeric> Child)
 {
-//Обходим рекурсивно Root, чтобы найти родителя WhatToDelete
-        if(Root == Child) return 0;
-        if(Child->EditableFlags == NoEditable) return 0;
-        for(size_t i = 0; i < Root->Operands.size(); i++)
-            if(&(Root->Operands[i]) == Child)
-            {
-                if(Root->EditableFlags == NoEditable) return 0;
-                else return Root;
-            };
-        for(size_t i = 0; i < Root->Operands.size(); i++)
+    //Обходим рекурсивно Root, чтобы найти родителя WhatToDelete
+    if(Root == Child)
+        return nullptr; // can't be parent for itself
+    //if(Child->EditableFlags == NoEditable) return 0;
+    for(size_t i = 0; i < Root->operands.size(); i++)
+        if(Root->operands[i] == Child)
         {
-            TNumeric* Temp = FindParent(&(Root->Operands[i]), Child);
-            if(Temp)
-                return Temp;
+            return Root;
         };
-        return 0;
-};
+    for(size_t i = 0; i < Root->operands.size(); i++)
+    {
+        std::shared_ptr<TNumeric> Temp = FindParent(Root->operands[i], Child);
+        if(Temp)
+            return Temp;
+    };
+    return nullptr;
+}
 
-bool CanErase(TNumeric* Root, TNumeric* WhatToDelete)
+bool CanErase(std::shared_ptr<TNumeric> Root, std::shared_ptr<TNumeric> WhatToDelete)
 {
-    if(FindParent(Root, WhatToDelete)) return true;
+    if(FindParent(Root, WhatToDelete) != nullptr) return true;
     else return false;
 }
 
-void EraseNumeric(TNumeric* Root, TNumeric* WhatToDelete)
+void EraseNumeric(std::shared_ptr<TNumeric> Root, std::shared_ptr<TNumeric> WhatToDelete)
 {
-TNumeric* Parent = FindParent(Root, WhatToDelete);
-    if(Parent == 0) return;
-    if(Parent->EditableFlags == NoEditable) return;
-    if(WhatToDelete->EditableFlags == NoEditable) return;
+    std::shared_ptr<TNumeric> Parent = FindParent(Root, WhatToDelete);
+    assert(Parent != nullptr);
+    //if(Parent == nullptr)
+    //    return;
 
-
-    switch(Parent->Operator)
+    switch(Parent->operation)
     {
-        case OperatorSum:
-        case OperatorMinus:
-        case OperatorProd:
-        case OperatorFrac:
-            for(size_t i = 0; i < Parent->Operands.size(); i++)
-                if(&Parent->Operands[i] == WhatToDelete)
-                {
-                    Parent->Operands.erase(Parent->Operands.begin()+i);
-                    break;
-                }
-            if(Parent->Operands.size() == 1)
+    case OperatorSum:
+    case OperatorMinus:
+    case OperatorProd:
+    case OperatorFrac:
+        for(size_t i = 0; i < Parent->operands.size(); i++)
+            if(Parent->operands[i] == WhatToDelete)
             {
-                TNumeric Temp = Parent->Operands[0];
-                *Parent = Temp;
+                Parent->operands.erase(Parent->operands.begin()+i);
+                break;
             }
+        if(Parent->operands.size() == 1)
+        {
+            int op = Parent->operation;
+            assert(op == OperatorSum || op == OperatorMinus || op == OperatorProd);
+            TNumeric Temp = *Parent->operands[0];
+            *Parent = Temp;
+        }
         break;
     }
 }

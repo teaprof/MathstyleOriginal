@@ -26,7 +26,7 @@ TSystemOfEquations::TSystemOfEquations(size_t VarsCount, size_t EqCount) : TProb
     };
 
     Conditions = std::make_shared<TNumeric>();
-    Conditions->Operator = OperatorEqSystem;
+    Conditions->operation = OperatorEqSystem;
     int IDCount = 0;
     for(size_t n = 0; n < EqCount; n++)
     {
@@ -140,8 +140,8 @@ string TSystemOfEquations::GetShortTask()
 
 void TSystemOfEquations::SaveToFile(ofstream &f)
 {
-unsigned __int16 VarsCount = this->VarsCount();
-unsigned __int16 EqCount = this->EqCount;
+uint16_t VarsCount = this->VarsCount();
+uint16_t EqCount = this->EqCount;
 
     f.write((char*)&SolutionExists, sizeof(SolutionExists));
 
@@ -151,20 +151,20 @@ unsigned __int16 EqCount = this->EqCount;
     for(size_t i = 0; i < VarsCount; i++)
         Variables[i].WriteToFile(f);
 
-    unsigned __int16 IDsize = ID.size();
+    uint16_t IDsize = ID.size();
     f.write((char*)&IDsize, sizeof(IDsize));
     for(size_t i = 0; i < IDsize; i++)
     {
-        unsigned __int16 IDSize1 = ID[i].size();
+        uint16_t IDSize1 = ID[i].size();
         f.write((char*)&IDSize1, sizeof(IDSize1));
         for(size_t j = 0; j < IDSize1; j++)
         {
-            __int16 ID = this->ID[i][j];
+            uint16_t ID = this->ID[i][j];
             f.write((char*)&ID, sizeof(ID));
         }
     };
 
-    unsigned __int16 CoefsSize =Coefs.size();
+    uint16_t CoefsSize =Coefs.size();
     f.write((char*)&CoefsSize, sizeof(CoefsSize));
     for(size_t i = 0; i < CoefsSize; i++)
     {
@@ -176,12 +176,12 @@ unsigned __int16 EqCount = this->EqCount;
         }
     };
 
-    unsigned __int16 RightSideSize = RightSide.size();
+    uint16_t RightSideSize = RightSide.size();
     f.write((char*)&RightSideSize, sizeof(RightSideSize));
     for(size_t j = 0; j < RightSideSize; j++)
         RightSide[j].WriteToFile(f);
 
-    unsigned __int16 AnswerSize = Answer.size();
+    uint16_t AnswerSize = Answer.size();
     f.write((char*)&AnswerSize, sizeof(AnswerSize));
     for(size_t i = 0; i < AnswerSize; i++)
         Answer[i].WriteToFile(f);
@@ -191,8 +191,8 @@ unsigned __int16 EqCount = this->EqCount;
 
 void TSystemOfEquations::LoadFromFile(ifstream &f)
 {
-unsigned __int16 VarsCount;
-unsigned __int16 EqCount;
+uint16_t VarsCount;
+uint16_t EqCount;
     f.read((char*)&SolutionExists, sizeof(SolutionExists));
     f.read((char*)&VarsCount, sizeof(VarsCount));
     f.read((char*)&EqCount, sizeof(EqCount));
@@ -208,16 +208,16 @@ unsigned __int16 EqCount;
     }
 
     ID.clear();
-    unsigned __int16 IDsize;
+    uint16_t IDsize;
     f.read((char*)&IDsize, sizeof(IDsize));
     for(size_t i = 0; i < IDsize; i++)
     {
-        unsigned __int16 IDsize1;
+        uint16_t IDsize1;
         f.read((char*)&IDsize1, sizeof(IDsize));
         vector<int> ID1;
         for(size_t j = 0; j < IDsize1; j++)
         {
-            __int16 ID2;
+            uint16_t ID2;
             f.read((char*)&ID2, sizeof(ID2));
             ID1.push_back(ID2);
         }
@@ -225,11 +225,11 @@ unsigned __int16 EqCount;
     };
 
     Coefs.clear();
-    unsigned __int16 CoefsSize;
+    uint16_t CoefsSize;
     f.read((char*)&CoefsSize, sizeof(CoefsSize));
     for(size_t i = 0; i < CoefsSize; i++)
     {
-        unsigned __int16 CoefsSize1;
+        uint16_t CoefsSize1;
         f.read((char*)&CoefsSize1, sizeof(CoefsSize1));
         vector<TNumeric> Coefs1;
         for(size_t j = 0; j < CoefsSize1; j++)
@@ -242,7 +242,7 @@ unsigned __int16 EqCount;
     };
 
     RightSide.clear();
-    unsigned __int16 RightSideSize;
+    uint16_t RightSideSize;
     f.read((char*)&RightSideSize, sizeof(RightSideSize));
     for(size_t j = 0; j < RightSideSize; j++)
     {
@@ -252,7 +252,7 @@ unsigned __int16 EqCount;
     }
 
     Answer.clear();
-    unsigned __int16 AnswerSize;
+    uint16_t AnswerSize;
     f.read((char*)&AnswerSize, sizeof(AnswerSize));
     for(size_t i = 0; i < AnswerSize; i++)
     {
@@ -277,7 +277,7 @@ void TSystemOfEquations::Assign(const TSystemOfEquations& E)
     this->EqCount = E.EqCount;
 }
 
-void TSystemOfEquations::operator =(const TSystemOfEquations& E)
+void TSystemOfEquations::operator=(const TSystemOfEquations& E)
 {
     Assign(E);
 }
@@ -309,8 +309,8 @@ TNumeric NSubstitute(const TNumeric& Equation, const TNumeric& Variable, const T
         return Expression;
     } else {
         TNumeric Res = Equation;
-        for(size_t i = 0; i < Res.Operands.size(); i++)
-            Res.Operands[i] = NSubstitute(Res.Operands[i], Variable, Expression);
+        for(size_t i = 0; i < Res.operands.size(); i++)
+            *Res.operands[i] = NSubstitute(*Res.operands[i], Variable, Expression);
         return Res;
     }
 }
@@ -376,7 +376,7 @@ size_t StartID = 0;
 //Вместо переменной VariableName в выражении Equation подставляет выражение Expression
 TNumeric NSubstitute(const TNumeric& Equation, const string& VariableName, const TNumeric& Expression)
 {
-    if(Equation.Operator == OperatorConst)
+    if(Equation.operation == OperatorConst)
     {
         if(Equation.K == VariableName)
         {
@@ -384,8 +384,8 @@ TNumeric NSubstitute(const TNumeric& Equation, const string& VariableName, const
         } else return Equation;
     } else {
         TNumeric Res = Equation;
-        for(size_t i = 0; i < Res.Operands.size(); i++)
-            Res.Operands[i] = NSubstitute(Res.Operands[i], VariableName, Expression);
+        for(size_t i = 0; i < Res.operands.size(); i++)
+            *Res.operands[i] = NSubstitute(*Res.operands[i], VariableName, Expression);
         return Res;
     }
 }
@@ -394,31 +394,31 @@ void TSystemOfEquations::Substitute(size_t VariableNumber, const TNumeric& Expre
 {
     for(size_t n = 0; n < EqCount; n++)
     {
-        TNumeric NewEquation = NSubstitute(Conditions->Operands[n], Variables[VariableNumber], Expression);
+        TNumeric NewEquation = NSubstitute(*Conditions->operands[n], Variables[VariableNumber], Expression);
 #ifdef __DEBUG__
         cout<<NewEquation.CodeBasic()<<endl;
 #endif
         NewEquation = NewEquation.Simplify();
         //теперь осталось найти все коэффициенты при оставшихся неизвестных
-        if(NewEquation.Operator != OperatorEqual) throw "TSystemOfEquations::Substitute: Unexpected result. NewEquation.Operator != OperatorEqual";
+        if(NewEquation.operation != OperatorEqual) throw "TSystemOfEquations::Substitute: Unexpected result. NewEquation.operation != OperatorEqual";
 
 #ifdef __DEBUG__
         cout<<NewEquation.CodeBasic()<<endl;
 #endif
 
-        TNumeric LeftSide = NewEquation.Operands[0];
-        TNumeric RightSide = NewEquation.Operands[1];
+        std::shared_ptr<TNumeric> LeftSide = NewEquation.operands[0];
+        std::shared_ptr<TNumeric> RightSide = NewEquation.operands[1];
         //вычисляем свободный член в левой части
-        TNumeric LeftSideFreeTerm = LeftSide;
+        std::shared_ptr<TNumeric> LeftSideFreeTerm = std::make_shared<TNumeric>(*LeftSide); /// \todo: deep copy instad of make_shared
         for(size_t m1 = 0; m1 < VarsCount(); m1++)
-            LeftSideFreeTerm = NSubstitute(LeftSideFreeTerm, Variables[m1], TNumeric("0"));
+            *LeftSideFreeTerm = NSubstitute(*LeftSideFreeTerm, Variables[m1], TNumeric("0"));
 
         //переносим свободный член в правую часть
-        LeftSide = LeftSide - LeftSideFreeTerm;        
-        LeftSide = LeftSide.Simplify();
-        RightSide = RightSide - LeftSideFreeTerm;
-        RightSide = RightSide.Simplify();
-        RightSide.ID = ID[n][VarsCount()];
+        *LeftSide = *LeftSide - *LeftSideFreeTerm;
+        *LeftSide = LeftSide->Simplify();
+        *RightSide = *RightSide - *LeftSideFreeTerm;
+        *RightSide = RightSide->Simplify();
+        RightSide->ID = ID[n][VarsCount()];
 #ifdef __DEBUG__
         cout<<LeftSide.CodeBasic()<<endl;
         cout<<RightSide.CodeBasic()<<endl;
@@ -434,22 +434,22 @@ void TSystemOfEquations::Substitute(size_t VariableNumber, const TNumeric& Expre
         {
             //ищем коэффициент при переменной номер m
             //коэфициент получится, если в левую часть вместо всех переменных кроме её подставить 0, а в переменную номер m - единицу
-            TNumeric Coef = LeftSide;
+            std::shared_ptr<TNumeric> Coef = std::make_shared<TNumeric>(*LeftSide);
             for(size_t m1 = 0; m1 < VarsCount(); m1++)
                 if(m == m1)
-                    Coef = NSubstitute(Coef, Variables[m1], TNumeric("1"));
+                    *Coef = NSubstitute(*Coef, Variables[m1], TNumeric("1"));
                 else
-                    Coef = NSubstitute(Coef, Variables[m1], TNumeric("0"));
-            Coef = Coef.Simplify();
-            Coef.ID = ID[n][m];
+                    *Coef = NSubstitute(*Coef, Variables[m1], TNumeric("0"));
+            *Coef = Coef->Simplify();
+            Coef->ID = ID[n][m];
             if(m != VariableNumber)
             {
                 //добавляем новый член в левую часть
                 if(m3 == 0)
                 {
-                    NewLeftSide = Coef*TNumeric(Variables[m]);
+                    NewLeftSide = *Coef*TNumeric(Variables[m]);
                 } else {
-                    NewLeftSide = NewLeftSide + Coef*TNumeric(Variables[m]);
+                    NewLeftSide = NewLeftSide + *Coef*TNumeric(Variables[m]);
                 }
                 m3++;
             };
@@ -459,14 +459,14 @@ void TSystemOfEquations::Substitute(size_t VariableNumber, const TNumeric& Expre
             //обновляем коэффициент при очередном члене
             if(m < VariableNumber)
             {
-                NewCoefs[m] = Coef;
+                NewCoefs[m] = *Coef;
             };
             if(m > VariableNumber)
             {
-                NewCoefs[m-1] = Coef;
+                NewCoefs[m-1] = *Coef;
             }
         }
-        Conditions->Operands[n] = MakeEquality(NewLeftSide, RightSide);
+        *Conditions->operands[n] = MakeEquality(NewLeftSide, *RightSide);
         Coefs[n] = NewCoefs;
         ID[n].erase(ID[n].begin() + VariableNumber);
 
@@ -478,10 +478,10 @@ void TSystemOfEquations::Substitute(size_t VariableNumber, const TNumeric& Expre
 
 void TSystemOfEquations::ExcludeSimilarEquations()
 {
-    for(size_t i = 0; i < Conditions->Operands.size(); i++)
+    for(size_t i = 0; i < Conditions->operands.size(); i++)
     {
-        for(size_t j = i+1; j < Conditions->Operands.size();)
-            if(Conditions->Operands[i] == Conditions->Operands[j])
+        for(size_t j = i+1; j < Conditions->operands.size();)
+            if(Conditions->operands[i] == Conditions->operands[j])
                 RemoveEquation(j);
             else
                 j++;
@@ -491,7 +491,7 @@ void TSystemOfEquations::ExcludeSimilarEquations()
 void TSystemOfEquations::RemoveEquation(size_t EqNumber)
 {
     ID.erase(ID.begin() + EqNumber );
-    Conditions->Operands.erase(Conditions->Operands.begin() + EqNumber);
+    Conditions->operands.erase(Conditions->operands.begin() + EqNumber);
     EqCount--;
 }
 
@@ -567,7 +567,7 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer)
         C = MakeSubscript(TNumeric("C"), TNumeric("1"));
         for(size_t i = 0; i < VarsCount(); i++)
         {
-            C.Operands[1] = TNumeric(i+1);
+            *C.operands[1] = TNumeric(i+1);
             Answer[i] = C;
             if(Writer)Writer->AddFormula(MakeEquality(TNumeric(Variables[i]), Answer[i]));
         };
@@ -581,7 +581,7 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer)
         for(size_t i = 0; i < Variables.size(); i++)
         {
             //выражаем переменную номер i из первого уравнения
-            if(Express(Conditions->Operands[0], Variables[i], &ExcludedVar))
+            if(Express(*Conditions->operands[0], Variables[i], &ExcludedVar))
             {
             //успешно выразили
                 //исключаем первое уравнение из системы и выраженную переменную
@@ -606,7 +606,7 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer)
                             Writer->EndParagraph();
                         }
 
-                    //AddLine(Lines, Ntabs, new TLine(new TText((*Phrases)[PhFrom]),  new TNumeric(Conditions->Operands[0]), new TText((*Phrases)[PhExpressing]),  new TNumeric(Variables[i])));
+                    //AddLine(Lines, Ntabs, new TLine(new TText((*Phrases)[PhFrom]),  new TNumeric(Conditions->operands[0]), new TText((*Phrases)[PhExpressing]),  new TNumeric(Variables[i])));
                     //AddLine(Lines, Ntabs, new TLine(new TNumeric(MakeEquality(Variables[i], ExcludedVar))));
                     S.GetSystemSolution(Writer);
 
@@ -704,7 +704,7 @@ bool TSystemOfEquations::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 void TSystemOfEquations::BeginAddEquations()
 {
     Conditions = std::make_shared<TNumeric>();
-    Conditions->Operator = OperatorEqSystem;
+    Conditions->operation = OperatorEqSystem;
     MaxID = 0;
     ID.clear();
     Coefs.clear();
@@ -720,12 +720,12 @@ void TSystemOfEquations::EndAddEquations()
 
 bool TSystemOfEquations::AddEquation(const TNumeric& N)
 {
-    if(N.Operator != OperatorEqual) return false;
-TNumeric Eq = N.Operands[0] - N.Operands[1]; //все переносим в левую часть
-vector<TNumeric> Coefs;
-vector<int> IDs;
-TNumeric LeftPart;
-    LeftPart.Operator = OperatorSum;
+    if(N.operation != OperatorEqual) return false;
+    TNumeric Eq = *N.operands[0] - *N.operands[1]; //все переносим в левую часть
+    vector<TNumeric> Coefs;
+    vector<int> IDs;
+    TNumeric LeftPart;
+    LeftPart.operation = OperatorSum;
     Coefs.assign(Variables.size()+1, TNumeric("0"));
     IDs.assign(Variables.size() + 1, 0);
     //инициализируем коэфициент перед свободным членом
@@ -736,8 +736,8 @@ TNumeric LeftPart;
     //инициализируем коэфициенты перед неизвестными
     for(size_t i = 0; i < Variables.size(); i++)
     {
-        if(Variables[i].Operator != OperatorConst)
-            throw "TSystemOfEquations::AddEquation: All Variables[i].Operator must be OperatorConst";
+        if(Variables[i].operation != OperatorConst)
+            throw "TSystemOfEquations::AddEquation: All Variables[i].operation must be OperatorConst";
         TNumeric Eq1 = Eq;
         Eq1 = Eq1.Substitute(Variables[i].K, TNumeric("1"));
         for(size_t j = 0; j < Variables.size(); j++)

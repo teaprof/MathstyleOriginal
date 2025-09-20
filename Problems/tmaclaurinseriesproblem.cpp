@@ -201,7 +201,7 @@ void TMaclaurinSeriesProblem::Assign(const TMaclaurinSeriesProblem& S)
 TMaclaurinSeriesProblem::TMaclaurinSeriesProblem(size_t MaxPower)
 {
     Conditions = std::make_shared<TNumeric>();
-    Conditions->Operator = OperatorPow;
+    Conditions->operation = OperatorPow;
     Conditions->OperandsPushback(TNumeric("x") + TNumeric(1));
     Conditions->OperandsPushback(MakeFrac(TNumeric("1"), TNumeric("2")));
     Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);
@@ -278,10 +278,10 @@ string TMaclaurinSeriesProblem::GetShortTask()
     return string(Buf);
 }
 
-TPolynomSeries GetMaclaurin(int Operator, size_t LastTerm)
+TPolynomSeries GetMaclaurin(int operation, size_t LastTerm)
 {
     TPolynomSeries Res(TNumeric(0));
-    switch(Operator)
+    switch(operation)
     {
         case OperatorSin:
         {
@@ -358,7 +358,7 @@ TPolynomSeries GetMaclaurin(int Operator, size_t LastTerm)
         case OperatorArctg:        
         {
             TNumeric TestFunc;
-            TestFunc.Operator = Operator;
+            TestFunc.operation = operation;
             TestFunc.OperandsPushback(TNumeric("x"));
             Res.Coefs.assign(LastTerm + 1, TNumeric(0));
             for(size_t i = 0; i <= LastTerm; i++)
@@ -409,8 +409,8 @@ TPolynomSeries GetMaclaurin(int Operator, size_t LastTerm)
         {
             Res.Coefs.assign(LastTerm+1, TNumeric("0"));
             TNumeric Pow;
-            if(Operator == OperatorFrac) Pow = TNumeric(-1);
-            if(Operator == OperatorSqrt) Pow = TNumeric(1/2);
+            if(operation == OperatorFrac) Pow = TNumeric(-1);
+            if(operation == OperatorSqrt) Pow = TNumeric(1/2);
             for(size_t i = 0; i <= LastTerm; i++)
             {
                 TNumeric Coef("1"); //Coef = C_i^Pow
@@ -431,24 +431,24 @@ TPolynomSeries GetMaclaurin(int Operator, size_t LastTerm)
 
 bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writer, TPolynomSeries *Res, string var, const TNumeric& N, int LastTerm)
 {
-    switch(N.Operator)
+    switch(N.operation)
     {
         case OperatorSum:
             *Res = TPolynomSeries(TNumeric(0));
-            for(size_t i = 0; i < N.Operands.size(); i++)
+            for(size_t i = 0; i < N.operands.size(); i++)
             {
                 TPolynomSeries Term;
-                if(ExpandIntoSeries(Writer, &Term, var, N.Operands[i], LastTerm))
+                if(ExpandIntoSeries(Writer, &Term, var, *N.operands[i], LastTerm))
                     *Res = *Res + Term;
                 else return false;
             };
             break;
         case OperatorMinus:
             *Res = TPolynomSeries(TNumeric(0));
-            for(size_t i = 0; i < N.Operands.size(); i++)
+            for(size_t i = 0; i < N.operands.size(); i++)
             {
                 TPolynomSeries Term;
-                if(ExpandIntoSeries(Writer, &Term, var, N.Operands[i], LastTerm))
+                if(ExpandIntoSeries(Writer, &Term, var, *N.operands[i], LastTerm))
                 {                    
                     if(i == 0) *Res = Term;
                     else *Res = *Res - Term;
@@ -458,28 +458,28 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writ
         break;
         case OperatorProd:
             *Res = TPolynomSeries(TNumeric(1));
-            for(size_t i = 0; i < N.Operands.size(); i++)
+            for(size_t i = 0; i < N.operands.size(); i++)
             {
                 TPolynomSeries Term;
-                if(ExpandIntoSeries(Writer, &Term, var, N.Operands[i], LastTerm))
+                if(ExpandIntoSeries(Writer, &Term, var, *N.operands[i], LastTerm))
                     *Res = *Res * Term;
                 else return false;
             };
         break;
         case OperatorFrac:
             {
-                if(N.Operands[1].DependsOn(var.c_str()))
+            if(N.operands[1]->DependsOn(var.c_str()))
                     //знаменатель зависит от переменной
                 {
-                    TNumeric N2 = MakeProd(N.Operands[0], MakePow(N.Operands[1], TNumeric(-1)));
+                    TNumeric N2 = MakeProd(std::move(*N.operands[0]->deepCopy()), MakePow(*N.operands[1], TNumeric(-1)));
                     //N2 = N2.Simplify(); //если вызвать Simplify, то N2 опять станет дробью
                     if(Writer)
                         Writer->AddParagraph("Transofming %N", MakeEquality(N, N2));
                     return ExpandIntoSeries(Writer, Res, var, N2, LastTerm);
                 } else {
                     //знаменатель - константа
-                    if(ExpandIntoSeries(Writer, Res, var, N.Operands[0], LastTerm) == false) return false;
-                    *Res = *Res * (TNumeric(1)/N.Operands[1]);
+                    if(ExpandIntoSeries(Writer, Res, var, *N.operands[0], LastTerm) == false) return false;
+                    *Res = *Res * (TNumeric(1)/ (*N.operands[1]));
                 }
             }
         break;
@@ -495,25 +495,25 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writ
         case OperatorCh:
         {
             TPolynomSeries Arg;
-            TNumeric Arg0 = N.Operands[0].Substitute(var, TNumeric(0)).Simplify();
+            TNumeric Arg0 = N.operands[0]->Substitute(var, TNumeric(0)).Simplify();
             if(Arg0 == 0)
             {
-                if(ExpandIntoSeries(Writer, &Arg, var, N.Operands[0], LastTerm))
+                if(ExpandIntoSeries(Writer, &Arg, var, *N.operands[0], LastTerm))
                 {
-                    *Res = GetMaclaurin(N.Operator, LastTerm).Substitute(Arg, LastTerm);
+                    *Res = GetMaclaurin(N.operation, LastTerm).Substitute(Arg, LastTerm);
                 } else return false;
             } else {
                 //Используем формулы суммы
                 //sin(f(x)) = sin(f(x)-f(0)+f(0)) = sin t * cos f(0) + cos t * sin f(0)
-                if(ExpandIntoSeries(Writer, &Arg, var, N.Operands[0], LastTerm))
+                if(ExpandIntoSeries(Writer, &Arg, var, *N.operands[0], LastTerm))
                 {
                     TPolynomSeries t = Arg - Arg0;
                     if(Writer)
                     {
-                        Writer->AddFormula(MakeEquality(TNumeric("t"), N.Operands[0]-TNumeric(1)));
+                        Writer->AddFormula(MakeEquality(TNumeric("t"), *N.operands[0]-TNumeric(1)));
                         Writer->AddFormula(MakeEquality(TNumeric("t"), t.GetNumeric(var)));
                     }
-                    switch(N.Operator)
+                    switch(N.operation)
                     {
                         case OperatorSin:
                         //sin(a+b) = sin a cos b + cos a sin b
@@ -557,9 +557,9 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writ
             //ln f(x) = ln (1 + (f(x)/f(0) - 1)) + ln f(0)
             // t = f(x)/f(0) - 1
             TPolynomSeries f;
-            if(ExpandIntoSeries(Writer, &f, var, N.Operands[0], LastTerm))
+            if(ExpandIntoSeries(Writer, &f, var, *N.operands[0], LastTerm))
             {
-                TNumeric f0 = N.Operands[0].Substitute(var, TNumeric(0)).Simplify();
+                TNumeric f0 = N.operands[0]->Substitute(var, TNumeric(0)).Simplify();
                 if(f0 == TNumeric(0))
                 {
                     if(Writer)
@@ -581,7 +581,7 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writ
         break;
         case OperatorLog:
         {
-            TNumeric N2 = MakeFrac(MakeLn(N.Operands[0]), MakeLn(N.Operands[1]));
+            TNumeric N2 = MakeFrac(MakeLn(*N.operands[0]), MakeLn(*N.operands[1]));
             N2 = N2.Simplify();
             if(Writer)
                 Writer->AddParagraph("Transforming %N", MakeEquality(N, N2));
@@ -590,14 +590,14 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writ
         break;
         case OperatorLg:
         {
-            TNumeric N2 = MakeFrac(MakeLn(N.Operands[0]), MakeLn(TNumeric(10)));
+            TNumeric N2 = MakeFrac(MakeLn(*N.operands[0]), MakeLn(TNumeric(10)));
             return ExpandIntoSeries(Writer, Res, var, N2, LastTerm);
         };
         break;
         case OperatorPow:
         {
-            TNumeric Base = N.Operands[0];
-            TNumeric Pow = N.Operands[1];
+            TNumeric Base = *N.operands[0];
+            TNumeric Pow = *N.operands[1];
             if(Pow.DependsOn(var.c_str()))
             {
                 //g(x)^f(x) = exp(f(x)*ln(g(x)))
@@ -623,7 +623,7 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writ
                 bool Integer = Pow.IsInteger(&P);
                 if(Integer == false || P < 0)
                 {
-                    TNumeric Arg0 = N.Operands[0].Substitute(var, TNumeric("0")).Simplify();
+                    TNumeric Arg0 = N.operands[0]->Substitute(var, TNumeric("0")).Simplify();
                     if(Arg0 == TNumeric(0))
                     {
                         if(Writer)
@@ -644,7 +644,7 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writ
                             }
                             return false;
                         };
-                        TNumeric t = (N.Operands[0]/Arg0 - TNumeric(1)).Simplify();
+                        TNumeric t = (*N.operands[0]/Arg0 - TNumeric(1)).Simplify();
                         TPolynomSeries tser;
                         if(!ExpandIntoSeries(Writer, &tser, var, t, LastTerm)) return false;
                         if(Arg0 != TNumeric(1))

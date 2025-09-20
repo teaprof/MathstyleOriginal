@@ -499,8 +499,8 @@ TPolynom PRemaining(*this);
                 {
                     Test = TNumeric(sign*N);
                 } else {
-                    Test.Operator = OperatorFrac;
-                    Test.Operands.clear();
+                    Test.operation = OperatorFrac;
+                    Test.operands.clear();
                     Test.OperandsPushback(TNumeric(sign*N));
                     Test.OperandsPushback(TNumeric(D));
                 };
@@ -619,19 +619,18 @@ TPolynom P(*this);
     int NOK = 1;
     for(size_t Power = 0; Power <= MaxPower; Power++)
     {
-        if(P.GetCoef(Power).Operator != OperatorConst)
+        if(P.GetCoef(Power).operation != OperatorConst)
         {
             P.GetCoef(Power) = P.GetCoef(Power).Simplify(); //пробуем сделать вычисления
         };
 
-        if(P.GetCoef(Power).Operator == OperatorFrac)
+        if(P.GetCoef(Power).operation == OperatorFrac)
         {
-            TNumeric Denom = P.GetCoef(Power).Operands[1];
-            Denom = Denom.Simplify();
-            P.GetCoef(Power).Operands[1] = Denom;
+            TNumeric Denom = P.GetCoef(Power).operands[1]->Simplify();
+            P.GetCoef(Power).operands[1] = std::make_shared<TNumeric>(Denom);
 
             int intD;
-            if(Denom.Operator != OperatorConst || !Denom.IsInteger(&intD))
+            if(Denom.operation != OperatorConst || !Denom.IsInteger(&intD))
             {
                 //не могу привести коэффициенты к рациональному виду
                 Res.push_back(*this);
@@ -639,10 +638,9 @@ TPolynom P(*this);
             };
             NOK = GetNOK(NOK, intD);
 
-            TNumeric Nom = P.GetCoef(Power).Operands[0];
-            Nom = Nom.Simplify();
-            P.GetCoef(Power).Operands[0] = Nom;
-            if(Nom.Operator != OperatorConst || !Nom.IsInteger(0))
+            TNumeric Nom = P.GetCoef(Power).operands[0]->Simplify();
+            P.GetCoef(Power).operands[0] = std::make_shared<TNumeric>(Nom);
+            if(Nom.operation != OperatorConst || !Nom.IsInteger(0))
             {
                 //не могу привести коэффициенты к рациональному виду
                 Res.push_back(*this);
@@ -759,7 +757,7 @@ vector<TPolynom> M2 = P2.Factorize();
 
 void TPolynom::SaveToFile(ofstream &f)
 {
-unsigned __int16 s = Coef.size();
+    uint16_t s = Coef.size();
     f.write((char*)&s, sizeof(s));
     for(size_t i = 0; i < Coef.size(); i++)
         Coef[i].WriteToFile(f);
@@ -767,7 +765,7 @@ unsigned __int16 s = Coef.size();
 
 void TPolynom::LoadFromFile(ifstream &f)
 {
-unsigned __int16 s;
+    uint16_t s;
     f.read((char*)&s, sizeof(s));
     Coef.clear();
     for(size_t i = 0; i < s; i++)
@@ -918,7 +916,7 @@ TRationalFunction::~TRationalFunction()
 TNumeric TRationalFunction::GetNumeric() const
 {
 TNumeric Res;
-    Res.Operator = OperatorFrac;
+    Res.operation = OperatorFrac;
     Res.OperandsPushback(P.GetNumeric());
     Res.OperandsPushback(Q.GetNumeric());
     return Res;
@@ -968,7 +966,7 @@ TRationalFunction TRationalFunction::operator/(const TRationalFunction& R)
 TNumeric TRationalFunction::Calculate(const TNumeric& x)
 {
     TNumeric Res;
-    Res.Operator = OperatorFrac;
+    Res.operation = OperatorFrac;
     Res.OperandsPushback(P.Calculate(x));
     Res.OperandsPushback(Q.Calculate(x));
     return Res.Simplify();

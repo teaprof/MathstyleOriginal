@@ -27,8 +27,8 @@ void TRationalSumConditions::SetSigns(int Sign1, int Sign2)
     if(Sign2 == 1)Op2 = OperatorSum;
     else Op2 = OperatorMinus;
 
-    Conditions->Operands[0].Operator = Op1;
-    Conditions->Operands[1].Operator = Op2;
+    Conditions->operands[0]->operation = Op1;
+    Conditions->operands[1]->operation = Op2;
 
     this->Sign1 = Sign1;
     this->Sign2 = Sign2;
@@ -39,12 +39,12 @@ TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int S
 {
     this->MaxPower = MaxPower;
     TNumeric Res;
-    Res.Operator = OperatorEqual;
+    Res.operation = OperatorEqual;
     TNumeric Left, Right;
-    Left.Operator = OperatorSum;
+    Left.operation = OperatorSum;
     Left.OperandsPushback(MakeFrac(GetPolynom(MaxPower, GetPStartIndex(0)), GetPolynom(MaxPower, GetQStartIndex(0))));
     Left.OperandsPushback(MakeFrac(GetPolynom(MaxPower, GetPStartIndex(1)), GetPolynom(MaxPower, GetQStartIndex(1))));
-    Right.Operator = OperatorSum;
+    Right.operation = OperatorSum;
     Right.OperandsPushback(MakeFrac(GetPolynom(MaxPower, GetPStartIndex(2)), GetPolynom(MaxPower, GetQStartIndex(2))));
     Right.OperandsPushback(MakeFrac(GetPolynom(MaxPower, GetPStartIndex(3)), GetPolynom(MaxPower, GetQStartIndex(3))));
     Res.OperandsPushback(Left);
@@ -299,12 +299,12 @@ TIntervalsSet ODZ(TInterval(NumericMinusInf, NumericPlusInf, false, false));
 vector<TNumeric> TRationalSumEquality::GetTypes(TNumeric* N)
 {
 vector<TNumeric> Res;
-    if(N == &Conditions->Operands[0])
+    if(N == Conditions->operands[0].get())
     {
         Res.push_back(*(TRationalSumEquality(*this, +1, Sign2).Conditions));
         Res.push_back(*(TRationalSumEquality(*this, -1, Sign2).Conditions));
     };
-    if(N == &Conditions->Operands[1])
+    if(N == Conditions->operands[1].get())
     {
         Res.push_back(*(TRationalSumEquality(*this, Sign1, +1).Conditions));
         Res.push_back(*(TRationalSumEquality(*this, Sign1, -1).Conditions));
@@ -315,7 +315,7 @@ vector<TNumeric> Res;
 void TRationalSumEquality::SetType(TNumeric* N, size_t Type)
 {
  vector<TNumeric> Res;
-    if(N == &Conditions->Operands[0])
+    if(N == Conditions->operands[0].get())
     {
         switch(Type)
         {
@@ -323,7 +323,7 @@ void TRationalSumEquality::SetType(TNumeric* N, size_t Type)
             case 1: SetSigns(-1, Sign2); break;
         };
     };
-    if(N == &Conditions->Operands[1])
+    if(N == Conditions->operands[1].get())
     {
         switch(Type)
         {

@@ -31,7 +31,7 @@ bool TNumericMask::CheckTemplateConstant(const TNumeric& Template, const TNumeri
 //    N = N.Simplify();
     if(Template.K == "x")
     {
-        if(NConst.Operator == OperatorConst && NConst.K == "x") return true;
+        if(NConst.operation == OperatorConst && NConst.K == "x") return true;
         else return false;
     } else {
         if(Template.IsVariable()) //любая переменная, но не x
@@ -49,7 +49,7 @@ bool TNumericMask::CheckTemplateConstant(const TNumeric& Template, const TNumeri
             };
         } else {
             //Число
-            if(NConst.Operator == OperatorConst && NConst.K == Template.K) return true;
+            if(NConst.operation == OperatorConst && NConst.K == Template.K) return true;
             else return false;
         };
     };
@@ -106,7 +106,7 @@ vector< vector<size_t> > SubSetsVectorTemp = SubSetsVector;
 
 
 bool TNumericMask::CheckTemplateCommunative(const TNumeric& Template, const TNumeric& NConst, std::map<std::string, TNumeric> &Coefs)
-//Operator должен быть коммутативным
+//operation должен быть коммутативным
 {
 #ifdef __DEBUG__
     string str;
@@ -117,26 +117,26 @@ bool TNumericMask::CheckTemplateCommunative(const TNumeric& Template, const TNum
 #endif
 TNumeric N = NConst;
 TNumeric AdditionalTerm;
-    switch(Template.Operator)
+    switch(Template.operation)
     {
         case OperatorSum: AdditionalTerm = TNumeric("0"); break;
         case OperatorProd: AdditionalTerm = TNumeric("1"); break;
         default: return false;
     }
 
-    if(Template.Operator != N.Operator)
+    if(Template.operation != N.operation)
     {
         TNumeric NewN;
-        if(Template.Operator == OperatorProd && N.IsEqual(TNumeric("0")))
-//        if(Template.Operator == OperatorProd && N == TNumeric("0"))
+        if(Template.operation == OperatorProd && N.IsEqual(TNumeric("0")))
+//        if(Template.operation == OperatorProd && N == TNumeric("0"))
         {
             //особый случай: если N = 0, то нужно N преобразовать к виду N*f(x), где f(x) - зависящая от x часть Template
-            NewN.Operator = OperatorProd;
+            NewN.operation = OperatorProd;
             NewN.OperandsPushback(TNumeric("0"));
-            for(size_t i = 0; i < Template.Operands.size(); i++)
-                if(Template.Operands[i].DependsOn("x")) NewN.OperandsPushback(Template.Operands[i]);
+            for(size_t i = 0; i < Template.operands.size(); i++)
+                if(Template.operands[i]->DependsOn("x")) NewN.OperandsPushback(*Template.operands[i]);
         } else {
-            NewN.Operator = Template.Operator;
+            NewN.operation = Template.operation;
             NewN.OperandsPushback(AdditionalTerm);
             NewN.OperandsPushback(N);
         }
@@ -145,7 +145,7 @@ TNumeric AdditionalTerm;
     };
 
     vector<size_t> SubSets;
-    SubSets.assign(N.Operands.size(), 0);
+    SubSets.assign(N.operands.size(), 0);
 /*    vector< vector<size_t> > SubSetsVector;
     size_t SubSetsVectorElementsCount = Template.Operands.size();
     for(size_t i = 1; i < N.Operands.size(); i++)
@@ -166,26 +166,26 @@ TNumeric AdditionalTerm;
     //    SubSets = SubSetsVector[SubCount];
         std::map<std::string, TNumeric> TempCoefs;
         bool AllSuccess = true; //Все операнды подогнать под шаблон удалось
-        for(size_t j = 0; j < Template.Operands.size(); j++)
+        for(size_t j = 0; j < Template.operands.size(); j++)
         {
             TNumeric SubNumeric;
-            SubNumeric.Operator = N.Operator;
+            SubNumeric.operation = N.operation;
             for(size_t i = 0; i < SubSets.size(); i++)
                 if(SubSets[i] == j)
-                    SubNumeric.OperandsPushback(N.Operands[i]);
-            if(SubNumeric.Operands.size() == 0)
+                    SubNumeric.OperandsPushback(*N.operands[i]);
+            if(SubNumeric.operands.size() == 0)
                 SubNumeric.OperandsPushback(AdditionalTerm);
-            if(SubNumeric.Operands.size() == 1) //исключаем случай вида SumNumeric = prod(x) или sum(x) - произведение и сумма одного члена
+            if(SubNumeric.operands.size() == 1) //исключаем случай вида SumNumeric = prod(x) или sum(x) - произведение и сумма одного члена
             {
-                //SubNumeric = SubNumeric.Operands[0] не работает
-                TNumeric Temp = SubNumeric.Operands[0];
+                //SubNumeric = SubNumeric.operands[0] не работает
+                TNumeric Temp = *SubNumeric.operands[0];
                 SubNumeric = Temp;
             };
-            if(Match(Template.Operands[j], SubNumeric, TempCoefs) == false)
+            if(Match(*Template.operands[j], SubNumeric, TempCoefs) == false)
             {
                 //операнд подогнать под шаблон не удалось, переходим к следующему перераспределению операндов
                 SubNumeric = SubNumeric.Simplify();
-                if(Match(Template.Operands[j], SubNumeric, TempCoefs) == false)
+                if(Match(*Template.operands[j], SubNumeric, TempCoefs) == false)
                 {
 /*#ifdef __DEBUG__
                 cout<<SubNumeric.CodeBasic()<<endl;
@@ -202,7 +202,7 @@ TNumeric AdditionalTerm;
             if(AcceptCoefs(Coefs, TempCoefs))return true;
             //else return false;
         }
-        if(NextCount(SubSets, Template.Operands.size() - 1) == false)
+        if(NextCount(SubSets, Template.operands.size() - 1) == false)
             break;
     } while(true);
     return false;
@@ -213,34 +213,34 @@ TNumeric TNumericMask::ToProd(const TNumeric& N)
 //преобразует к произведению
 {
     TNumeric Res;
-    Res.Operator = OperatorProd;
-    if(N.Operator == OperatorFrac)
+    Res.operation = OperatorProd;
+    if(N.operation == OperatorFrac)
     {
-        Res.OperandsPushback(ToProd(N.Operands[0]));
-        Res.OperandsPushback(MakePow(ToProd(N.Operands[1]), TNumeric("-1")));
+        Res.OperandsPushback(ToProd(*N.operands[0]));
+        Res.OperandsPushback(MakePow(ToProd(*N.operands[1]), TNumeric("-1")));
     } else
-    if(N.Operator == OperatorProd)
+    if(N.operation == OperatorProd)
     {
-        for(size_t i = 0; i < N.Operands.size(); i++)
-            Res.OperandsPushback(ToProd(N.Operands[i]));
+        for(size_t i = 0; i < N.operands.size(); i++)
+            Res.OperandsPushback(ToProd(*N.operands[i]));
     } else Res = N;
     //todo: сделать преобразование x^k = x*x*...*x (на случай шаблона x^k*x^2 )
     //remark: x^k*x^2 - плохой шаблон, такие шаблоны надо исключить
 
     //Преобразуем a*(b*c) к виду a*b*c
-    if(Res.Operator == OperatorProd)
+    if(Res.operation == OperatorProd)
     {
         size_t i = 0;
-        while(i<Res.Operands.size())
+        while(i<Res.operands.size())
         {
-            if(Res.Operands[i].Operator == OperatorProd)
+            if(Res.operands[i]->operation == OperatorProd)
             {
-                for(size_t j = 0; j < Res.Operands[i].Operands.size(); j++)
+                for(size_t j = 0; j < Res.operands[i]->operands.size(); j++)
                 {
-                    Res.Operands.insert(Res.Operands.begin()+i, Res.Operands[i].Operands[j]);
+                    Res.operands.insert(Res.operands.begin()+i, Res.operands[i]->operands[j]);
                     i++;
                 };
-                Res.Operands.erase(Res.Operands.begin() +  i);
+                Res.operands.erase(Res.operands.begin() +  i);
             } else i++;
         };
     };
@@ -251,22 +251,22 @@ TNumeric TNumericMask::Expand(const TNumeric& N)
 //раскрывает скобки
 {
 TNumeric N2 = N;
-    for(size_t i = 0; i < N2.Operands.size(); i++)
-        N2.Operands[i] = Expand(N2.Operands[i]);
-    if(N2.Operator == OperatorProd)
+    for(size_t i = 0; i < N2.operands.size(); i++)
+        *N2.operands[i] = Expand(*N2.operands[i]);
+    if(N2.operation == OperatorProd)
     {
-        for(size_t i = 0; i < N2.Operands.size(); i++)
-            if(N2.Operands[i].Operator == OperatorSum || N2.Operands[i].Operator == OperatorMinus)
+        for(size_t i = 0; i < N2.operands.size(); i++)
+            if(N2.operands[i]->operation == OperatorSum || N2.operands[i]->operation == OperatorMinus)
             {
                 TNumeric Res;
-                Res.Operator = N2.Operands[i].Operator;
-                for(size_t j = 0; j < N2.Operands[i].Operands.size(); j++)
+                Res.operation = N2.operands[i]->operation;
+                for(size_t j = 0; j < N2.operands[i]->operands.size(); j++)
                 {
-                    TNumeric Term = N2.Operands[i].Operands[j];
-                    for(size_t k = 0; k < N2.Operands.size(); k++)
+                    TNumeric Term = *N2.operands[i]->operands[j];
+                    for(size_t k = 0; k < N2.operands.size(); k++)
                     {
-                        if(k<i) Term = N2.Operands[k]*Term;
-                        if(k>i) Term = Term*N2.Operands[k];
+                        if(k<i) Term = *N2.operands[k]*Term;
+                        if(k>i) Term = Term*(*N2.operands[k]);
                     };
                     Res.OperandsPushback(Expand(Term));
                 };
@@ -281,27 +281,27 @@ TNumeric TNumericMask::ToSum(const TNumeric& N)
 //преобразует к сумме
 {
     TNumeric Res;
-    Res.Operator = OperatorSum;
-    if(N.Operator == OperatorMinus)
+    Res.operation = OperatorSum;
+    if(N.operation == OperatorMinus)
     {
-        Res.OperandsPushback(ToSum(N.Operands[0]));
-        for(size_t i = 1; i < N.Operands.size(); i++)
-            Res.OperandsPushback(MakeProd(TNumeric("-1"), ToSum(N.Operands[i])));
+        Res.OperandsPushback(ToSum(*N.operands[0]));
+        for(size_t i = 1; i < N.operands.size(); i++)
+            Res.OperandsPushback(MakeProd(TNumeric("-1"), ToSum(*N.operands[i])));
     } else
-    if(N.Operator == OperatorSum)
+    if(N.operation == OperatorSum)
     {
-        for(size_t i = 0; i < N.Operands.size(); i++)
-            Res.OperandsPushback(ToSum(N.Operands[i]));
+        for(size_t i = 0; i < N.operands.size(); i++)
+            Res.OperandsPushback(ToSum(*N.operands[i]));
     } else {
-        if(N.Operator == OperatorProd)
+        if(N.operation == OperatorProd)
             //раскрываем скобки
         {
             Res = Expand(N);
         } else {
-            if(N.Operator == OperatorPow)
+            if(N.operation == OperatorPow)
                 //если степень целая, то раскрываем степень
             {
-                const TNumeric* Power = &N.Operands[1];
+                std::shared_ptr<const TNumeric> Power = N.operands[1];
                 int d;
                 if(Power->IsInteger(&d) && d >= 0)
                 {
@@ -311,16 +311,16 @@ TNumeric TNumericMask::ToSum(const TNumeric& N)
                             Res = TNumeric("1"); //выражение имеет вид a^0
                             break;
                         case 1:
-                            Res = ToSum(N.Operands[0]);
+                            Res = ToSum(*N.operands[0]);
                             break;
                         default:
                             Res = N;
 
 /*                          Раскрываем скобки - так делать не надо
 //если раскрывать степень, то будет очень много слагаемых в случаях, например, (x^2+x+1)^2 -- CheckTemplateCommutative будет очень медленной
-                             Res.Operator = OperatorProd;
+                             Res.operation = OperatorProd;
                             for(size_t i = 0; i < d; i++)
-                                Res.OperandsPushback(N.Operands[0]);
+                                Res.OperandsPushback(*N.Operands[0]);
                             Res = Expand(Res);*/
                     };
                 } else Res = N;
@@ -330,19 +330,19 @@ TNumeric TNumericMask::ToSum(const TNumeric& N)
 
 
     //Преобразуем a+(b+c) к виду a+b+c
-    if(Res.Operator == OperatorSum)
+    if(Res.operation == OperatorSum)
     {
         size_t i = 0;
-        while(i<Res.Operands.size())
+        while(i<Res.operands.size())
         {
-            if(Res.Operands[i].Operator == OperatorSum)
+            if(Res.operands[i]->operation == OperatorSum)
             {
-                for(size_t j = 0; j < Res.Operands[i].Operands.size(); j++)
+                for(size_t j = 0; j < Res.operands[i]->operands.size(); j++)
                 {
-                    Res.Operands.insert(Res.Operands.begin()+i, Res.Operands[i].Operands[j]);
+                    Res.operands.insert(Res.operands.begin()+i, Res.operands[i]->operands[j]);
                     i++;
                 };
-                Res.Operands.erase(Res.Operands.begin() +  i);
+                Res.operands.erase(Res.operands.begin() +  i);
             } else i++;
         };
     };
@@ -357,36 +357,37 @@ TNumeric TNumericMask::ToSum(const TNumeric& N)
 TNumeric TNumericMask::ToPow(const TNumeric& NConst)
 {
     TNumeric N = NConst;
-    if(N.Operator == OperatorFrac)
+    if(N.operation == OperatorFrac)
      //1/f(x) => f(x)^(-1)
     {
-        TNumeric A = N.Operands[0];
-        TNumeric B = N.Operands[1];
-        if(A == TNumeric("1"))
+        std::shared_ptr<TNumeric> A = N.operands[0];
+        std::shared_ptr<TNumeric> B = N.operands[1];
+        if(*A == TNumeric("1"))
         {
-             N = B^TNumeric("-1");
+            N = (*B)^TNumeric("-1");
         } else {
-            N = (B/A)^TNumeric("-1");
+            N = (*B/(*A))^TNumeric("-1");
         }
     } else {
     //f(x)^k * g(x)^k => (f(x)*g(x))^k
         N = ToProd(NConst);
-        if(N.Operator == OperatorProd)
+        if(N.operation == OperatorProd)
         {
-            for(size_t i = 0; i < N.Operands.size(); i++) N.Operands[i] = ToPow(N.Operands[i]);
+            for(size_t i = 0; i < N.operands.size(); i++)
+                *N.operands[i] = ToPow(*N.operands[i]);
             //сравниваем показатели степени
             TNumeric Power;
             bool AllPower = true;
-            for(size_t i = 0; i < N.Operands.size(); i++)
+            for(size_t i = 0; i < N.operands.size(); i++)
             {
-                if(N.Operands[i].Operator != OperatorPow)
+                if(N.operands[i]->operation != OperatorPow)
                 {
                     AllPower = false;
                     break;
                     }
-                if(i == 0) Power = N.Operands[i].Operands[1];
+                if(i == 0) Power = *N.operands[i]->operands[1];
                 else
-                    if(Power != N.Operands[i].Operands[1])
+                    if(Power != *N.operands[i]->operands[1])
                     {
                         AllPower = false;
                         break;
@@ -395,9 +396,9 @@ TNumeric TNumericMask::ToPow(const TNumeric& NConst)
             if(AllPower)
             {
                 TNumeric Base;
-                Base.Operator = OperatorProd;
-                for(size_t i = 0; i < N.Operands.size(); i++)
-                    Base.OperandsPushback(N.Operands[i].Operands[0]);
+                Base.operation = OperatorProd;
+                for(size_t i = 0; i < N.operands.size(); i++)
+                    Base.OperandsPushback(*N.operands[i]->operands[0]);
                 N = Base^Power;
             }
         };
@@ -414,9 +415,9 @@ bool TNumericMask::CheckTemplateProd(const TNumeric& Template, const TNumeric &N
 bool TNumericMask::CheckTemplatePow(const TNumeric& Template, const TNumeric& NConst, std::map<std::string, TNumeric> &Coefs)
 {
     std::map<std::string, TNumeric> TempCoefs;
-    if(NConst.Operator == OperatorPow)
+    if(NConst.operation == OperatorPow)
     {
-        if(Match(Template.Operands[0], NConst.Operands[0], TempCoefs) && Match(Template.Operands[1], NConst.Operands[1], TempCoefs))
+        if(Match(*Template.operands[0], *NConst.operands[0], TempCoefs) && Match(*Template.operands[1], *NConst.operands[1], TempCoefs))
         {
             if(AcceptCoefs(Coefs, TempCoefs)) return true;
             else return false;
@@ -424,7 +425,7 @@ bool TNumericMask::CheckTemplatePow(const TNumeric& Template, const TNumeric& NC
         else return false;
     } else {
         TNumeric N = ToPow(NConst);
-        if(N.Operator == OperatorPow && Match(Template.Operands[0], N.Operands[0], TempCoefs) && Match(Template.Operands[1], N.Operands[1], TempCoefs))
+        if(N.operation == OperatorPow && Match(*Template.operands[0], *N.operands[0], TempCoefs) && Match(*Template.operands[1], *N.operands[1], TempCoefs))
         {
             if(AcceptCoefs(Coefs, TempCoefs)) return true;
         }
@@ -432,26 +433,26 @@ bool TNumericMask::CheckTemplatePow(const TNumeric& Template, const TNumeric& NC
         std::map<std::string, TNumeric> NewCoefs;
         if(N == TNumeric(1))
         {
-            if(Match(Template.Operands[1], TNumeric("0"), TempCoefs))
+            if(Match(*Template.operands[1], TNumeric("0"), TempCoefs))
                 //случай: 1 попадает под шаблон f(x)^0
                 if(AcceptCoefs(Coefs, NewCoefs)) return true;
             TempCoefs.clear();
-            if(Match(Template.Operands[0], TNumeric("1"), TempCoefs))
+            if(Match(*Template.operands[0], TNumeric("1"), TempCoefs))
                 //случай: 1 попадает под шаблон 1^f(x)
                 if(AcceptCoefs(Coefs, NewCoefs)) return true;
         } else {
             //случай: f попадает под шаблон f^1
             TempCoefs.clear();
-            if(Match(Template.Operands[0], NConst, TempCoefs))
-                if(Match(Template.Operands[1], TNumeric("1"), TempCoefs))
+            if(Match(*Template.operands[0], NConst, TempCoefs))
+                if(Match(*Template.operands[1], TNumeric("1"), TempCoefs))
                     if(AcceptCoefs(Coefs, TempCoefs))return true;
 
             //случай: f*f*f = f^3
-            if(NConst.Operator == OperatorProd)
+            if(NConst.operation == OperatorProd)
             {
                 bool AllEquals = true;
-                for(size_t i = 1; i < NConst.Operands.size(); i++)
-                    if(NConst.Operands[0] != NConst.Operands[1])
+                for(size_t i = 1; i < NConst.operands.size(); i++)
+                    if(NConst.operands[0] != NConst.operands[1])
                     {
                         AllEquals = false;
                         break;
@@ -459,10 +460,10 @@ bool TNumericMask::CheckTemplatePow(const TNumeric& Template, const TNumeric& NC
                 if(AllEquals)
                 {
                     TNumeric TempN;
-                    TempN.Operator = OperatorPow;
+                    TempN.operation = OperatorPow;
                     TempN.OperandsClear();
-                    TempN.OperandsPushback(NConst.Operands[0]);
-                    TempN.OperandsPushback(TNumeric(NConst.Operands.size()));
+                    TempN.OperandsPushback(*NConst.operands[0]);
+                    TempN.OperandsPushback(TNumeric(NConst.operands.size()));
                     if(CheckTemplatePow(Template, TempN, TempCoefs))
                     {
                         if(AcceptCoefs(Coefs, TempCoefs)) return true;
@@ -491,8 +492,7 @@ TNumeric N2 = ToSum(N);
 
 bool TNumericMask::CheckTemplateMinus(const TNumeric& Template, const TNumeric& N, std::map<std::string, TNumeric> &Coefs)
 {
-    Q_UNUSED(Template);
-    TNumeric Template2 = ToSum(Template2);
+    TNumeric Template2 = ToSum(Template);
     return Match(Template2, N, Coefs);
 }
 
@@ -525,7 +525,7 @@ bool TNumericMask::Match(const TNumeric& Template, const TNumeric& N, std::map<s
     for(size_t i = 0; i < (size_t)DebugNTabs; i++)str = str + "  ";
     cout<<str<<"Matching: "<<Template.CodeBasic()<<" = "<<N.CodeBasic()<<endl;
 #endif
-    switch(Template.Operator)
+    switch(Template.operation)
     {
         case OperatorConst: res =  CheckTemplateConstant(Template, N, Coefs); break;
         case OperatorPow: res = CheckTemplatePow(Template, N, Coefs); break;
@@ -534,8 +534,8 @@ bool TNumericMask::Match(const TNumeric& Template, const TNumeric& N, std::map<s
         case OperatorSum: res = CheckTemplateSum(Template, N, Coefs); break;
         case OperatorMinus: res = CheckTemplateMinus(Template, N, Coefs); break;
         case OperatorSin:
-            if(N.Operator == Template.Operator)
-                res = Match(Template.Operands[0], N.Operands[0], Coefs);
+            if(N.operation == Template.operation)
+                res = Match(*Template.operands[0], *N.operands[0], Coefs);
         break;
         default: res = false; break;
     }
@@ -556,16 +556,16 @@ bool TNumericMask::Match(const TNumeric& Template, const TNumeric& N, std::map<s
 vector<string> TNumericMask::FindCoefsNames(const TNumeric& Template)
 {
 vector<string> Res;
-    if(Template.Operator == OperatorConst)
+    if(Template.operation == OperatorConst)
     {
         if(Template.K != "x" && Template.IsVariable())
             if(find(Res.begin(), Res.end(), Template.K) == Res.end())
                 Res.push_back(Template.K);
 
     } else {
-        for(size_t i = 0; i < Template.Operands.size(); i++)
+        for(size_t i = 0; i < Template.operands.size(); i++)
         {
-            vector<string> Temp = FindCoefsNames(Template.Operands[i]);
+            vector<string> Temp = FindCoefsNames(*Template.operands[i]);
             for(size_t j = 0; j < Temp.size(); j++)
                 if(find(Res.begin(), Res.end(), Temp[j]) == Res.end())
                     Res.push_back(Temp[j]);
