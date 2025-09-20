@@ -167,7 +167,9 @@ void QFormulaArea::DebugPrintBuffer()
 void QFormulaArea::SetFormula(std::shared_ptr<TNumeric> Formula)
 {
     this->Formula = Formula;
-    EditableFormula = std::make_shared<TEditableFormula>(Formula);
+    QPainter* painter = new QPainter(this); /// \todo: memory leak
+    auto canvas = std::make_shared<TPaintCanvas>(painter);
+    EditableFormula = std::make_shared<TEditableFormula>(Formula, canvas);
     Saved.clear();
     CurSaved = 0;
     Save();

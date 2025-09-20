@@ -147,8 +147,6 @@ MainWindow::MainWindow(QWidget *parent) :
    //ui->frame_4->setLayout(SelectedKeywordsLayout);
 
 
-   SignalMapper = new QSignalMapper(this);
-   connect(SignalMapper, SIGNAL(mapped(QWidget*)), this, SLOT(KeywordClicked(QWidget*)));
    InitProblemsSolved();
 
    if(!FreeDebugVersion)
@@ -159,10 +157,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     DoneProblemsSolved();
-    for(size_t i = 0; i < Problems.size(); i++)
-    {
-        delete Problems[i];
-    }
     delete ui; //нужно ли удалять ui? может его должен удалять его parent?
     delete AccessManager;
     delete Opt;
@@ -174,42 +168,42 @@ MainWindow::~MainWindow()
 
 void MainWindow::CreateProblems()
 {
-    SimplifyProblem = new TSimplifyProblem;
-    LinearEquality = new TLinearEquality;
-    SquareEquality = new TSquareEquality;
-    PolynomialEquality4 = new TPolynomialEquality(4);
-    PolynomialEquality8 = new TPolynomialEquality(8);
-    RationalSumEquality1 = new TRationalSumEquality(1);
-    RationalSumEquality2 = new TRationalSumEquality(2);
-    PowerEquality2 = new TPowerEquality(2);
-    LinearTrigEquality = new TLinearTrigEquality();
-    HomogeneousTrigEquality2 = new THomogeneousTrigEquality(2);
-    HomogeneousTrigEquality3 = new THomogeneousTrigEquality(3);
-    HomogeneousTrigEquality4 = new THomogeneousTrigEquality(4);
-    SystemOfEquations22 = new TSystemOfEquations(2, 2);
-    SystemOfEquations33 = new TSystemOfEquations(3, 3);
-    SystemOfEquations44 = new TSystemOfEquations(4, 4);
-    SystemOfEquations55 = new TSystemOfEquations(5, 5);
-    LinearInequality = new TLinearInequality;
-    SquareInequality = new TSquareInequality;
-    PolynomialInequality8 = new TPolynomialInequality(8);
-    SystemOfLinearInequalities = new TSystemOfLinearInequalities;
-    SystemOfSquareInequalities = new TSystemOfSquareInequalities;
-    SetOfLinearInequalities = new TSetOfLinearInequalities;
-    SetOfSquareInequalities = new TSetOfSquareInequalities;
-    PolynomDerivative4 = new TPolynomDerivative(4);
-    RationalFunctionDerivative44 = new TRationalFunctionDerivative(4, 4);
-    PolynomDerivative = new TPolynomDerivative;
-    RationalFunctionDerivative = new TRationalFunctionDerivative;
-    DerivativeProblem = new TDerivativeProblem;
-    PolynomIntegralProblem = new TPolynomIntegralProblem;
-    RationalIntegralProblem22 = new TRationalIntegralProblem(2, 2);
-    RationalIntegralProblem45 = new TRationalIntegralProblem(4, 5);
-    RationalIntegralProblem66 = new TRationalIntegralProblem(6, 6);
-    RationalIntegralProblemFactorized = new TRationalIntegralProblem2(4, 2, 4);
-    IntegralProblem = new TIntegralProblem;
-    MaclaurinSeriesProblem3 = new TMaclaurinSeriesProblem(3);
-    MaclaurinSeriesProblem5 = new TMaclaurinSeriesProblem(5);    
+    SimplifyProblem = std::make_shared<TSimplifyProblem>();
+    LinearEquality = std::make_shared<TLinearEquality>();
+    SquareEquality = std::make_shared<TSquareEquality>();
+    PolynomialEquality4 = std::make_shared<TPolynomialEquality>(4);
+    PolynomialEquality8 = std::make_shared<TPolynomialEquality>(8);
+    RationalSumEquality1 = std::make_shared<TRationalSumEquality>(1);
+    RationalSumEquality2 = std::make_shared<TRationalSumEquality>(2);
+    PowerEquality2 = std::make_shared<TPowerEquality>(2);
+    LinearTrigEquality = std::make_shared<TLinearTrigEquality>();
+    HomogeneousTrigEquality2 = std::make_shared<THomogeneousTrigEquality>(2);
+    HomogeneousTrigEquality3 = std::make_shared<THomogeneousTrigEquality>(3);
+    HomogeneousTrigEquality4 = std::make_shared<THomogeneousTrigEquality>(4);
+    SystemOfEquations22 = std::make_shared<TSystemOfEquations>(2, 2);
+    SystemOfEquations33 = std::make_shared<TSystemOfEquations>(3, 3);
+    SystemOfEquations44 = std::make_shared<TSystemOfEquations>(4, 4);
+    SystemOfEquations55 = std::make_shared<TSystemOfEquations>(5, 5);
+    LinearInequality = std::make_shared<TLinearInequality>();
+    SquareInequality = std::make_shared<TSquareInequality>();
+    PolynomialInequality8 = std::make_shared<TPolynomialInequality>(8);
+    SystemOfLinearInequalities = std::make_shared<TSystemOfLinearInequalities>();
+    SystemOfSquareInequalities = std::make_shared<TSystemOfSquareInequalities>();
+    SetOfLinearInequalities = std::make_shared<TSetOfLinearInequalities>();
+    SetOfSquareInequalities = std::make_shared<TSetOfSquareInequalities>();
+    PolynomDerivative4 = std::make_shared<TPolynomDerivative>(4);
+    RationalFunctionDerivative44 = std::make_shared<TRationalFunctionDerivative>(4, 4);
+    PolynomDerivative = std::make_shared<TPolynomDerivative>();
+    RationalFunctionDerivative = std::make_shared<TRationalFunctionDerivative>();
+    DerivativeProblem = std::make_shared<TDerivativeProblem>();
+    PolynomIntegralProblem = std::make_shared<TPolynomIntegralProblem>();
+    RationalIntegralProblem22 = std::make_shared<TRationalIntegralProblem>(2, 2);
+    RationalIntegralProblem45 = std::make_shared<TRationalIntegralProblem>(4, 5);
+    RationalIntegralProblem66 = std::make_shared<TRationalIntegralProblem>(6, 6);
+    RationalIntegralProblemFactorized = std::make_shared<TRationalIntegralProblem2>(4, 2, 4);
+    IntegralProblem = std::make_shared<TIntegralProblem>();
+    MaclaurinSeriesProblem3 = std::make_shared<TMaclaurinSeriesProblem>(3);
+    MaclaurinSeriesProblem5 = std::make_shared<TMaclaurinSeriesProblem>(5);
     Problems.push_back(SimplifyProblem);
     Problems.push_back(LinearEquality);
     Problems.push_back(SquareEquality);
@@ -340,7 +334,7 @@ void MainWindow::CreateBook()
 
 }
 
-void MainWindow::CreateKeywords(vector<TProblem*> Problems)
+void MainWindow::CreateKeywords(vector<std::shared_ptr<TProblem>> Problems)
 {
     vector<string> KeyWords;
     for(size_t i = 0; i < Problems.size(); i++)
@@ -367,9 +361,9 @@ void MainWindow::CreateKeywords(vector<TProblem*> Problems)
     };
 }
 
-vector<TProblem*> MainWindow::GetProblemsByKeywords()
+vector<std::shared_ptr<TProblem>> MainWindow::GetProblemsByKeywords()
 {
-vector<TProblem*> Res;
+vector<std::shared_ptr<TProblem>> Res;
     for(size_t i = 0; i < Problems.size(); i++)
     {
         vector<string> keywords = Problems[i]->GetKeyWords();
@@ -405,7 +399,7 @@ void MainWindow::DeleteDirs()
     }
 }
 
-QTreeWidgetItem* MainWindow::CreateTreeItem(QTreeWidgetItem* I, TProblem* P)
+QTreeWidgetItem* MainWindow::CreateTreeItem(QTreeWidgetItem* I, std::shared_ptr<TProblem> P)
 {
 QTreeWidgetItem* TreeItem = new QTreeWidgetItem(I);
     TreeItem->setText(0, QString::fromUtf8(P->GetShortTask().c_str()));
@@ -415,7 +409,7 @@ QTreeWidgetItem* TreeItem = new QTreeWidgetItem(I);
     return TreeItem;
 }
 
-QTreeWidgetItem* MainWindow::CreateTreeItem(QTreeWidget* I, TProblem* P)
+QTreeWidgetItem* MainWindow::CreateTreeItem(QTreeWidget* I, std::shared_ptr<TProblem> P)
 {
 QTreeWidgetItem* TreeItem = new QTreeWidgetItem(I);
     TreeItem->setText(0, QString::fromUtf8(P->GetShortTask().c_str()));
@@ -430,7 +424,7 @@ void MainWindow::ClearTemporaryTree()
     for(int i = 0; i < ui->TemporaryTree->topLevelItemCount(); )
     {
         QTreeWidgetItem *Item = ui->TemporaryTree->takeTopLevelItem(i);
-        QMap<QTreeWidgetItem*, TProblem*>::iterator it = WidgetToProblemMap.find(Item);
+        QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>>::iterator it = WidgetToProblemMap.find(Item);
         WidgetToProblemMap.erase(it);
     };
 }
@@ -516,7 +510,7 @@ void MainWindow::SelectProblemByWidget(QTreeWidgetItem* item)
     }
     if(WidgetToProblemMap.contains(item))
     {
-        TProblem* P = WidgetToProblemMap.value(item);
+        std::shared_ptr<TProblem> P = WidgetToProblemMap.value(item);
         for(size_t i = 0; i < Problems.size(); i++)
             if(Problems[i] == P)
             {
@@ -531,8 +525,8 @@ void MainWindow::SelectProblemByWidget(QTreeWidgetItem* item)
 
 void MainWindow::DeleteProblem(size_t SelectedProblem) // for what?
 {
-TProblem* P = Problems[SelectedProblem];
-    for(QMap<QTreeWidgetItem*, TProblem*>::iterator iterator = WidgetToProblemMap.begin(); iterator != WidgetToProblemMap.end(); )
+std::shared_ptr<TProblem> P = Problems[SelectedProblem];
+    for(QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>>::iterator iterator = WidgetToProblemMap.begin(); iterator != WidgetToProblemMap.end(); )
     {
         if(iterator.value() == P)
             WidgetToProblemMap.erase(iterator);
@@ -542,7 +536,6 @@ TProblem* P = Problems[SelectedProblem];
 
     };
     Problems.erase(Problems.begin() + SelectedProblem);
-    delete P;
 }
 
 
@@ -648,7 +641,7 @@ QString fileName = QFileDialog::getOpenFileName(this,tr("Open..."),"", QString::
     } else {
         try
         {
-            TProblem *P;
+            std::shared_ptr<TProblem> P;
             char MsgBuf[256];
             P = LoadFromFile(f, MsgBuf, 255);
             f.close();
@@ -910,7 +903,7 @@ void MainWindow::on_CreateNewBtn_clicked()
         } else {
             if(CustomSystems == 0)
                 CustomSystems = CreateNode(ui->treeWidget_8, tr("Custom size"));
-            TSystemOfEquations *E = new TSystemOfEquations(S->VarsCount, S->EqCount);
+            auto E = std::make_shared<TSystemOfEquations>(S->VarsCount, S->EqCount);
             Problems.push_back(E);
 
             CreateTreeItem(CustomSystems, E);
@@ -950,7 +943,7 @@ void MainWindow::OnKeywordPicked(QString Key)
 
     ui->tabWidget_2->setCurrentWidget(ui->Temporary_tab);
     SelectedKeywords.push_back(Key.toUtf8().data());
-    vector<TProblem*> P = GetProblemsByKeywords();
+    vector<std::shared_ptr<TProblem>> P = GetProblemsByKeywords();
 
 
     for(size_t i = 0; i < P.size(); i++)
@@ -973,7 +966,7 @@ void MainWindow::KeywordClicked(QWidget* Widget)
     if(it != SelectedKeywords.end())
     {
         SelectedKeywords.erase(it);
-        vector<TProblem*> P = GetProblemsByKeywords();
+        vector<std::shared_ptr<TProblem>> P = GetProblemsByKeywords();
         ClearTemporaryTree();
         for(size_t i = 0; i < P.size(); i++)
             CreateTreeItem(ui->TemporaryTree, P[i]);
@@ -985,7 +978,7 @@ void MainWindow::MoveToFavorites()
 {
     if(Problem != 0 && CurrentItem && CurrentItem->treeWidget() != ui->FavoritesTree)
     {
-        TProblem *NewProblem = MakeCopy(Problem);
+        std::shared_ptr<TProblem> NewProblem = MakeCopy(Problem);
         Problems.push_back(NewProblem);
         QTreeWidgetItem* I = CreateTreeItem(ui->FavoritesTree, NewProblem);
         ui->tabWidget_2->setCurrentWidget(ui->FavoritesTab);
@@ -1040,7 +1033,7 @@ QSettings S(QString::fromUtf8("problems.hst"), QSettings::IniFormat);
     ProblemsSolved.assign(Problems.size(), 0);
     for(size_t i = 0; i < Problems.size(); i++)
     {
-        TProblem *P = Problems[i];
+        std::shared_ptr<TProblem> P = Problems[i];
         QString Str = QString::fromUtf8(P->GetClassName().c_str())+QString::number(i);
         ProblemsSolved[i] = S.value(Str, QVariant(0)).toInt();
     }
@@ -1050,7 +1043,7 @@ void MainWindow::DoneProblemsSolved()
 QSettings S(QString::fromUtf8("problems.hst"), QSettings::IniFormat);
     for(size_t i = 0; i < Problems.size(); i++)
     {
-        TProblem *P = Problems[i];
+        std::shared_ptr<TProblem> P = Problems[i];
         QString Str = QString::fromUtf8(P->GetClassName().c_str())+QString::number(i);
         int N = ProblemsSolved[i];
         S.setValue(Str, QVariant(N));

@@ -10,17 +10,14 @@
 TProblem::TProblem()
 {
     Conditions = std::make_shared<TNumeric>();
+    EditableFormula = std::make_shared<TEditableFormula>(Conditions);
     CanRandomize = false;
 //    BuildPhrases();
 }
 TProblem::TProblem(const TProblem& P)
-{    
-    if(P.Conditions)
-        Conditions = std::make_shared<TNumeric>(*P.Conditions);
-    else {
-        Conditions = nullptr;
-        assert(false);
-    }
+{
+    Conditions = std::make_shared<TNumeric>(*P.Conditions);
+    EditableFormula = std::make_shared<TEditableFormula>(*P.EditableFormula);
 }
 TProblem::~TProblem()
 {
@@ -107,7 +104,9 @@ TSimplifyProblem::TSimplifyProblem() : TProblem()
     Conditions->OperandsPushback(TNumeric("1"));
     Conditions->OperandsPushback(TNumeric("2"));
     Conditions->Assign("((x^2+(-1*x))+1");
-    Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);    
+    Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);
+    EditableFormula = std::make_shared<TEditableFormula>(Conditions);
+    EditableFormula->addEditableChild(Conditions);
     BuildPhrases();
 }
 

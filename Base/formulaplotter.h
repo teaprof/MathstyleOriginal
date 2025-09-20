@@ -78,9 +78,11 @@ class TFormulaPlotter
     Metrics DerivGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
     void DerivDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
 
+protected:
     std::shared_ptr<TPaintCanvas> canvas_;
 public:
     TFormulaPlotter(std::shared_ptr<TPaintCanvas> Canvas);
+    virtual ~TFormulaPlotter() {}
 
     //Если Simplify == true, то функции рисуют формулу в хорошем виде, проводя некоторые преобразования. Иначе без преобразований
     //шрифт надо выбирать вручную, вызвав заранее     Canvas->Font = Canvas->FormulaFont;

@@ -11,8 +11,8 @@
 #include "tmaclaurinseriesproblem.h"
 #include "TPolynomIntegralproblem.h"
 
-TProblem* LoadFromFile(ifstream &f, char* ResultMsg, int ResultMsgLen);
-void SaveToFile(ofstream &f, TProblem *P);
-TProblem* MakeCopy(TProblem* P);
+std::shared_ptr<TProblem> LoadFromFile(ifstream &f, char* ResultMsg, int ResultMsgLen);
+void SaveToFile(ofstream &f, std::shared_ptr<TProblem> P);
+std::shared_ptr<TProblem> MakeCopy(std::shared_ptr<TProblem> P);
 
 #endif // OBJECTSFACTORY_H

@@ -16,12 +16,21 @@ void FillSignature(char *Signature)
     Signature[SignatureLen-4] = sizeof(bool);
 }
 
-TProblem* MakeCopy(TProblem* P)
+std::shared_ptr<TProblem>  MakeCopy(std::shared_ptr<TProblem>  P)
 //creates an object of the same type as P and returns pointer to it
 {
-#define CHECKTYPE(TYPE)  {TYPE Obj; if(strcmp(Buf, Obj.GetClassName().c_str()) == 0) { Problem = new TYPE(*((TYPE*)P)); };};
-#define CHECKTYPE2(TYPE, STR)  if(strcmp(Buf, STR) == 0) { Problem = new TYPE(*((TYPE*)P)); };
-    TProblem *Problem = 0;
+#define CHECKTYPE(TYPE)  {\
+    TYPE Obj; \
+    if(strcmp(Buf, Obj.GetClassName().c_str()) == 0) { \
+        Problem = std::make_shared<TYPE>(*std::static_pointer_cast<TYPE>(P)); \
+    } \
+    }
+#define CHECKTYPE2(TYPE, STR) {\
+    if(strcmp(Buf, STR) == 0) {\
+        Problem = std::make_shared<TYPE>(*std::static_pointer_cast<TYPE>(P));\
+    } \
+    }
+    std::shared_ptr<TProblem> Problem = 0;
     const char *Buf;
     string str = P->GetClassName();
     Buf = str.c_str();
@@ -60,7 +69,7 @@ TProblem* MakeCopy(TProblem* P)
     return Problem;
 }
 
-TProblem* LoadFromFile(ifstream &f, char* ResultMsg, int ResultMsgLen)
+std::shared_ptr<TProblem> LoadFromFile(ifstream &f, char* ResultMsg, int ResultMsgLen)
 {
 #define BufLen 100
 char Buf[BufLen];
@@ -74,99 +83,99 @@ char S[SignatureLen];
     };
     f.read(Buf, BufLen);
     Buf[BufLen-1] = 0;
-    TProblem *Problem = 0;
+    std::shared_ptr<TProblem> Problem;
     if(strcmp(Buf, "TSimplifyProblem") == 0)
     {
-        Problem = new TSimplifyProblem;
+        Problem = std::make_shared<TSimplifyProblem>();
     }
     if(strcmp(Buf, "TLinearEquality") == 0)
     {
-        Problem = new TLinearEquality;
+        Problem = std::make_shared<TLinearEquality>();
     };
     if(strcmp(Buf, "TSquareEquality") == 0)
     {
-        Problem = new TSquareEquality;
+        Problem = std::make_shared<TSquareEquality>();
     }
     if(strcmp(Buf, "TLinearInequality")== 0)
     {
-        Problem = new TLinearInequality;
+        Problem = std::make_shared<TLinearInequality>();
     }
     if(strcmp(Buf, "TSquareInequality") == 0)
     {
-        Problem = new TSquareInequality;
+        Problem = std::make_shared<TSquareInequality>();
     }
     if(strcmp(Buf, "TSetOfLinearInequalities") == 0)
     {
-        Problem = new TSetOfLinearInequalities;
+        Problem = std::make_shared<TSetOfLinearInequalities>();
     }
     if(strcmp(Buf, "TSystemOfSquareInequalities") == 0)
     {
-        Problem = new TSystemOfSquareInequalities;
+        Problem = std::make_shared<TSystemOfSquareInequalities>();
     }
     if(strcmp(Buf, "TRationalFunctionDerivative") == 0)
     {
-        Problem = new TRationalFunctionDerivative;
+        Problem = std::make_shared<TRationalFunctionDerivative>();
     }
     if(strcmp(Buf, "TPolynomDerivative") == 0)
     {
-        Problem = new TPolynomDerivative;
+        Problem = std::make_shared<TPolynomDerivative>();
     }
     if(strcmp(Buf, "TPolynomialInequality") == 0)
     {
-        Problem = new TPolynomialInequality;
+        Problem = std::make_shared<TPolynomialInequality>();
     }
     if(strcmp(Buf, "TPolynomialEquality") == 0)
     {
-        Problem = new TPolynomialEquality;
+        Problem = std::make_shared<TPolynomialEquality>();
     }
     if(strcmp(Buf, "TPowerEquality") == 0)
     {
-        Problem = new TPowerEquality;
+        Problem = std::make_shared<TPowerEquality>();
     }
     if(strcmp(Buf, "TRationalSumEquality") == 0)
     {
-        Problem = new TRationalSumEquality;
+        Problem = std::make_shared<TRationalSumEquality>();
     }
     if(strcmp(Buf, "TLinearTrigEquality") == 0)
     {
-        Problem = new TLinearTrigEquality;
+        Problem = std::make_shared<TLinearTrigEquality>();
     }
     if(strcmp(Buf, "THomogeneousTrigEquality") == 0)
     {
-        Problem = new THomogeneousTrigEquality;
+        Problem = std::make_shared<THomogeneousTrigEquality>();
     }
     if(strcmp(Buf, TSetOfSquareInequalitiesStr) == 0)
     {
-        Problem = new TSetOfSquareInequalities;
+        Problem = std::make_shared<TSetOfSquareInequalities>();
     }
     if(strcmp(Buf, TSystemOfSquareInequalitiesStr) == 0)
     {
-        Problem = new TSystemOfSquareInequalities;
+        Problem = std::make_shared<TSystemOfSquareInequalities>();
     }
     if(strcmp(Buf, "TSystemOfEquations") == 0)
     {
-        Problem = new TSystemOfEquations;
+        Problem = std::make_shared<TSystemOfEquations>();
     }
     if(strcmp(Buf, "TDerivativeProblem") == 0)
     {
-        Problem = new TDerivativeProblem;
+        Problem = std::make_shared<TDerivativeProblem>();
     }
     if(strcmp(Buf, "TPolynomIntegralProblem") == 0)
     {
-        Problem = new TPolynomIntegralProblem;
+        Problem = std::make_shared<TPolynomIntegralProblem>();
 
     }
     if(strcmp(Buf, "TRationalIntegralProblem") == 0)
     {
-        Problem = new TRationalIntegralProblem;
+        Problem = std::make_shared<TRationalIntegralProblem>();
     }
     if(strcmp(Buf, "TIntegralProblem") == 0)
     {
-        Problem = new TIntegralProblem;
+        Problem = std::make_shared<TIntegralProblem>();
     }
     if(strcmp(Buf, "TMaclaurinSeriesProblem") == 0)
     {
-        Problem = new TMaclaurinSeriesProblem;
+        Problem = std::make_shared<TMaclaurinSeriesProblem>();
     }
     if(Problem == 0)
     {
@@ -177,7 +186,7 @@ char S[SignatureLen];
     return Problem;
 }
 
-void SaveToFile(ofstream &f, TProblem *P)
+void SaveToFile(ofstream &f, std::shared_ptr<TProblem>  P)
 {
 
 #define BufLen 100

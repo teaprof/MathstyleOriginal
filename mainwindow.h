@@ -7,7 +7,6 @@
 #include <QMap>
 #include <QMultiMap>
 #include <QHBoxLayout>
-#include <QSignalMapper>
 
 #include "Problems/tproblem.h"
 //#include "Problems/GraphicsProblems.h"
@@ -20,12 +19,11 @@ namespace Ui {
     class MainWindow;
 }
 
-typedef TProblem* PTProblem;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    PTProblem SimplifyProblem, LinearEquality, SquareEquality, PolynomialEquality4,
+    std::shared_ptr<TProblem> SimplifyProblem, LinearEquality, SquareEquality, PolynomialEquality4,
     PolynomialEquality8, RationalSumEquality1, RationalSumEquality2, PowerEquality2,
     LinearTrigEquality, HomogeneousTrigEquality2, HomogeneousTrigEquality3, HomogeneousTrigEquality4,
     SystemOfEquations22, SystemOfEquations33, SystemOfEquations44, SystemOfEquations55, LinearInequality,
@@ -35,15 +33,14 @@ class MainWindow : public QMainWindow
     PolynomIntegralProblem, RationalIntegralProblem22, RationalIntegralProblem45, RationalIntegralProblem66,
     IntegralProblem, MaclaurinSeriesProblem3, MaclaurinSeriesProblem5,
     RationalIntegralProblemFactorized;
-    QMap<QTreeWidgetItem*, TProblem*> WidgetToProblemMap;
+    QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>> WidgetToProblemMap;
 
-    QSignalMapper *SignalMapper;
     QVBoxLayout *SelectedKeywordsLayout;
     vector<string> SelectedKeywords;
     void CreateProblems();
     void CreateBook();
-    void CreateKeywords(vector<TProblem*> Problems);
-    vector<TProblem*> GetProblemsByKeywords();    
+    void CreateKeywords(vector<std::shared_ptr<TProblem>> Problems);
+    vector<std::shared_ptr<TProblem>> GetProblemsByKeywords();
     vector<size_t> ProblemsSolved;
 
     void SelectProblem(); //анализирует текущее состояние GUI и выбирает и отрисовывает проблему
@@ -64,13 +61,13 @@ public:
     QTreeWidgetItem *CustomSystems;
     QTreeWidgetItem *CurrentItem;
 
-    vector<TProblem*> Problems;
+    vector<std::shared_ptr<TProblem>> Problems;
     int SelectedProblem; //выбранная и отрисованная задача
 
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    TProblem *Problem;
+    std::shared_ptr<TProblem> Problem;
 
     void DrawConditions();
     //void BuildTree(QTreeWidgetItem& StartItem, vector<TRectangleElement*> Elements); //2del
@@ -79,8 +76,8 @@ public:
     QTreeWidgetItem* CreateNode(QTreeWidgetItem* Parent, QString name);
     QTreeWidgetItem* CreateNode(QTreeWidget* Parent, string name);
     QTreeWidgetItem* CreateNode(QTreeWidgetItem* Parent, string name);
-    QTreeWidgetItem* CreateTreeItem(QTreeWidget* I, TProblem* P);
-    QTreeWidgetItem* CreateTreeItem(QTreeWidgetItem* I, TProblem* P);
+    QTreeWidgetItem* CreateTreeItem(QTreeWidget* I, std::shared_ptr<TProblem> P);
+    QTreeWidgetItem* CreateTreeItem(QTreeWidgetItem* I, std::shared_ptr<TProblem> P);
     void ClearTemporaryTree();
     void DeleteProblem(size_t SelectedProblem);
 
@@ -100,7 +97,7 @@ public:
     void loadLanguage(const QString& rLanguage);
     void loadLanguage(int Language);
 
-    void SetLanguage(int Language); //устанавливает язык у всех TProblem*
+    void SetLanguage(int Language); //устанавливает язык у всех std::shared_ptr<TProbl>m*
 private:
     QTranslator m_translator;
     Ui::MainWindow *ui;

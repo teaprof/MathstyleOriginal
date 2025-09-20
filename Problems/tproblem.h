@@ -8,6 +8,7 @@
 #include "Base/tinterval.h"
 #include "Base/tphrases.h"
 #include "Base/THTMLWriter.h"
+#include "Base/editableformula.h"
 using namespace std;
 
 extern TNumeric X_1;
@@ -21,6 +22,7 @@ class TProblem
 public:        
     bool CanRandomize;
     std::shared_ptr<TNumeric> Conditions;
+    std::shared_ptr<TEditableFormula> EditableFormula;
 
     TProblem();    
     TProblem(const TProblem &P);
@@ -51,7 +53,7 @@ public:
     virtual void SaveToFile(ofstream &f);
     virtual void LoadFromFile(ifstream &f);
 
-    virtual string GetClassName() {return "TProblem";};
+    virtual string GetClassName() {return "TProblem";}
     virtual void BuildPhrases();
 
     virtual void Randomize(std::mt19937& rng) {Q_UNUSED(rng);};
