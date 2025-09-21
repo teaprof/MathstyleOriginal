@@ -8,7 +8,6 @@
 #include "Base/tinterval.h"
 #include "Base/tphrases.h"
 #include "Base/THTMLWriter.h"
-#include "Base/editableformula.h"
 using namespace std;
 
 extern TNumeric X_1;
@@ -21,8 +20,7 @@ class TProblem
 {
 public:        
     bool CanRandomize;
-    std::shared_ptr<TNumeric> Conditions;
-    std::shared_ptr<TEditableFormula> EditableFormula;
+    std::shared_ptr<TNumeric> Conditions;    
 
     TProblem();    
     TProblem(const TProblem &P);
@@ -31,6 +29,7 @@ public:
 
     virtual string GetTask() { return {};}
     virtual string GetShortTask() {return {};}
+    virtual std::vector<std::shared_ptr<TNumeric>> getEditables() { return {}; }
     virtual bool Solve(std::shared_ptr<THTMLWriter> Writer);
 
     //возвращает непосредственно само решение без дублирования условия
@@ -69,6 +68,7 @@ public:
     virtual string GetTask();
     virtual string GetShortTask();
     virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer); //возвращает непосредственно само решение без дублирования условия
+    virtual std::vector<std::shared_ptr<TNumeric>> getEditables();
 
     virtual string GetClassName() { return "TSimplifyProblem";}
     virtual void BuildPhrases();

@@ -21,11 +21,11 @@ SOURCES += \
 #    Base/taxes.cpp \
     Base/polynom.cpp \
     Base/arithmetic.cpp \
-    Problems/ttrigonometryproblems.cpp \
-    Problems/trationalsumproblem.cpp \
+    #Problems/ttrigonometryproblems.cpp \
+    #Problems/trationalsumproblem.cpp \
     Problems/tproblem.cpp \
-    Problems/tpowerproblems.cpp \
-    Problems/ObjectsFactory.cpp \
+    #Problems/tpowerproblems.cpp \
+    #Problems/ObjectsFactory.cpp \
 #    Problems/GraphicsProblems.cpp \
     algebra_operations.cpp \
     twaitform.cpp \
@@ -41,9 +41,9 @@ SOURCES += \
     mathomatic.cpp \
     tselectslausize.cpp \
     Base/symbols.cpp \
-    Problems/tderivativeproblem.cpp \
-    Problems/tmaclaurinseriesproblem.cpp \
-    Problems/TPolynomIntegralproblem.cpp \
+    #Problems/tderivativeproblem.cpp \
+    #Problems/tmaclaurinseriesproblem.cpp \
+    #Problems/TPolynomIntegralproblem.cpp \
     Problems/TPolynomProblems.cpp \
     Base/TNumericMask.cpp \
     Base/THTMLWriter.cpp \
@@ -62,11 +62,11 @@ HEADERS  += \
 #    Base/taxes.h \
     Base/polynom.h \
     Base/arithmetic.h \
-    Problems/ttrigonometryproblems.h \
-    Problems/trationalsumproblem.h \
+    #Problems/ttrigonometryproblems.h \
+    #Problems/trationalsumproblem.h \
     Problems/tproblem.h \
-    Problems/tpowerproblems.h \
-    Problems/ObjectsFactory.h \
+    #Problems/tpowerproblems.h \
+    #Problems/ObjectsFactory.h \
 #    Problems/GraphicsProblems.h \
     twaitform.h \
     ttasktypeselector.h \
@@ -81,10 +81,10 @@ HEADERS  += \
     mathomatic.h \
     tselectslausize.h \
     Base/symbols.h \
-    Problems/tderivativeproblem.h \
-    Problems/tmaclaurinseriesproblem.h \
+    #Problems/tderivativeproblem.h \
+    #Problems/tmaclaurinseriesproblem.h \
     Problems/TPolynomProblems.h \
-    Problems/TPolynomIntegralproblem.h \
+    #Problems/TPolynomIntegralproblem.h \
     Base/TNumericMask.h \
     Base/THTMLWriter.h \
     tsolutionbrowser.h \
@@ -114,6 +114,6 @@ RESOURCES += \
 OTHER_FILES += \
     style.css
 
-QMAKE_CXXFLAGS += -O3
+#QMAKE_CXXFLAGS += -O3
 
 CONFIG += c++20

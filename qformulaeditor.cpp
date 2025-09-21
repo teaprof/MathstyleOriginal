@@ -18,7 +18,7 @@ QFormulaArea::QFormulaArea(QWidget *parent) :
 {
     Formula = 0;
     setMouseTracking(true);
-    if(parent)parent->setEnabled(true);
+    if(parent)parent->setEnabled(true); // wtf?
     setEnabled(true);
 
     TextFont = QFont("Courier", 10);
@@ -26,7 +26,7 @@ QFormulaArea::QFormulaArea(QWidget *parent) :
     BackgroundColor = Qt::red;
     MinWidth = 100;
     MinHeight = 100;
-    CurSaved = 0;
+    curSaved_idx = 0;
 }
 
 QFormulaArea::~QFormulaArea()
@@ -65,7 +65,8 @@ void QFormulaArea::paintEvent(QPaintEvent *event)
         Canvas->Font = Canvas->FormulaFont;
         Canvas->FormulaColor = FormulaColor;
         Canvas->EditableColor = EditableColor;
-        auto [Width, Height, Depth] = TFormulaPlotter(Canvas).PrettyGetTextRectangle(Formula, false, false);
+        EditableFormula->setCanvas(Canvas);
+        auto [Width, Height, Depth] = EditableFormula->PrettyGetTextRectangle(Formula, false, false);
         int GeomWidth = Width + RightPadding;
         if(GeomWidth < minimumWidth()) GeomWidth = minimumWidth();
         int GeomHeight = Height+Depth+br.bottom()+20;
@@ -95,7 +96,7 @@ void QFormulaArea::paintEvent(QPaintEvent *event)
             X = LeftPadding + (GeomWidth - Width - LeftPadding - RightPadding)/2;
             //Y = (br.height() + height()/2 - (Depth-Height)/2; //рисуем формулу по середине
             Y =  br.bottom() + Height + 20; //рисуем формулу сразу после текста задания
-            TFormulaPlotter(Canvas).PrettyDrawAtBaseLeft(Formula, X, Y, false, false);
+            EditableFormula->PrettyDrawAtBaseLeft(Formula, X, Y, false, false);
         };
     }
 }
@@ -167,30 +168,28 @@ void QFormulaArea::DebugPrintBuffer()
 void QFormulaArea::SetFormula(std::shared_ptr<TNumeric> Formula)
 {
     this->Formula = Formula;
-    QPainter* painter = new QPainter(this); /// \todo: memory leak
-    auto canvas = std::make_shared<TPaintCanvas>(painter);
-    EditableFormula = std::make_shared<TEditableFormula>(Formula, canvas);
+    EditableFormula = std::make_shared<TEditableFormula>(Formula, nullptr);
     Saved.clear();
-    CurSaved = 0;
+    curSaved_idx = 0;
     Save();
     update();    
 }
 
 void QFormulaArea::SetUndoRedoEnabled()
 {
-    if(CurSaved == 0) emit OnEnableUndo(false);
+    if(curSaved_idx == 0) emit OnEnableUndo(false);
     else emit OnEnableUndo(true);
-    if(CurSaved == Saved.size() - 1) emit OnEnableRedo(false);
+    if(curSaved_idx == Saved.size() - 1) emit OnEnableRedo(false);
     else emit OnEnableRedo(true);
 }
 
 void QFormulaArea::Save()
 {
     if(Formula == 0) return;
-    while(CurSaved + 1 < Saved.size() && Saved.size() > 0) Saved.erase(Saved.end() - 1);
+    while(curSaved_idx + 1 < Saved.size() && Saved.size() > 0) Saved.erase(Saved.end() - 1);
     Saved.push_back(*Formula);
     while(Saved.size() > 10) Saved.erase(Saved.begin());
-    CurSaved = Saved.size() - 1;
+    curSaved_idx = Saved.size() - 1;
     SetUndoRedoEnabled();
     DebugPrintBuffer();
 }
@@ -199,11 +198,11 @@ void QFormulaArea::Undo()
 {
     if(Formula == 0) return;
     DebugPrintBuffer();
-    if(CurSaved == 0)
+    if(curSaved_idx == 0)
         //достигли последнего сохраненного элемента
         return;
-    CurSaved--; //переходим к предыдущей позиции
-    *Formula = Saved[CurSaved];
+    curSaved_idx--; //переходим к предыдущей позиции
+    *Formula = Saved[curSaved_idx];
     repaint();
     SetUndoRedoEnabled();
     DebugPrintBuffer();
@@ -213,13 +212,13 @@ void QFormulaArea::Redo()
 {
     if(Formula == 0) return;
     DebugPrintBuffer();
-    if(CurSaved == Saved.size() - 1)
+    if(curSaved_idx == Saved.size() - 1)
     //нельзя сделать Redo
     {
         return;
     } else {
-        CurSaved++;
-        *Formula = Saved[CurSaved];
+        curSaved_idx++;
+        *Formula = Saved[curSaved_idx];
     }
     repaint();
     SetUndoRedoEnabled();
@@ -636,7 +635,7 @@ QFormulaEditor::QFormulaEditor(QWidget *parent) :
 {
     //Formula = new TNumeric(TNumeric("23.03.1984")+TNumeric("23")/TNumeric("03"));    
     setMouseTracking(true);
-    parent->setEnabled(true);
+    parent->setEnabled(true); // wtf?
     setEnabled(true);
 
     ButtonWidth = 32;
@@ -978,9 +977,14 @@ void QFormulaEditor::SetTask(const string& Task)
     FormulaArea->update();
 }
 
-void QFormulaEditor::SetFormula(std::shared_ptr<TNumeric> Formula)
+/*void QFormulaEditor::SetFormula(std::shared_ptr<TNumeric> Formula)
 {
     FormulaArea->SetFormula(Formula);
+}*/
+void QFormulaEditor::setProblem(std::shared_ptr<TProblem> problem) {
+    FormulaArea->SetFormula(problem->Conditions);
+    for(const auto& it : problem->getEditables())
+        FormulaArea->EditableFormula->addEditable(it);
 }
 
 void QFormulaEditor::OnButtonsChanged(int EditableFlags, int CanEraseFlag, bool IsConst)

@@ -19,7 +19,7 @@ QApplication* qAppl;
 void TestFactorise()
 {
     init_mathomatic();
-TPolynom P1, P2;
+    TPolynom P1, P2;
     P1.Coef.push_back(TNumeric(16));
     P1.Coef.push_back(TNumeric(0));
     P1.Coef.push_back(TNumeric(1));
@@ -27,7 +27,7 @@ TPolynom P1, P2;
     P2.Coef.push_back(TNumeric(0));
     P2.Coef.push_back(TNumeric(1));
 
-TPolynom P = P1*P1;
+    TPolynom P = P1*P1;
     P.Coef.clear();
     P.Coef.push_back(TNumeric(3));
     P.Coef.push_back(TNumeric(0));
@@ -37,7 +37,7 @@ TPolynom P = P1*P1;
 
     cout<<"Source: "<<P.GetNumeric(TNumeric("x")).CodeBasic()<<endl;
 
-vector<TPolynom> F = P.FactorizeKroneker();
+    vector<TPolynom> F = P.FactorizeKroneker();
     for(size_t i = 0; i < F.size(); i++)
         cout<<F[i].GetNumeric(TNumeric("x")).CodeBasic()<<endl;
     done_mathomatic();
@@ -46,8 +46,8 @@ vector<TPolynom> F = P.FactorizeKroneker();
 void TestMask()
 {
     init_mathomatic();
-TNumericMask Mask;
-TNumeric Template, N;
+    TNumericMask Mask;
+    TNumeric Template, N;
     //Template.Assign("(m*x+c)/((a*x^2+b*x+c)^2)");
     //N.Assign("1/((x^2+2*x+1)^2)");
     Template.Assign("b*x+c");
@@ -73,7 +73,7 @@ void TestMask2()
     N.Assign("sin(x+2)*exp(2*x^2+b*cos(x))");
     cout<<N.CodeBasic()<<endl;
     done_mathomatic();
-};
+}
 
 QTranslator* Tr;
 
@@ -101,13 +101,13 @@ int main(int argc, char *argv[])
         done_mathomatic();
         delete Tr;
         return Res;
-        }catch(const char* s)
-        {
-            cerr<<"Exception handled: "<<s<<endl;
-            return -1;
-        } catch (...)
-        {
-            cerr<<"Unknown exception handled"<<endl;
-            return -1;
-        }
+    }catch(const char* s)
+    {
+        cerr<<"Exception handled: "<<s<<endl;
+        return -1;
+    } catch (...)
+    {
+        cerr<<"Unknown exception handled"<<endl;
+        return -1;
+    }
 }

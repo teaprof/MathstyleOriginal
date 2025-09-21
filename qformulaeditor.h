@@ -3,6 +3,8 @@
 
 #include "Base/arithmetic.h"
 #include "Base/editableformula.h"
+#include "Problems/tproblem.h"
+
 
 #include <QToolButton>
 #include <QPushButton>
@@ -19,22 +21,23 @@ class QFormulaArea : public QWidget
     Q_OBJECT
 public:
     vector<TNumeric> Saved; //для команды Undo
-    size_t CurSaved; //индекс в массиве Saved, используется командой Undo
+    size_t curSaved_idx; //индекс в массиве Saved, используется командой Undo
 
     int MinWidth, MinHeight;
     QWidget* FormulaArea;
     QScrollArea* ScrollArea;
     QFont TextFont, FormulaFont;
     QColor FormulaColor, EditableColor, BackgroundColor;
+
+    string Task;
+    std::shared_ptr<TNumeric> Formula;
+    std::shared_ptr<TEditableFormula> EditableFormula;
+
     explicit QFormulaArea(QWidget *parent = 0);
     ~QFormulaArea();
 
     void DebugPrintBuffer();
     void SetFormula(std::shared_ptr<TNumeric> Formula);
-
-    string Task;
-    std::shared_ptr<TNumeric> Formula;
-    std::shared_ptr<TEditableFormula> EditableFormula;
 signals:
     void OnSelectionChanged(TNumeric *NewSelection);
     void OnButtonsChanged(int EditableFlags, int CanEraseFlag, bool IsConst);
@@ -84,9 +87,9 @@ protected:
 class QFormulaEditor : public QWidget
 {
         Q_OBJECT
-public:    
     QFormulaArea* FormulaArea;
     QScrollArea* ScrollArea;
+public:
     explicit QFormulaEditor(QWidget *parent = 0);
     ~QFormulaEditor();
     void SetArithmeticsVisible(bool Visible);
@@ -100,7 +103,8 @@ public:
     void SetFonts(const QFont& TextFont, const QFont& FormulaFont);
     void SetColors(const QColor& FormulaColor, const QColor& EditableColor, const QColor& BackgroundColor);
     void SetTask(const string& Task);
-    void SetFormula(std::shared_ptr<TNumeric> Formula);
+    //void SetFormula(std::shared_ptr<TNumeric> Formula);
+    void setProblem(std::shared_ptr<TProblem> problem);
 
     void TranslateButtons();
 

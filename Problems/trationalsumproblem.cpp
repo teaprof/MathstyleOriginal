@@ -58,19 +58,18 @@ TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int S
         {
             char Buf[20];
             sprintf(Buf, "%d", SampleCoefs[i]);
-            Conditions->GetByID(i).value().get().K = Buf;
+            Conditions->GetByID(i)->K = Buf;
         };
     } else {
         for(size_t i = 0; i < (MaxPower+1)*10; i++) //берём с запасом
         {
             if(Conditions->hasID(i)) {
-                auto v = Conditions->GetByID(i);;
-                if(v.has_value())
+                PNumeric P = Conditions->GetByID(i);;
+                if(P != nullptr)
                 {
-                    TNumeric& P = v.value().get();
                     char Buf[20];
                     sprintf(Buf, "%d", (int) i);
-                    P.K = Buf;
+                    P->K = Buf;
                 };
             }
         }
@@ -128,16 +127,16 @@ void TRationalSumConditions::Randomize(std::mt19937& rng)
         for(size_t j = 0; j < 4; j++)
         {
             int ID = GetPStartIndex(j) + i;
-            TNumeric& N = Conditions->GetByID(ID).value().get();
-            N = TNumeric(dist(rng));
-            N.SetEditableFlags(ConstAllowed);
-            N.ID = ID;
+            PNumeric N = Conditions->GetByID(ID);
+            *N = TNumeric(dist(rng));
+            N->SetEditableFlags(ConstAllowed);
+            N->ID = ID;
 
             ID = GetQStartIndex(j) + i;
-            TNumeric& N2 = Conditions->GetByID(ID).value().get();
-            N2 = TNumeric(dist(rng));
-            N2.SetEditableFlags(ConstAllowed);
-            N2.ID = ID;
+            PNumeric N2 = Conditions->GetByID(ID);
+            *N2 = TNumeric(dist(rng));
+            N2->SetEditableFlags(ConstAllowed);
+            N2->ID = ID;
         }
 }
 

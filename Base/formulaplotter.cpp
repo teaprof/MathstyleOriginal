@@ -118,8 +118,10 @@ void TFormulaPlotter::DrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, 
 Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, bool NeedBrackets, bool Simplify) const
 //Y = baseline
 {
+    std::cout<<__LINE__<<std::endl;
     const Metrics metrics = PrettyGetTextRectangle(N, NeedBrackets, Simplify);
-    canvas_->Pen.setColor(getFontColor(N));
+    QColor color = getFontColor(N);
+    canvas_->Pen.setColor(color);
     switch(N->operation)
     {
     case OperatorConst:
@@ -142,7 +144,6 @@ Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X
                     //отрицательное число всегда в скобках
                     if(f < 0) AStr = string("(")+AStr+")";
                 }
-                //                   }
                 canvas_->TextOutA(X, Y, AStr);
             };
         } else {
@@ -1534,8 +1535,7 @@ std::string TFormulaPlotter::CodeBasic(std::shared_ptr<const TNumeric> N) {
 
 QColor TFormulaPlotter::getFontColor(std::shared_ptr<TNumeric> N) const {
     (void)N;
-    QColor color;
-    return color.black();
+    return Qt::green;
 }
 std::optional<QColor> TFormulaPlotter::getBorderColor(std::shared_ptr<TNumeric> N) const {
     (void)N;

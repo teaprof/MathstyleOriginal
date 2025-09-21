@@ -190,8 +190,8 @@ void SaveToFile(ofstream &f, std::shared_ptr<TProblem>  P)
 {
 
 #define BufLen 100
-char Buf[BufLen];    
-    strncpy(Buf, P->GetClassName().c_str(), 100);
+char Buf[BufLen];
+    strncpy(Buf, P->GetClassName().c_str(), 99);
     Buf[99] = 0;
     FillSignature(Signature);
     f.write(Signature, SignatureLen);

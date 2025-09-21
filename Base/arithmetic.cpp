@@ -37,7 +37,7 @@ TNumeric::~TNumeric()
 {
 }
 std::shared_ptr<TNumeric> TNumeric::deepCopy() {
-    auto res = std::make_shared<TNumeric>();
+    PNumeric res = std::make_shared<TNumeric>();
     res->K = K;
     res->operation = operation;
     res->ID = ID;
@@ -96,8 +96,8 @@ TNumeric::TNumeric(string d)
         if(d=="inf") K="\\infty"; else
             if(d=="+inf") K="+\\infty"; else
                 K = d;
-};
-TNumeric::TNumeric(const TNumeric& N)
+}
+TNumeric::TNumeric(const TNumeric& N) : std::enable_shared_from_this<TNumeric>(N)
 {
     Assign(N);
 }
@@ -219,10 +219,10 @@ bool TNumeric::hasID(int ID) {
     return false;
 }
 
-std::optional<std::reference_wrapper<TNumeric>> TNumeric::GetByID(int ID)
+std::shared_ptr<TNumeric> TNumeric::GetByID(int ID)
 {
     if(ID == this->ID) {
-        return *this;
+        return shared_from_this(); // todo: enable shared from this
     }
     for(size_t i = 0; i < operands.size(); i++)
     {
@@ -230,8 +230,8 @@ std::optional<std::reference_wrapper<TNumeric>> TNumeric::GetByID(int ID)
             return operands[i]->GetByID(ID);
         }
     };
-    return std::nullopt;
-};
+    return nullptr;
+}
 
 void TNumeric::ClearID()
 {

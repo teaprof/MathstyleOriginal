@@ -19,8 +19,8 @@ class TPowerProblemConditions : public TProblem
         TPowerProblemConditions(size_t MaxPower = 2);
         ~TPowerProblemConditions();
 
-        TNumeric* GetLeftBase();
-        TNumeric* GetRightBase();
+        PNumeric GetLeftBase();
+        PNumeric GetRightBase();
         TPolynom GetLeftP();
         TPolynom GetRightP();
         void Randomize(std::mt19937& rng);

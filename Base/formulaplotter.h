@@ -15,8 +15,8 @@ class TFormulaPlotter
     Metrics FunctionGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
     void FunctionDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
 
-    Metrics StrGetTextRectangle(std::shared_ptr<TNumeric> N, const char *Str, bool WithBrackets, bool Simplify) const;
-    void StrDraw(std::shared_ptr<TNumeric> N, const char *Str, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics StrGetTextRectangle(std::shared_ptr<TNumeric> N, const char *separator_str, bool WithBrackets, bool Simplify) const;
+    void StrDraw(std::shared_ptr<TNumeric> N, const char *separator_str, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
 
     Metrics InlineGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
     void InlineDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
@@ -82,6 +82,7 @@ protected:
     std::shared_ptr<TPaintCanvas> canvas_;
 public:
     TFormulaPlotter(std::shared_ptr<TPaintCanvas> Canvas);
+    void setCanvas(std::shared_ptr<TPaintCanvas> Canvas) {canvas_ = Canvas;} //painter should be created inside PaintEvent
     virtual ~TFormulaPlotter() {}
 
     //Если Simplify == true, то функции рисуют формулу в хорошем виде, проводя некоторые преобразования. Иначе без преобразований

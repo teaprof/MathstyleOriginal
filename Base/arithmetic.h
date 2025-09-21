@@ -89,7 +89,7 @@ enum TEditableFlags
     //NextFlag = 0x04 and so on
 };
 
-class TNumeric
+class TNumeric : public std::enable_shared_from_this<TNumeric>
 {
     void CreateClear(); //создает чистый TNumeric
     void Assign(const TNumeric& N);
@@ -105,6 +105,7 @@ class TNumeric
 
     void CheckInitialized() const; //проверяет, был ли чем-нибудь инициализирован объект ранее; если не был, то вызывает исключение
 
+    struct Private{ explicit Private() = default; }; // make TNumeric constructos accessible from this class only (see enable_shared_from_this documentation)
 public:
     static int GetOperatorPriority(int OpCode);
     static int CompareOperatorsPriority(int OpCode1, int OpCode2);
@@ -128,6 +129,11 @@ public:
     explicit TNumeric(size_t d);
     explicit TNumeric(string d);
     TNumeric(const TNumeric& N);
+
+    template<class ... Args>
+    static std::shared_ptr<TNumeric> create(Args ... args) {
+        return std::make_shared<TNumeric>(args...);
+    }
 
     bool IsVariable() const; //returns true if object is like "x" or "x_{something}" (object designates variable)
     bool IsEqual(const TNumeric &N) const; //Если *this и N совпадают полностью друг с другом
@@ -179,7 +185,7 @@ public:
     TNumeric Substitute(const string& var, const TNumeric& Val) const;
 
     bool hasID(int ID);
-    std::optional<std::reference_wrapper<TNumeric>> GetByID(int ID);
+    std::shared_ptr<TNumeric> GetByID(int ID);
     void ClearID(); //устанавливает ID у себя и всех потомков в -1
 
     TNumeric Simplify() const;
@@ -200,6 +206,8 @@ public:
     //StartID постепенно увеличивается
     void RestoreFunctions(const map<string, TNumeric>& V); //заменяем переменные обратно на функции
 };
+
+using PNumeric = std::shared_ptr<TNumeric>;
 
 
 string DeleteExternalBrackets(string q);

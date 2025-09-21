@@ -206,24 +206,26 @@ void TPolynomConditions::SetLeftPart(const TNumeric &a, const TNumeric &b, const
 }
 
 
-TNumeric& TPolynomConditions::GetCoefP(size_t power)
+PNumeric TPolynomConditions::GetCoefP(size_t power)
 {
     if(power<=MaxPower)
     {
-        return Conditions->GetByID(power).value();
-    } else throw "TPolynomConditions::GetCoef(size_t power): power > MaxPower";
+        return Conditions->GetByID(power);
+    };
+    throw "TPolynomConditions::GetCoef(size_t power): power > MaxPower";
 }
 
-const TNumeric& TPolynomConditions::GetCoef(size_t power) const
+const PNumeric TPolynomConditions::GetCoef(size_t power) const
 {
     if(power<=MaxPower)
     {
-        return Conditions->GetByID(power).value();
-    } else throw "TPolynomConditions::GetCoef(size_t power): power > MaxPower";
+        return Conditions->GetByID(power);
+    };
+    throw "TPolynomConditions::GetCoef(size_t power): power > MaxPower";
 }
-TNumeric& TPolynomConditions::GetRightPartP()
+PNumeric TPolynomConditions::GetRightPartP()
 {
-    return Conditions->GetByID(RightPartID).value();
+    return Conditions->GetByID(RightPartID);
 }
 
 TNumeric TPolynomConditions::GetRightPart() const
@@ -232,12 +234,11 @@ TNumeric TPolynomConditions::GetRightPart() const
 }
 void TPolynomConditions::SetRightPart(const TNumeric& N)
 {
-    auto v = Conditions->GetByID(RightPartID);
-    if(v.has_value())
+    PNumeric R = Conditions->GetByID(RightPartID);
+    if(R)
     {
-        TNumeric& R = v.value();
-        R = N;
-        R.ID = RightPartID;
+        *R = N;
+        R->ID = RightPartID;
     }
 }
 
@@ -289,8 +290,8 @@ TPolynomialEquality::TPolynomialEquality(size_t MaxPower) : TPolynomConditions(M
 {    
     if(MaxPower >= 3)
     {
-        GetCoefP(0).K = "1";
-        GetCoefP(3).K = "1";
+        GetCoefP(0)->K = "1";
+        GetCoefP(3)->K = "1";
     };
     if(MaxPower >= 6)
     {
@@ -1119,9 +1120,9 @@ void TLinearEquality::SetLeftPartP(const TPolynom &P, bool)
 bool TLinearEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     ClearSolution();
-    TNumeric& a = GetCoefP(1);
-    TNumeric& b = GetCoefP(0);
-    TNumeric& c = GetRightPartP();
+    TNumeric& a = *GetCoefP(1);
+    TNumeric& b = *GetCoefP(0);
+    TNumeric& c = *GetRightPartP();
 
     if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
     if(a.Calculate() == 0)
@@ -1246,9 +1247,9 @@ void TSquareEquality::SetLeftPartP(const TPolynom &P, bool)
 bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     ClearSolution();
-    TNumeric& a = GetCoefP(2);
-    TNumeric& b = GetCoefP(1);
-    TNumeric& c = GetCoefP(0);
+    TNumeric& a = *GetCoefP(2);
+    TNumeric& b = *GetCoefP(1);
+    TNumeric& c = *GetCoefP(0);
     if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
 
     Result.Intervals.clear();
@@ -1626,9 +1627,9 @@ string TLinearInequality::GetShortTask()
 
 bool TLinearInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
-    TNumeric& a = GetCoefP(1);
-    TNumeric& b = GetCoefP(0);
-    TNumeric& c = GetRightPartP();
+    TNumeric& a = *GetCoefP(1);
+    TNumeric& b = *GetCoefP(0);
+    TNumeric& c = *GetRightPartP();
     Result.Intervals.clear();
 
     if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
@@ -1808,9 +1809,9 @@ string TSquareInequality::GetShortTask()
 bool TSquareInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 {
     TSquareEquality Eq;
-    TNumeric& a = GetCoefP(2);
-    TNumeric& b = GetCoefP(1);
-    TNumeric& c = GetCoefP(0);
+    TNumeric& a = *GetCoefP(2);
+    TNumeric& b = *GetCoefP(1);
+    TNumeric& c = *GetCoefP(0);
     if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
 
     if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
@@ -2221,20 +2222,20 @@ bool TRationalFunctionDerivative::GetSolution(std::shared_ptr<THTMLWriter> Write
     R.P.Coef.assign(MaxPowerNominator+1, TNumeric(0));
     for(size_t i = 0; i <= MaxPowerNominator; i++)
     {
-        auto v = Conditions->GetByID(i);
-        if(v.has_value())
+        PNumeric v = Conditions->GetByID(i);
+        if(!v)
             return false;
         else
-            R.P.Coef[i] = v.value();
+            R.P.Coef[i] = v;
     }
     R.Q.Coef.assign(MaxPowerDenominator+1, TNumeric(0));
     for(size_t i = 0; i <= MaxPowerDenominator; i++)
     {
-        auto v = Conditions->GetByID(i+MaxPowerNominator+1);
-        if(v.has_value())
+        PNumeric v = Conditions->GetByID(i+MaxPowerNominator+1);
+        if(!v)
             return false;
         else
-            R.Q.Coef[i] = v.value();
+            R.Q.Coef[i] = v;
     }
     if(Writer)
     {

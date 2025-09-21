@@ -24,7 +24,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
     std::shared_ptr<TProblem> SimplifyProblem, LinearEquality, SquareEquality, PolynomialEquality4,
-    PolynomialEquality8, RationalSumEquality1, RationalSumEquality2, PowerEquality2,
+        PolynomialEquality8; /*, RationalSumEquality1, RationalSumEquality2, PowerEquality2,
     LinearTrigEquality, HomogeneousTrigEquality2, HomogeneousTrigEquality3, HomogeneousTrigEquality4,
     SystemOfEquations22, SystemOfEquations33, SystemOfEquations44, SystemOfEquations55, LinearInequality,
     SquareInequality, PolynomialInequality8, SystemOfLinearInequalities, SystemOfSquareInequalities, SetOfLinearInequalities,
@@ -32,7 +32,7 @@ class MainWindow : public QMainWindow
     PolynomDerivative4, RationalFunctionDerivative44, PolynomDerivative, RationalFunctionDerivative, DerivativeProblem,
     PolynomIntegralProblem, RationalIntegralProblem22, RationalIntegralProblem45, RationalIntegralProblem66,
     IntegralProblem, MaclaurinSeriesProblem3, MaclaurinSeriesProblem5,
-    RationalIntegralProblemFactorized;
+    RationalIntegralProblemFactorized;*/
     QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>> WidgetToProblemMap;
 
     QVBoxLayout *SelectedKeywordsLayout;

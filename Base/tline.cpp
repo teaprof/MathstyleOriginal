@@ -14,8 +14,8 @@
 //---------------------------------------------------------------------------
 TPaintCanvas::TPaintCanvas(const TPaintCanvas& C)
 {
-    Painter = C.Painter;
-    Scene = C.Scene;
+    painter_ = C.painter_;
+    scene_ = C.scene_;
     Font = C.Font;
     Pen = C.Pen;
     Brush = C.Brush;
@@ -31,8 +31,8 @@ TPaintCanvas::TPaintCanvas(const TPaintCanvas& C)
 
 TPaintCanvas::TPaintCanvas(QPainter *Painter)
 {
-    this->Painter = Painter;
-    this->Scene = 0;
+    this->painter_ = Painter;
+    this->scene_ = 0;
     TextFont = QFont(TextFontName, 14);
     FormulaFont = QFont(FormulaFontName, 14);
     FormulaColor = Qt::black;
@@ -46,8 +46,8 @@ TPaintCanvas::TPaintCanvas(QPainter *Painter)
 
 TPaintCanvas::TPaintCanvas(QGraphicsScene *Scene)
 {
-    this->Painter = 0;
-    this->Scene = Scene;
+    this->painter_ = 0;
+    this->scene_ = Scene;
     TextFont = QFont(TextFontName, 14);
     FormulaFont = QFont(FormulaFontName, 14);
     FormulaColor = Qt::black;
@@ -60,14 +60,14 @@ TPaintCanvas::TPaintCanvas(QGraphicsScene *Scene)
 
 int TPaintCanvas::TextWidth(string Text)
 {
-    if(Painter)
+    if(painter_)
     {
         QFontMetrics Metrics(Font);
         //QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
         //return R.width();
         return Metrics.horizontalAdvance(QString::fromUtf8(Text.c_str()));
     };
-    if(Scene)
+    if(scene_)
     {        
         QFontMetrics Metrics(Font);
         //QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
@@ -196,43 +196,43 @@ void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2, QColor Color)
 
 void TPaintCanvas::Line(int x1, int y1, int x2, int y2, QPen Pen)
 {
-    if(Painter)
+    if(painter_)
     {
-        Painter->setPen(Pen);
-        Painter->drawLine(x1 - OriginX, y1 - OriginY, x2 - OriginX, y2 - OriginY);
+        painter_->setPen(Pen);
+        painter_->drawLine(x1 - OriginX, y1 - OriginY, x2 - OriginX, y2 - OriginY);
     };
-    if(Scene)
+    if(scene_)
     {
-        Scene->addLine(x1 - OriginX, y1 - OriginY, x2 - OriginX, y2 - OriginY, Pen);
+        scene_->addLine(x1 - OriginX, y1 - OriginY, x2 - OriginX, y2 - OriginY, Pen);
     }
 
 }
 
 void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2, QPen Pen, QBrush Brush)
 {
-    if(Painter)
+    if(painter_)
     {
         QBrush CurBrush = this->Brush;
         QPen CurPen = this->Pen;
-        Painter->setBrush(Brush);
-        Painter->setPen(Pen);
-        Painter->drawRect(x1 - OriginX, y1 - OriginY, x2-x1, y2-y1);
+        painter_->setBrush(Brush);
+        painter_->setPen(Pen);
+        painter_->drawRect(x1 - OriginX, y1 - OriginY, x2-x1, y2-y1);
         this->Brush = CurBrush;
         this->Pen = CurPen;
     };
-    if(Scene)
+    if(scene_)
     {
-        Scene->addRect(x1 - OriginX, y1 - OriginY, x2-x1, y2-y1, Pen, Brush);
+        scene_->addRect(x1 - OriginX, y1 - OriginY, x2-x1, y2-y1, Pen, Brush);
     }
 }
 
 void TPaintCanvas::TextOutA(int X, int Y, string Text, QColor Color, QFont Font)
 {
-    if(Painter)        
+    if(painter_)
     {
-        Painter->setPen(QPen(Color));
-        Painter->setFont(Font);
-        Painter->drawText(X - OriginX, Y - OriginY, QString::fromUtf8(Text.c_str()));
+        painter_->setPen(QPen(Color));
+        painter_->setFont(Font);
+        painter_->drawText(X - OriginX, Y - OriginY, QString::fromUtf8(Text.c_str()));
 #ifdef __DEBUG__
         int W = TextWidth(Text);
         int H = TextHeight(Text);
@@ -240,11 +240,11 @@ void TPaintCanvas::TextOutA(int X, int Y, string Text, QColor Color, QFont Font)
         Painter->drawRect(X - OriginX, Y - H - OriginY, W, H+D);
 #endif
     };
-    if(Scene)        
+    if(scene_)
     {
-        //QGraphicsTextItem *I = Scene->addText(QString::fromUtf8(Text.c_str()), Font);
+        //QGraphicsTextItem *I = scene_->addText(QString::fromUtf8(Text.c_str()), Font);
 //        I->setDefaultTextColor(Pen.color());
-        QGraphicsSimpleTextItem *I = Scene->addSimpleText(QString::fromUtf8(Text.c_str()), Font);
+        QGraphicsSimpleTextItem *I = scene_->addSimpleText(QString::fromUtf8(Text.c_str()), Font);
 
         I->setFont(Font);
         I->setBrush(QBrush(Color));
@@ -258,19 +258,19 @@ void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text, QCol
 {
     //Text = Text +"1";
     //Text = Text; // + "│";
-    if(Painter)
+    if(painter_)
     {
         //QRect br;
-        Painter->setPen(QPen(Color));
-        Painter->setFont(Font);
-        Painter->drawText(X1 - OriginX, Y1 - OriginY, X2-X1, Y2-Y1, Qt::AlignCenter | Qt::AlignHCenter, QString::fromUtf8(Text.c_str()));
+        painter_->setPen(QPen(Color));
+        painter_->setFont(Font);
+        painter_->drawText(X1 - OriginX, Y1 - OriginY, X2-X1, Y2-Y1, Qt::AlignCenter | Qt::AlignHCenter, QString::fromUtf8(Text.c_str()));
 #ifdef __DEBUG__
         Painter->drawRect(X1 - OriginX, Y1 - OriginY, X2-X1, Y2-Y1);
 #endif
     };
-    if(Scene)
+    if(scene_)
     {
-        //QGraphicsTextItem *I = Scene->addText(QString::fromUtf8(Text.c_str()), Font);
+        //QGraphicsTextItem *I = scene_->addText(QString::fromUtf8(Text.c_str()), Font);
         //I->setFlag(QGraphicsItem::ItemIsSelectable);
         //QRectF R = I->boundingRect();
         //I->setDefaultTextColor(Pen.color());
@@ -278,7 +278,7 @@ void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text, QCol
         //I->setY((Y1+Y2)/2 - R.height()/2 - OriginY);
 
 
-        QGraphicsSimpleTextItem *I = Scene->addSimpleText(QString::fromUtf8(Text.c_str()), Font);
+        QGraphicsSimpleTextItem *I = scene_->addSimpleText(QString::fromUtf8(Text.c_str()), Font);
         //QRectF R = I->boundingRect();
         I->setX(X1 - OriginX);
         QFontMetrics M(this->Font);        

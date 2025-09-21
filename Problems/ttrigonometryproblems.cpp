@@ -120,12 +120,12 @@ TLinearTrigEquality::~TLinearTrigEquality()
 
 void TLinearTrigEquality::SetCoef(const TNumeric& a, const TNumeric& b, const TNumeric& c)
 {
-    TNumeric& A = Conditions->GetByID(IDa).value();
-    A = a; A.ClearID(); A.ID = IDa; A.EditableFlags = ConstAllowed;
-    TNumeric& B = Conditions->GetByID(IDb).value();
-    B = b; B.ClearID(); B.ID = IDb; B.EditableFlags = ConstAllowed;
-    TNumeric& C = Conditions->GetByID(IDc).value();
-    C = c; C.ClearID(); C.ID = IDc; C.EditableFlags = ConstAllowed;
+    PNumeric A = Conditions->GetByID(IDa);
+    *A = a; A->ClearID(); A->ID = IDa; A->EditableFlags = ConstAllowed;
+    PNumeric B = Conditions->GetByID(IDb);
+    *B = b; B->ClearID(); B->ID = IDb; B->EditableFlags = ConstAllowed;
+    PNumeric C = Conditions->GetByID(IDc);
+    *C = c; C->ClearID(); C->ID = IDc; C->EditableFlags = ConstAllowed;
 }
 
 

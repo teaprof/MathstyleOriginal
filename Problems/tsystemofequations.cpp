@@ -12,15 +12,15 @@ TSystemOfEquations::TSystemOfEquations(size_t VarsCount, size_t EqCount) : TProb
     if(VarsCount > 10) throw "TSystemOfEquations:: VarsCount > 10";
     for(size_t i = 0; i < VarsCount; i++)
     {
-        TNumeric V;
+        PNumeric V = TNumeric::create();
         char v[10];
         if(VarsCount <= 3)
         {
             strcpy(v, "x");
             v[0] = v[0] + i;
-            V = TNumeric(v);
+            *V = TNumeric(v);
         } else {
-            V = MakeSubscript(TNumeric("x"), TNumeric(i+1));
+            *V = MakeSubscript(TNumeric("x"), TNumeric(i+1));
         };
         Variables.push_back(V);
     };
@@ -30,7 +30,7 @@ TSystemOfEquations::TSystemOfEquations(size_t VarsCount, size_t EqCount) : TProb
     int IDCount = 0;
     for(size_t n = 0; n < EqCount; n++)
     {
-        TNumeric LeftSide;
+        PNumeric LeftSide = TNumeric::create();
         vector<int> EqIDs;
         EqIDs.assign(VarsCount+1, 0);
         for(size_t m = 0; m < VarsCount; m++)
@@ -41,16 +41,16 @@ TSystemOfEquations::TSystemOfEquations(size_t VarsCount, size_t EqCount) : TProb
             A.SetEditableFlags(ConstAllowed);
             if(m == 0)
             {
-                LeftSide = A*Variables[m];
+                *LeftSide = A*(*Variables[m]);
             } else {
-                LeftSide = LeftSide + A*Variables[m];
+                *LeftSide = *LeftSide + A*(*Variables[m]);
             };
         }
         TNumeric FreeTerm(0);
         FreeTerm.EditableFlags = ConstAllowed;
         EqIDs[VarsCount] = IDCount;
         FreeTerm.ID = IDCount++;
-        TNumeric Eq = MakeEquality(LeftSide, FreeTerm);
+        TNumeric Eq = MakeEquality(*LeftSide, FreeTerm);
 
         ID.push_back(EqIDs);
         Conditions->OperandsPushback(Eq);
@@ -294,7 +294,7 @@ bool TSystemOfEquations::ReadData()
         for(size_t m = 0; m < VarsCount(); m++)
             Coefs1[m] = *Conditions->GetByID(ID[n][m]);
         Coefs.push_back(Coefs1);
-        TNumeric &N = Conditions->GetByID(ID[n][VarsCount()]).value().get();
+        PNumeric N = Conditions->GetByID(ID[n][VarsCount()]);
         RightSide.push_back(N);
     }
     return true;

@@ -7,8 +7,8 @@
 
 class TSystemOfEquations : public TProblem
 {
-    vector< vector<TNumeric> > Coefs; //EqCount x VarsCount
-    vector<TNumeric> RightSide;
+    vector< vector<PNumeric> > Coefs; //EqCount x VarsCount
+    vector<PNumeric> RightSide;
     bool ReadData(); //разбирает Conditions и заполняет Coefs и RightSide
 
     void Assign(const TSystemOfEquations& E);
@@ -16,9 +16,9 @@ class TSystemOfEquations : public TProblem
     bool CheckAlwaysFalse(int EqNumber); //возвращает истину, если уравнение номер EqNumber имеет вид 0 = 1 или 1 = 0
     int MaxID; //используется в BeginAddEquatios и AddEquation        
 public:    
-    vector<TNumeric> Answer;
+    vector<PNumeric> Answer;
     bool SolutionExists; //истина, если решение существует
-    vector<TNumeric> Variables; //обозначения переменных
+    vector<PNumeric> Variables; //обозначения переменных
     vector< vector <int> > ID; //EqCount x (VarsCount+1) ID[i][j] - идентификатор коэффициента в i-ом уравнении при j-ой переменной; ID[i][VarsCount+1] - идентификатор свободного члена
 
     TSystemOfEquations(size_t VarsCount = 3, size_t EqCount = 3);

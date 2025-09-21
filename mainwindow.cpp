@@ -481,12 +481,13 @@ void MainWindow::DrawConditions()
     if(Problem)
     {
         ui->FormulaEditor->SetTask(Problem->GetTask());
-        ui->FormulaEditor->SetFormula(Problem->Conditions);
+        //ui->FormulaEditor->SetFormula(Problem->Conditions);
+        ui->FormulaEditor->setProblem(Problem);
         ui->pushButton_6->setEnabled(Problem->CanRandomize);
     } else  {
         ui->pushButton_6->setEnabled(false);
         ui->FormulaEditor->SetTask("");
-        ui->FormulaEditor->SetFormula(0);
+        //ui->FormulaEditor->SetFormula(0);
     }
     ui->FormulaEditor->repaint();
 }

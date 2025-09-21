@@ -15,16 +15,16 @@ class TPolynom
         TPolynom TestX1(vector<int> Nom, vector<int> Denom, vector<TPolynom> &Res, vector<size_t> &Multiplicities) const;
         TPolynom TestX2(vector<int> a, vector<int> b, vector<int> c, vector<TPolynom> &Res, vector<size_t> &Multiplicities) const;
 
-    public:        
-        std::vector<TNumeric> Coef; //Coef[0] + Coef[1]*x + Coef[2]*x^2 + ... + Coef[n]*x^n
+    public:
+        std::vector<PNumeric> Coef; //Coef[0] + Coef[1]*x + Coef[2]*x^2 + ... + Coef[n]*x^n
         //если Coef.size() == 0, то полином тождественно равен нулю
         //Вместо Coef[i] и Coef.size() лучше всего использовать GetCoef(i) и MajorPower()
 
-        TNumeric& GetCoef(size_t Power);
+        PNumeric GetCoef(size_t Power);
         TNumeric GetCoef(size_t Power) const;
         TPolynom();
         TPolynom(const TPolynom &P);
-        TPolynom(const std::vector<TNumeric>& Coef);
+        TPolynom(const std::vector<PNumeric>& Coef);
         TPolynom(const std::vector<int>& Coef);
         TPolynom(const TNumeric& a); //creates ax^0
         TPolynom(const TNumeric& a, const TNumeric &b); //creates ax+b

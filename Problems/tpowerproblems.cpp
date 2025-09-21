@@ -29,19 +29,19 @@ TPowerProblemConditions::~TPowerProblemConditions()
 {
 
 }
-TNumeric* TPowerProblemConditions::GetLeftBase()
+std::shared_ptr<TNumeric> TPowerProblemConditions::GetLeftBase()
 {
-    auto v = Conditions->GetByID(LeftBaseID);
-    if(v.has_value())
-        return &(v->get());
+    PNumeric N = Conditions->GetByID(LeftBaseID);
+    if(N != nullptr)
+        return N;
     return nullptr;
 }
 
-TNumeric* TPowerProblemConditions::GetRightBase()
+std::shared_ptr<TNumeric> TPowerProblemConditions::GetRightBase()
 {
-    auto v = Conditions->GetByID(RightBaseID);
-    if(v.has_value())
-        return &(v->get());
+    auto N = Conditions->GetByID(RightBaseID);
+    if(N != nullptr)
+        return N;
     return nullptr;
 }
 
@@ -88,18 +88,18 @@ void TPowerProblemConditions::Randomize(std::mt19937& rng)
     for(size_t i = 0; i <= MaxPower; i++)
     {
         int ID = GetStartID(0) + i;
-        TNumeric& N = Conditions->GetByID(ID).value().get();
-        N = TNumeric(dist(rng));
-        N.ID = ID;
-        N.SetEditableFlags(ConstAllowed);
+        PNumeric N = Conditions->GetByID(ID);
+        *N = TNumeric(dist(rng));
+        N->ID = ID;
+        N->SetEditableFlags(ConstAllowed);
     };
     for(size_t i = 0; i <= MaxPower; i++)
     {
         int ID = GetStartID(1) + i;
-        TNumeric& N = Conditions->GetByID(ID).value().get();
-        N = TNumeric(dist(rng));
-        N.ID = ID;
-        N.SetEditableFlags(ConstAllowed);
+        PNumeric N = Conditions->GetByID(ID);
+        *N = TNumeric(dist(rng));
+        N->ID = ID;
+        N->SetEditableFlags(ConstAllowed);
     };
     //building the bases A and B
     vector<int> Primes;
@@ -116,7 +116,7 @@ void TPowerProblemConditions::Randomize(std::mt19937& rng)
     while(d1-- > 0) base1 *= base;
     int base2 = base;
     while(d2-- > 0) base2 *= base;
-    TNumeric *N = GetLeftBase();
+    PNumeric N = GetLeftBase();
     *N = TNumeric(base1);
     N->SetEditableFlags(ConstAllowed);
     N->ID = LeftBaseID;

@@ -16,34 +16,34 @@ TPolynom::TPolynom(const TPolynom& P)
     Assign(P);
 }
 
-TPolynom::TPolynom(const std::vector<TNumeric> &Coef)
+TPolynom::TPolynom(const std::vector<PNumeric> &Coef)
 {
     this->Coef = Coef;
 }
 TPolynom::TPolynom(const std::vector<int> &Coef)
 {
-    this->Coef.assign(Coef.size(), TNumeric("0"));
+    this->Coef.assign(Coef.size(), nullptr);
     for(size_t i = 0; i < Coef.size(); i++)
-        this->Coef[i] = TNumeric(Coef[i]);
+        this->Coef[i] = TNumeric::create(Coef[i]);
 }
 
 
 TPolynom::TPolynom(const TNumeric& a)
 {
-    Coef.push_back(a);
+    Coef.push_back(TNumeric::create(TNumeric::create(a)));
 }
 
 TPolynom::TPolynom(const TNumeric& a, const TNumeric &b)
 {
-    Coef.push_back(b);
-    Coef.push_back(a);
+    Coef.push_back(TNumeric::create(b));
+    Coef.push_back(TNumeric::create(a));
 }
 
 TPolynom::TPolynom(const TNumeric& a, const TNumeric &b, const TNumeric& c)
 {
-    Coef.push_back(c);
-    Coef.push_back(b);
-    Coef.push_back(a);
+    Coef.push_back(TNumeric::create(c));
+    Coef.push_back(TNumeric::create(b));
+    Coef.push_back(TNumeric::create(a));
 }
 
 TPolynom::~TPolynom()
@@ -56,14 +56,14 @@ void TPolynom::Assign(const TPolynom &P)
     Coef = P.Coef;
 }
 
-TNumeric& TPolynom::GetCoef(size_t Power)
+PNumeric TPolynom::GetCoef(size_t Power)
 {
     if(Power >= Coef.size())
     {
         if(Power == 0)
         {
             //Запрашивается Coef[0], но Coef не содержит ни одного элемента
-            Coef.push_back(TNumeric(0)); //добавляем нулевой элемент
+            Coef.push_back(TNumeric::create(0)); //добавляем нулевой элемент
             return Coef[Power];
         } else throw "TNumeric& TPolynom::GetCoef(size_t Power): Power >= Coef.size()";
     } else {

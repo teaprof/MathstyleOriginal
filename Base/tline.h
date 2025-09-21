@@ -18,8 +18,8 @@ class TPaintCanvas
 {   
 public:
     int OriginX, OriginY; //при рисовании эти величины вычитаются из координат
-    QPainter *Painter;
-    QGraphicsScene *Scene;
+    QPainter* painter_;
+    QGraphicsScene *scene_; /// \todo: remove, painter should be enaugh
 
     QFont TextFont; //шрифт для текста
     QFont FormulaFont; //шрифт для формул
@@ -32,7 +32,7 @@ public:
     QPen Pen;
     QBrush Brush;
     TPaintCanvas(const TPaintCanvas& C);
-    TPaintCanvas(QPainter *Painter);
+    TPaintCanvas(QPainter* Painter);
     TPaintCanvas(QGraphicsScene *Scene);
 
     int TextWidth(string Text);  

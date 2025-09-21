@@ -25,9 +25,9 @@ class TPolynomConditions:  public TProblem
 
         vector<TNumeric> GetCoef() const;
         TPolynom GetP() const; //rename to getPolynom
-        TNumeric& GetCoefP(size_t power);
-        const TNumeric& GetCoef(size_t power) const;
-        TNumeric& GetRightPartP();
+        PNumeric GetCoefP(size_t power);
+        const PNumeric GetCoef(size_t power) const;
+        PNumeric GetRightPartP();
         TNumeric GetRightPart() const;
 
 
@@ -113,6 +113,10 @@ public:
     explicit TLinearEquality(const TPolynom& P);
     explicit TLinearEquality(const TLinearEquality& L);
     void operator=(const TLinearEquality& L) {Assign(L);}
+
+    std::vector<std::shared_ptr<TNumeric>> getEditables() {
+        return {};
+    }
 
 
     virtual void SetLeftPartP(const TPolynom &P, bool unused_flag = false);
