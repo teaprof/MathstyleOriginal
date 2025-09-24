@@ -101,9 +101,9 @@ void TPolynomConditions::SetUnknownVar(TNumeric UnknownVar) {
     }
 }
 
-vector<TNumeric> TPolynomConditions::GetCoef() const {
+vector<TNumeric> TPolynomConditions::GetCoef() const {    
+    assert(Conditions != nullptr);
     vector<TNumeric> Coef2;
-    if (Conditions == 0) throw "TPolynomConditions::GetCoef: Conditions = 0";
     Coef2.assign(MaxPower + 1, TNumeric("0"));
     for (size_t i = 0; i <= MaxPower; i++) {
         Coef2[i] = *(Conditions->GetByRole(i));
@@ -285,7 +285,7 @@ void TPolynomialEquality::BuildPhrases() {
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("All denominators should be integer.");
     MyTranslator.AddRus("Все знаменатели должны быть целыми");
-    MyTranslator.AddEng("All nominators should be integer.");
+    MyTranslator.AddEng("All numerators should be integer.");
     MyTranslator.AddRus("Все числители должны быть целыми");
     MyTranslator.AddEng("All coefficients should be rational.");
     MyTranslator.AddRus("Все коэффициенты должны быть рациональными");
@@ -491,7 +491,7 @@ bool TPolynomialEquality::CheckRationalAndGetNOK(std::shared_ptr<THTMLWriter> Wr
             TNumeric Nom = P.GetCoef(Power).operands[0]->Simplify();
             P.GetCoef(Power).operands[0] = std::make_shared<TNumeric>(Nom);
             if (!Nom.isInteger(0)) {
-                if (Writer) Writer->WriteError("All nominators should be integer.");
+                if (Writer) Writer->WriteError("All numerators should be integer.");
                 return false;
             };
         } else if (!P.GetCoef(Power).isInteger(0)) {
@@ -1927,8 +1927,8 @@ void TPolynomDerivative::Randomize(std::mt19937& rng) {
 
 //*****************************************************************************************************************************
 
-TRationalFunctionDerivative::TRationalFunctionDerivative(size_t MaxPowerNominator, size_t MaxPowerDenominator) :
-    TRationalFunctionConditions(OperatorDeriv, false, MaxPowerNominator, MaxPowerDenominator) {
+TRationalFunctionDerivative::TRationalFunctionDerivative(size_t MaxPowerNumerator, size_t MaxPowerDenominator) :
+    TRationalFunctionConditions(OperatorDeriv, false, MaxPowerNumerator, MaxPowerDenominator) {
     CanRandomize = true;
     BuildPhrases();
 }
@@ -1969,14 +1969,14 @@ string TRationalFunctionDerivative::GetTask() {
 
 string TRationalFunctionDerivative::GetShortTask() {
     char Buf[128];
-    sprintf(Buf, MyTranslator.tr("rational function of %d/%d powers").c_str(), MaxPowerNominator, MaxPowerDenominator);
+    sprintf(Buf, MyTranslator.tr("rational function of %d/%d powers").c_str(), MaxPowerNumerator, MaxPowerDenominator);
     return Buf;
 }
 
 bool TRationalFunctionDerivative::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TRationalFunction R;
-    R.P.Coef.assign(MaxPowerNominator + 1, TNumeric(0));
-    for (size_t i = 0; i <= MaxPowerNominator; i++) {
+    R.P.Coef.assign(MaxPowerNumerator + 1, TNumeric(0));
+    for (size_t i = 0; i <= MaxPowerNumerator; i++) {
         PNumeric v = Conditions->GetByRole(i);
         if (!v)
             return false;
@@ -1985,7 +1985,7 @@ bool TRationalFunctionDerivative::GetSolution(std::shared_ptr<THTMLWriter> Write
     }
     R.Q.Coef.assign(MaxPowerDenominator + 1, TNumeric(0));
     for (size_t i = 0; i <= MaxPowerDenominator; i++) {
-        PNumeric v = Conditions->GetByRole(i + MaxPowerNominator + 1);
+        PNumeric v = Conditions->GetByRole(i + MaxPowerNumerator + 1);
         if (!v)
             return false;
         else
@@ -2026,20 +2026,20 @@ void TRationalFunctionDerivative::LoadFromFile(ifstream& f) {
 
 TRationalFunctionConditions::TRationalFunctionConditions(Operation operation,
                                                          bool HaveRightPart,
-                                                         size_t MaxPowerNominator,
+                                                         size_t MaxPowerNumerator,
                                                          size_t MaxPowerDenominator) {
     this->operation = operation;
-    this->MaxPowerNominator = MaxPowerNominator;
+    this->MaxPowerNumerator = MaxPowerNumerator;
     this->MaxPowerDenominator = MaxPowerDenominator;
     UnknownVar = TNumeric("x");
     this->HaveRightPart = HaveRightPart;
-    SetMaxPower(MaxPowerNominator, MaxPowerDenominator);
+    SetMaxPower(MaxPowerNumerator, MaxPowerDenominator);
 }
 
 /*void TRationalFunctionConditions::Assign(const TRationalFunctionConditions& R)
 {
     HaveRightPart = R.HaveRightPart;
-    MaxPowerNominator = R.MaxPowerDenominator;
+    MaxPowerNumerator = R.MaxPowerDenominator;
     MaxPowerDenominator = R.MaxPowerDenominator;
     operation = R.operation;
     UnknownVar = R.UnknownVar;
@@ -2051,19 +2051,19 @@ void TRationalFunctionConditions::operator=(const TRationalFunctionConditions& R
     Assign(R);
 }*/
 
-void TRationalFunctionConditions::SetMaxPower(size_t MaxPowerNominator, size_t MaxPowerDenominator) {
-    TNumeric Nominator;
-    Nominator.operation = OperatorSum;
-    for (size_t i = 0; i <= MaxPowerNominator; i++) {
+void TRationalFunctionConditions::SetMaxPower(size_t MaxPowerNumerator, size_t MaxPowerDenominator) {
+    TNumeric Numerator;
+    Numerator.operation = OperatorSum;
+    for (size_t i = 0; i <= MaxPowerNumerator; i++) {
         TNumeric a(0);
         a.ClearID();
-        a.role = GetNominatorCoefID(i);
+        a.role = GetNumeratorCoefID(i);
         a.SetEditableFlags(ConstAllowed);
         if (i == 0) {
-            Nominator = a;
+            Numerator = a;
         } else {
             TNumeric Temp = a * (UnknownVar ^ TNumeric(i));
-            Nominator = Temp + Nominator;
+            Numerator = Temp + Numerator;
         }
     }
 
@@ -2084,10 +2084,10 @@ void TRationalFunctionConditions::SetMaxPower(size_t MaxPowerNominator, size_t M
     }
     TNumeric Res;
     Res.operation = OperatorFrac;
-    Res.OperandsPushback(Nominator);
+    Res.OperandsPushback(Numerator);
     Res.OperandsPushback(Denominator);
 
-    this->MaxPowerNominator = MaxPowerNominator;
+    this->MaxPowerNumerator = MaxPowerNumerator;
     this->MaxPowerDenominator = MaxPowerDenominator;
 
     if (HaveRightPart) {
@@ -2103,12 +2103,12 @@ void TRationalFunctionConditions::SetMaxPower(size_t MaxPowerNominator, size_t M
     }
 }
 
-size_t TRationalFunctionConditions::GetNominatorCoefID(size_t power) {
+size_t TRationalFunctionConditions::GetNumeratorCoefID(size_t power) {
     return power;
 }
 
 size_t TRationalFunctionConditions::GetDenominatorCoefID(size_t power) {
-    return MaxPowerNominator + 1 + power;
+    return MaxPowerNumerator + 1 + power;
 }
 
 TRationalFunctionConditions::~TRationalFunctionConditions() {}
@@ -2130,11 +2130,11 @@ TNumeric TRationalFunctionConditions::GetRightPart() const {
     return *Conditions->GetByRole(RightPartID());
 }
 
-TPolynom TRationalFunctionConditions::GetNominatorP() {
+TPolynom TRationalFunctionConditions::GetNumeratorP() {
     vector<TNumeric> Coefs;
-    Coefs.assign(MaxPowerNominator + 1, TNumeric("0"));
-    for (size_t i = 0; i <= MaxPowerNominator; i++)
-        Coefs[i] = *Conditions->GetByRole(GetNominatorCoefID(i));
+    Coefs.assign(MaxPowerNumerator + 1, TNumeric("0"));
+    for (size_t i = 0; i <= MaxPowerNumerator; i++)
+        Coefs[i] = *Conditions->GetByRole(GetNumeratorCoefID(i));
     return TPolynom(Coefs);
 }
 
@@ -2147,37 +2147,37 @@ TPolynom TRationalFunctionConditions::GetDenominatorP() {
 }
 
 void TRationalFunctionConditions::SaveToFile(ofstream& f) {
-    uint16_t MaxPowerNominator = this->MaxPowerNominator;
+    uint16_t MaxPowerNumerator = this->MaxPowerNumerator;
     uint16_t MaxPowerDenominator = this->MaxPowerDenominator;
-    f.write((char*)&MaxPowerNominator, sizeof(MaxPowerNominator));
+    f.write((char*)&MaxPowerNumerator, sizeof(MaxPowerNumerator));
     f.write((char*)&MaxPowerDenominator, sizeof(MaxPowerDenominator));
     UnknownVar.WriteToFile(f);
 }
 
 void TRationalFunctionConditions::LoadFromFile(ifstream& f) {
-    uint16_t MaxPowerNominator;
+    uint16_t MaxPowerNumerator;
     uint16_t MaxPowerDenominator;
-    f.read((char*)&MaxPowerNominator, sizeof(MaxPowerNominator));
+    f.read((char*)&MaxPowerNumerator, sizeof(MaxPowerNumerator));
     f.read((char*)&MaxPowerDenominator, sizeof(MaxPowerDenominator));
-    this->MaxPowerNominator = MaxPowerNominator;
+    this->MaxPowerNumerator = MaxPowerNumerator;
     this->MaxPowerDenominator = MaxPowerDenominator;
     UnknownVar.LoadFromFile(f);
 }
 
-void TRationalFunctionConditions::SetNominator(const TPolynom& P, bool AllCoef) {
+void TRationalFunctionConditions::SetNumerator(const TPolynom& P, bool AllCoef) {
     if (AllCoef)
         if (P.Coef.size() == 0)
-            MaxPowerNominator = 0;
+            MaxPowerNumerator = 0;
         else
-            MaxPowerNominator = P.Coef.size() - 1;
+            MaxPowerNumerator = P.Coef.size() - 1;
     else
-        MaxPowerNominator = P.MajorPower();
+        MaxPowerNumerator = P.MajorPower();
 
     TNumeric Sum;
-    for (size_t i = 0; i <= MaxPowerNominator; i++) {
+    for (size_t i = 0; i <= MaxPowerNumerator; i++) {
         TNumeric a = P.GetCoef(i);
         a.ClearID();
-        a.role = GetNominatorCoefID(i);
+        a.role = GetNumeratorCoefID(i);
         a.SetEditableFlags(ConstAllowed);
         TNumeric Temp = GetVarPower(i);
         if (i == 0) {
@@ -2190,7 +2190,7 @@ void TRationalFunctionConditions::SetNominator(const TPolynom& P, bool AllCoef) 
             Sum = a * Temp + Sum;
         }
     }
-    TNumeric* N = GetNominator();
+    TNumeric* N = GetNumerator();
     *N = Sum;
 }
 
@@ -2224,18 +2224,8 @@ void TRationalFunctionConditions::SetDenominator(const TPolynom& P, bool AllCoef
     *D = Sum;
 }
 
-TNumeric TRationalFunctionConditions::GetVarPower(size_t power) {
-    if (power == 0)
-        return TNumeric("1");
-    else {
-        if (power == 1)
-            return (UnknownVar);
-        else
-            return (UnknownVar ^ TNumeric(static_cast<int>(power)));
-    };
-}
 
-TNumeric* TRationalFunctionConditions::GetNominator() {
+TNumeric* TRationalFunctionConditions::GetNumerator() {
     if (HaveRightPart)
         return Conditions->operands[0]->operands[0].get();
     else
@@ -2250,12 +2240,12 @@ TNumeric* TRationalFunctionConditions::GetDenominator() {
 }
 
 void TRationalFunctionConditions::Randomize(std::mt19937& rng) {
-    TPolynom Nominator;
-    Nominator.Coef.assign(MaxPowerNominator + 1, TNumeric(0));
+    TPolynom Numerator;
+    Numerator.Coef.assign(MaxPowerNumerator + 1, TNumeric(0));
     std::uniform_int_distribution<int> dist(-20, 20);
-    for (size_t i = 0; i <= MaxPowerNominator; i++)
-        Nominator.Coef[i] = TNumeric(dist(rng));
-    SetNominator(Nominator);
+    for (size_t i = 0; i <= MaxPowerNumerator; i++)
+        Numerator.Coef[i] = TNumeric(dist(rng));
+    SetNumerator(Numerator);
     TPolynom Denominator;
     Denominator.Coef.assign(MaxPowerDenominator + 1, TNumeric(0));
     for (size_t i = 0; i <= MaxPowerDenominator; i++)

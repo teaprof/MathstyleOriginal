@@ -90,7 +90,7 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
     /// упрощает выражение, где последним оператором является Log(A, B)
     TNumeric SimplifyLog() const;
     /// если это возможно, представляет объект в виде рациональной дроби; если не возможно, то false
-    bool asRational(int& Nominator, int& Denominator) const ;
+    bool asRational(int& Numerator, int& Denominator) const ;
     /// упрощает функции везде, где возможно
     TNumeric SimplifyFunctions() const;
 

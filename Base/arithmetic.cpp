@@ -1109,16 +1109,16 @@ TNumeric TNumeric::RestoreUnimplementedFunctions(const std::map<string, TNumeric
     return res;
 }
 
-bool TNumeric::asRational(int& Nominator, int& Denominator) const {
+bool TNumeric::asRational(int& Numerator, int& Denominator) const {
     if (CanCalculate() == false) return false;
     if (operation == OperatorConst) {
-        if (isInteger(&Nominator)) {
+        if (isInteger(&Numerator)) {
             Denominator = 1;
             return true;
         }
     };
     if (operation == OperatorFrac) {
-        if (operands[0]->isInteger(&Nominator) && operands[1]->isInteger(&Denominator)) {
+        if (operands[0]->isInteger(&Numerator) && operands[1]->isInteger(&Denominator)) {
             return true;
         }
     }

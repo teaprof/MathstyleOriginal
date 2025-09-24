@@ -54,7 +54,7 @@ class TPolynomConditions : public TProblem {
     virtual void LoadFromFile(ifstream& f);
 
     // возвращает UnknownVar^power
-    virtual TNumeric GetVarPower(size_t power);
+    TNumeric GetVarPower(size_t power);
 
     void Randomize(std::mt19937& rng);
 };
@@ -509,44 +509,43 @@ class TPolynomDerivative : public TPolynomConditions {
 
 class TRationalFunctionConditions : public TProblem {
     int RightPartID() const {
-        return MaxPowerDenominator + MaxPowerNominator + 2;
+        return MaxPowerDenominator + MaxPowerNumerator + 2;
     };
     bool HaveRightPart;  // истина, если необходимо добавлять в Conditions правую часть
     // void Assign(const TRationalFunctionConditions& R);
-    TNumeric GetVarPower(size_t power);  // возвращает UnknownVar^power
   public:
     TNumeric UnknownVar;  // обозначение неизвестной переменной
     Operation operation;
-    size_t MaxPowerNominator, MaxPowerDenominator;
+    size_t MaxPowerNumerator, MaxPowerDenominator;
     TRationalFunctionConditions(Operation operation,
                                 bool HaveRightPart = true,
-                                size_t MaxPowerNominator = 4,
+                                size_t MaxPowerNumerator = 4,
                                 size_t MaxPowerDenominator = 4);
     ~TRationalFunctionConditions();
 
     // void operation=(const TRationalFunctionConditions& R);
 
-    TNumeric* GetNominator();
+    TNumeric* GetNumerator();
     TNumeric* GetDenominator();
 
-    TPolynom GetNominatorP();
+    TPolynom GetNumeratorP();
     TPolynom GetDenominatorP();
 
     TNumeric& GetRightPartP();
     TNumeric GetRightPart() const;
     void SetRightPart(const TNumeric& R);
 
-    void SetNominator(const TPolynom& P,
+    void SetNumerator(const TPolynom& P,
                       bool AllCoef = true);  // Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые
                                              // коэфициенты старше MajorPower будут отброшены
     void SetDenominator(const TPolynom& P,
                         bool AllCoef = true);  // Если AllCoef = true, то будут учитываться все коэфициенты, если false - то
                                                // нулевые коэфициенты старше MajorPower будут отброшены
 
-    size_t GetNominatorCoefID(size_t power);
+    size_t GetNumeratorCoefID(size_t power);
     size_t GetDenominatorCoefID(size_t power);
 
-    void SetMaxPower(size_t MaxPowerNominator, size_t MaxPowerDenominator);
+    void SetMaxPower(size_t MaxPowerNumerator, size_t MaxPowerDenominator);
     // virtual vector<string> GetKeyWords();
 
     virtual void SaveToFile(ofstream& f);
@@ -557,7 +556,7 @@ class TRationalFunctionConditions : public TProblem {
 
 class TRationalFunctionDerivative : public TRationalFunctionConditions {
   public:
-    TRationalFunctionDerivative(size_t MaxPowerNominator = 8, size_t MaxPowerDenominator = 8);
+    TRationalFunctionDerivative(size_t MaxPowerNumerator = 8, size_t MaxPowerDenominator = 8);
     ~TRationalFunctionDerivative();
 
     virtual string GetTask();

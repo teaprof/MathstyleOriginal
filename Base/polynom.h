@@ -122,13 +122,13 @@ class TRationalFunction
         return MakeFrac(P.asNumeric(UnknownVar), Q.asNumeric(UnknownVar));
     }
 
-    const TPolynom& Nominator() const {
+    const TPolynom& Numerator() const {
         return P;
     }
     const TPolynom& Denominator() const {
         return Q;
     }
-    TPolynom& Nominator() {
+    TPolynom& Numerator() {
         return P;
     }
     TPolynom& Denominator() {
@@ -145,6 +145,6 @@ class TRationalFunction
     void reduce(); 
 };
 
-// vector<TNumeric> PolyDiv(vector<TNumeric> Nominator, vector<TNumeric> Denominator, vector<TNumeric> *Reminder);
+// vector<TNumeric> PolyDiv(vector<TNumeric> Numerator, vector<TNumeric> Denominator, vector<TNumeric> *Reminder);
 
 #endif  // POLYNOM_H
