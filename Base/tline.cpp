@@ -1,19 +1,20 @@
+#include "tline.h"
+
 #include <QGraphicsTextItem>
 
-#include <stdio.h>
 #include <iostream>
-#include "tline.h"
-#include "symbols.h"
+#include <stdio.h>
+
 #include "formulaplotter.h"
+#include "symbols.h"
 
 #define FormulaFontName "Courier"
 #define TextFontName "Courier"
 
-//#define __DEBUG__  //показывает разметку
+// #define __DEBUG__  //показывает разметку
 
 //---------------------------------------------------------------------------
-TPaintCanvas::TPaintCanvas(const TPaintCanvas& C)
-{
+TPaintCanvas::TPaintCanvas(const TPaintCanvas& C) {
     painter_ = C.painter_;
     scene_ = C.scene_;
     Font = C.Font;
@@ -29,8 +30,7 @@ TPaintCanvas::TPaintCanvas(const TPaintCanvas& C)
     EditableColor = C.EditableColor;
 }
 
-TPaintCanvas::TPaintCanvas(QPainter *Painter)
-{
+TPaintCanvas::TPaintCanvas(QPainter* Painter) {
     this->painter_ = Painter;
     this->scene_ = 0;
     TextFont = QFont(TextFontName, 14);
@@ -44,8 +44,7 @@ TPaintCanvas::TPaintCanvas(QPainter *Painter)
     OriginY = 0;
 }
 
-TPaintCanvas::TPaintCanvas(QGraphicsScene *Scene)
-{
+TPaintCanvas::TPaintCanvas(QGraphicsScene* Scene) {
     this->painter_ = 0;
     this->scene_ = Scene;
     TextFont = QFont(TextFontName, 14);
@@ -58,178 +57,151 @@ TPaintCanvas::TPaintCanvas(QGraphicsScene *Scene)
     OriginY = 0;
 }
 
-int TPaintCanvas::TextWidth(string Text)
-{
-    if(painter_)
-    {
+int TPaintCanvas::TextWidth(string Text) {
+    if (painter_) {
         QFontMetrics Metrics(Font);
-        //QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
-        //return R.width();
+        // QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
+        // return R.width();
         return Metrics.horizontalAdvance(QString::fromUtf8(Text.c_str()));
     };
-    if(scene_)
-    {        
+    if (scene_) {
         QFontMetrics Metrics(Font);
-        //QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
-        //return R.width();
+        // QRect R = Metrics.boundingRect(0, 0, 1e6, 1e6, 0, QString::fromUtf8(Text.c_str()));
+        // return R.width();
         return Metrics.horizontalAdvance(QString::fromUtf8(Text.c_str()));
 
-/*        QGraphicsTextItem I(QString::fromUtf8(Text.c_str()));
-        I.setFont(Font);
-        QRectF R = I.boundingRect();
-        return R.width();*/
+        /*        QGraphicsTextItem I(QString::fromUtf8(Text.c_str()));
+                I.setFont(Font);
+                QRectF R = I.boundingRect();
+                return R.width();*/
     }
     throw "TPaintCanvas::TextWidth: Painter or Scene should be set";
 }
 
-int TPaintCanvas::TextHeight(string Text)
-{
+int TPaintCanvas::TextHeight(string Text) {
     Q_UNUSED(Text);
     QFontMetrics Metrics(Font);
     return Metrics.ascent();
 }
 
-int TPaintCanvas::TextDepth(string Text)
-{
+int TPaintCanvas::TextDepth(string Text) {
     Q_UNUSED(Text);
     QFontMetrics Metrics(Font);
     return Metrics.descent();
 }
 
-void TPaintCanvas::TightTextWHD(string Text, int *W, int *H, int *D)
-{
+void TPaintCanvas::TightTextWHD(string Text, int* W, int* H, int* D) {
     QFontMetrics Metrics(Font);
     QRect R = Metrics.tightBoundingRect(QString::fromUtf8(Text.c_str()));
-    if(W)*W = abs(R.right());
-    if(H)*H = abs(R.top());
-    if(D)*D = abs(R.bottom());
+    if (W) *W = abs(R.right());
+    if (H) *H = abs(R.top());
+    if (D) *D = abs(R.bottom());
 }
 
-
-
-int TPaintCanvas::TightTextWidth(string Text)
-{
+int TPaintCanvas::TightTextWidth(string Text) {
     QFontMetrics Metrics(Font);
     QRect R = Metrics.tightBoundingRect(QString::fromUtf8(Text.c_str()));
     return abs(R.right());
 }
 
-int TPaintCanvas::TightTextHeight(string Text)
-{
+int TPaintCanvas::TightTextHeight(string Text) {
     QFontMetrics Metrics(Font);
     QRect R = Metrics.tightBoundingRect(QString::fromUtf8(Text.c_str()));
     return abs(R.top());
 }
 
-int TPaintCanvas::TightTextDepth(string Text)
-{
+int TPaintCanvas::TightTextDepth(string Text) {
     QFontMetrics Metrics(Font);
     QRect R = Metrics.tightBoundingRect(QString::fromUtf8(Text.c_str()));
     return R.bottom();
 }
 
-int TPaintCanvas::SetTextHPlusD(string Text, int H, int D)
-{
-int Min = 1;
-int Max = (H + D)*2;
-int Mid;
-int NewH = 0, NewD = 0;
-    while(Max - Min >= 1)
-    {
+int TPaintCanvas::SetTextHPlusD(string Text, int H, int D) {
+    int Min = 1;
+    int Max = (H + D) * 2;
+    int Mid;
+    int NewH = 0, NewD = 0;
+    while (Max - Min >= 1) {
         Mid = (Max + Min) / 2;
         Font.setPixelSize(Mid);
-        //Font.setPointSizeF(Mid);
-//        NewH = TextHeight(Text);
-//        NewD = TextDepth(Text);
+        // Font.setPointSizeF(Mid);
+        //        NewH = TextHeight(Text);
+        //        NewD = TextDepth(Text);
         TightTextWHD(Text, 0, &NewH, &NewD);
-        //QRect R = QFontMetrics(Font).tightBoundingRect(QString::fromUtf8(Text.c_str()));
-        //size_t L = R.height();
+        // QRect R = QFontMetrics(Font).tightBoundingRect(QString::fromUtf8(Text.c_str()));
+        // size_t L = R.height();
         int L = NewH + NewD;
-        if(L > H + D)
-        {
-            //слишком большой шрифт
-            if(Max - Min == 1) Max--;
-            else Max = Mid;
+        if (L > H + D) {
+            // слишком большой шрифт
+            if (Max - Min == 1)
+                Max--;
+            else
+                Max = Mid;
         };
-        if(L < H + D)
-        {
-            if(Max - Min == 1) Min++;
-            else Min = Mid;
+        if (L < H + D) {
+            if (Max - Min == 1)
+                Min++;
+            else
+                Min = Mid;
         };
-        if(L == H + D)
-            break;
+        if (L == H + D) break;
     }
     return H - NewH;
 }
 
-void TPaintCanvas::Line(int x1, int y1, int x2, int y2, QColor Color, int width)
-{
-QPen Pen = QPen(QBrush(Color), width);
+void TPaintCanvas::Line(int x1, int y1, int x2, int y2, QColor Color, int width) {
+    QPen Pen = QPen(QBrush(Color), width);
     Line(x1, y1, x2, y2, Pen);
 }
 
-void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2, QColor Color, int width)
-{
-QPen Pen(QBrush(Color), width);
-QBrush Brush(Color);
+void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2, QColor Color, int width) {
+    QPen Pen(QBrush(Color), width);
+    QBrush Brush(Color);
     Rectangle(x1, y1, x2, y2, Pen, Brush);
 }
 
-void TPaintCanvas::TextOutA(int X, int Y, string Text, QColor Color)
-{
+void TPaintCanvas::TextOutA(int X, int Y, string Text, QColor Color) {
     TextOutA(X, Y, Text, Color, Font);
 }
 
-void TPaintCanvas::Line(int x1, int y1, int x2, int y2, QColor Color)
-{
+void TPaintCanvas::Line(int x1, int y1, int x2, int y2, QColor Color) {
     QPen Pen = QPen(QBrush(Color), 1);
     Line(x1, y1, x2, y2, Pen);
 }
 
-void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2, QColor Color)
-{
+void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2, QColor Color) {
     QPen Pen = QPen(QBrush(Color), 1);
     QBrush Brush = QBrush(Qt::NoBrush);
     Rectangle(x1, y1, x2, y2, Pen, Brush);
 }
 
-
-void TPaintCanvas::Line(int x1, int y1, int x2, int y2, QPen Pen)
-{
-    if(painter_)
-    {
+void TPaintCanvas::Line(int x1, int y1, int x2, int y2, QPen Pen) {
+    if (painter_) {
         painter_->setPen(Pen);
         painter_->drawLine(x1 - OriginX, y1 - OriginY, x2 - OriginX, y2 - OriginY);
     };
-    if(scene_)
-    {
+    if (scene_) {
         scene_->addLine(x1 - OriginX, y1 - OriginY, x2 - OriginX, y2 - OriginY, Pen);
     }
-
 }
 
-void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2, QPen Pen, QBrush Brush)
-{
-    if(painter_)
-    {
+void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2, QPen Pen, QBrush Brush) {
+    if (painter_) {
         QBrush CurBrush = this->Brush;
         QPen CurPen = this->Pen;
         painter_->setBrush(Brush);
         painter_->setPen(Pen);
-        painter_->drawRect(x1 - OriginX, y1 - OriginY, x2-x1, y2-y1);
+        painter_->drawRect(x1 - OriginX, y1 - OriginY, x2 - x1, y2 - y1);
         this->Brush = CurBrush;
         this->Pen = CurPen;
     };
-    if(scene_)
-    {
-        scene_->addRect(x1 - OriginX, y1 - OriginY, x2-x1, y2-y1, Pen, Brush);
+    if (scene_) {
+        scene_->addRect(x1 - OriginX, y1 - OriginY, x2 - x1, y2 - y1, Pen, Brush);
     }
 }
 
-void TPaintCanvas::TextOutA(int X, int Y, string Text, QColor Color, QFont Font)
-{
-    if(painter_)
-    {
+void TPaintCanvas::TextOutA(int X, int Y, string Text, QColor Color, QFont Font) {
+    if (painter_) {
         painter_->setPen(QPen(Color));
         painter_->setFont(Font);
         painter_->drawText(X - OriginX, Y - OriginY, QString::fromUtf8(Text.c_str()));
@@ -237,75 +209,67 @@ void TPaintCanvas::TextOutA(int X, int Y, string Text, QColor Color, QFont Font)
         int W = TextWidth(Text);
         int H = TextHeight(Text);
         int D = TextDepth(Text);
-        Painter->drawRect(X - OriginX, Y - H - OriginY, W, H+D);
+        Painter->drawRect(X - OriginX, Y - H - OriginY, W, H + D);
 #endif
     };
-    if(scene_)
-    {
-        //QGraphicsTextItem *I = scene_->addText(QString::fromUtf8(Text.c_str()), Font);
-//        I->setDefaultTextColor(Pen.color());
-        QGraphicsSimpleTextItem *I = scene_->addSimpleText(QString::fromUtf8(Text.c_str()), Font);
+    if (scene_) {
+        // QGraphicsTextItem *I = scene_->addText(QString::fromUtf8(Text.c_str()), Font);
+        //        I->setDefaultTextColor(Pen.color());
+        QGraphicsSimpleTextItem* I = scene_->addSimpleText(QString::fromUtf8(Text.c_str()), Font);
 
         I->setFont(Font);
         I->setBrush(QBrush(Color));
-//        I->setBrush(QBrush(Qt::green));
+        //        I->setBrush(QBrush(Qt::green));
         I->setX(X - OriginX);
         I->setY(Y - TextHeight(Text.c_str()) - OriginY);
     }
 }
 
-void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text, QColor Color, QFont Font)
-{
-    //Text = Text +"1";
-    //Text = Text; // + "│";
-    if(painter_)
-    {
-        //QRect br;
+void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text, QColor Color, QFont Font) {
+    // Text = Text +"1";
+    // Text = Text; // + "│";
+    if (painter_) {
+        // QRect br;
         painter_->setPen(QPen(Color));
         painter_->setFont(Font);
-        painter_->drawText(X1 - OriginX, Y1 - OriginY, X2-X1, Y2-Y1, Qt::AlignCenter | Qt::AlignHCenter, QString::fromUtf8(Text.c_str()));
+        painter_->drawText(X1 - OriginX, Y1 - OriginY, X2 - X1, Y2 - Y1, Qt::AlignCenter | Qt::AlignHCenter,
+                           QString::fromUtf8(Text.c_str()));
 #ifdef __DEBUG__
-        Painter->drawRect(X1 - OriginX, Y1 - OriginY, X2-X1, Y2-Y1);
+        Painter->drawRect(X1 - OriginX, Y1 - OriginY, X2 - X1, Y2 - Y1);
 #endif
     };
-    if(scene_)
-    {
-        //QGraphicsTextItem *I = scene_->addText(QString::fromUtf8(Text.c_str()), Font);
-        //I->setFlag(QGraphicsItem::ItemIsSelectable);
-        //QRectF R = I->boundingRect();
-        //I->setDefaultTextColor(Pen.color());
-        //I->setX(X1 - OriginX);
-        //I->setY((Y1+Y2)/2 - R.height()/2 - OriginY);
+    if (scene_) {
+        // QGraphicsTextItem *I = scene_->addText(QString::fromUtf8(Text.c_str()), Font);
+        // I->setFlag(QGraphicsItem::ItemIsSelectable);
+        // QRectF R = I->boundingRect();
+        // I->setDefaultTextColor(Pen.color());
+        // I->setX(X1 - OriginX);
+        // I->setY((Y1+Y2)/2 - R.height()/2 - OriginY);
 
-
-        QGraphicsSimpleTextItem *I = scene_->addSimpleText(QString::fromUtf8(Text.c_str()), Font);
-        //QRectF R = I->boundingRect();
+        QGraphicsSimpleTextItem* I = scene_->addSimpleText(QString::fromUtf8(Text.c_str()), Font);
+        // QRectF R = I->boundingRect();
         I->setX(X1 - OriginX);
-        QFontMetrics M(this->Font);        
-        int MidLine = (Y1+Y2)/2;
-        I->setY(MidLine - M.ascent() + M.strikeOutPos() - OriginY );
+        QFontMetrics M(this->Font);
+        int MidLine = (Y1 + Y2) / 2;
+        I->setY(MidLine - M.ascent() + M.strikeOutPos() - OriginY);
         I->setFont(Font);
         I->setBrush(QBrush(Color));
     }
 }
 
-void TPaintCanvas::Line(int x1, int y1, int x2, int y2)
-{
+void TPaintCanvas::Line(int x1, int y1, int x2, int y2) {
     Line(x1, y1, x2, y2, Pen);
 }
 
-void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2)
-{
+void TPaintCanvas::Rectangle(int x1, int y1, int x2, int y2) {
     Rectangle(x1, y1, x2, y2, Pen, Brush);
 }
 
-void TPaintCanvas::TextOutA(int X, int Y, string Text)
-{
+void TPaintCanvas::TextOutA(int X, int Y, string Text) {
     TextOutA(X, Y, Text, Pen.color(), Font);
 }
 
-void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text)
-{
+void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text) {
     TextOutRect(X1, Y1, X2, Y2, Text, Pen.color(), Font);
 }
 
@@ -313,17 +277,13 @@ void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text)
 //***************************************************************************
 //***************************************************************************
 //***************************************************************************
-//int TRectangleElementCount = 0;
-TRectangleElement::TRectangleElement()
-{
+// int TRectangleElementCount = 0;
+TRectangleElement::TRectangleElement() {
     PaddingLeft = 0;
     ColorIndex = 0;
 }
 
-TRectangleElement::~TRectangleElement()
-{
-}
-
+TRectangleElement::~TRectangleElement() {}
 
 /*int TRectangleElement::GetPageBottom(TNumeric& N,std::shared_ptr<TPaintCanvas> Canvas, int Y, int CurPageBottom, int MaxWidth)
 {
@@ -342,68 +302,56 @@ int W, H, D;
     else
         return CurPageBottom;
 }*/
-void TRectangleElement::Draw(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
-{
-    if(MaxWidth != -1)
-    {
+void TRectangleElement::Draw(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const {
+    if (MaxWidth != -1) {
         MaxWidth -= PaddingLeft;
-        if(MaxWidth < 0) MaxWidth = -1;
+        if (MaxWidth < 0) MaxWidth = -1;
     }
-    X+=PaddingLeft;
+    X += PaddingLeft;
     DrawAtBaseLeft(Canvas, X, Y, MaxWidth);
 }
 
-void TRectangleElement::DrawAtTopLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
-{
+void TRectangleElement::DrawAtTopLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const {
     Metrics metrics = GetTextRectangle(Canvas, MaxWidth);
     Draw(Canvas, X, Y + metrics.Height, MaxWidth);
 }
 
-QColor TRectangleElement::GetColor() const
-{
-    switch(ColorIndex % 2)
-    {
-        case 0: return Qt::blue;
+QColor TRectangleElement::GetColor() const {
+    switch (ColorIndex % 2) {
+        case 0:
+            return Qt::blue;
         default:
             return Qt::black;
-    }    
+    }
 }
 
 //***************************************************************************
 
-TLine::TLine()
-{
-}
+TLine::TLine() {}
 
-
-TLine::TLine(TRectangleElement* E)
-{
+TLine::TLine(TRectangleElement* E) {
     push_back(E);
 }
 
-TLine::TLine(TRectangleElement* E1, TRectangleElement* E2)
-{
+TLine::TLine(TRectangleElement* E1, TRectangleElement* E2) {
     push_back(E1);
     push_back(E2);
 }
 
-TLine::TLine(TRectangleElement* E1, TRectangleElement* E2, TRectangleElement *E3)
-{
+TLine::TLine(TRectangleElement* E1, TRectangleElement* E2, TRectangleElement* E3) {
     push_back(E1);
     push_back(E2);
     push_back(E3);
 }
-TLine::TLine(TRectangleElement* E1, TRectangleElement* E2, TRectangleElement *E3, TRectangleElement *E4)
-{
+TLine::TLine(TRectangleElement* E1, TRectangleElement* E2, TRectangleElement* E3, TRectangleElement* E4) {
     push_back(E1);
     push_back(E2);
     push_back(E3);
     push_back(E4);
 }
 
-TLine::~TLine()
-{
-    for(size_t i = 0; i < size(); i++)
+TLine::~TLine() {
+    for (size_t i = 0; i < size(); i++)
         delete at(i);
 }
 
@@ -415,40 +363,31 @@ TLine::~TLine()
 
 }*/
 
-Metrics TLine::GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth) const
-{
+Metrics TLine::GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth) const {
     Metrics res;
-    for(size_t i = 0; i < size(); i++)
-    {
+    for (size_t i = 0; i < size(); i++) {
         int MaxWidth2 = MaxWidth;
-        if(MaxWidth2 != -1)
-            MaxWidth2 -= res.Width;
+        if (MaxWidth2 != -1) MaxWidth2 -= res.Width;
         auto [W, H, D] = at(i)->GetTextRectangle(Canvas, MaxWidth2);
         res.Width += W;
-        if(res.Height < H)
-            res.Height = H;
-        if(res.Depth < D)
-            res.Depth = D;
+        if (res.Height < H) res.Height = H;
+        if (res.Depth < D) res.Depth = D;
     };
     res.Width += PaddingLeft;
     return res;
 }
 
-void TLine::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
-{    
-    for(size_t i = 0; i < size(); i++)
-    {
+void TLine::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const {
+    for (size_t i = 0; i < size(); i++) {
         auto [W, H, D] = at(i)->GetTextRectangle(Canvas, -1);
         int MaxWidth2 = MaxWidth;
-        if(MaxWidth2 != -1)
-            MaxWidth2 -= X;
+        if (MaxWidth2 != -1) MaxWidth2 -= X;
         at(i)->Draw(Canvas, X, Y, MaxWidth2);
         X += W;
     };
 }
 
-void TLine::SetEditableFlags(int flags)
-{
+void TLine::SetEditableFlags(int flags) {
     /*for(size_t i = 0; i < size(); i++)
         at(i)->SetEditableFlags(Flags);*/
     (void)flags;
@@ -457,57 +396,44 @@ void TLine::SetEditableFlags(int flags)
 
 //*************************************************************************************
 //*************************************************************************************
-TLines::TLines()
-{
-
-}
-TLines::~TLines()
-{
-    for(size_t i = 0; i < size(); i++)
+TLines::TLines() {}
+TLines::~TLines() {
+    for (size_t i = 0; i < size(); i++)
         delete operator[](i);
 }
 
-void TLines::AddLine(TLine* Line)
-{
+void TLines::AddLine(TLine* Line) {
     push_back(Line);
 }
 
-void TLines::AddLine(TRectangleElement* E)
-{
-TLine* L = new TLine(E);
+void TLines::AddLine(TRectangleElement* E) {
+    TLine* L = new TLine(E);
     push_back(L);
 }
 
-void TLines::AddLine(TNumeric N)
-{
+void TLines::AddLine(TNumeric N) {
     auto fp = new TConstFormulaPlotter(std::make_shared<TNumeric>(N));
     AddLine(fp);
 }
 
-
 #define InterlineDistance Canvas->TextHeight("1");
 
-void TLines::GetXYSize(std::shared_ptr<TPaintCanvas> Canvas, int &XSize, int &YSize, int MaxWidth) const
-{
+void TLines::GetXYSize(std::shared_ptr<TPaintCanvas> Canvas, int& XSize, int& YSize, int MaxWidth) const {
     XSize = 0;
     YSize = 0;
-    for(size_t i = 0; i < size(); i++)
-    {
+    for (size_t i = 0; i < size(); i++) {
         auto [W, H, D] = at(i)->GetTextRectangle(Canvas, MaxWidth);
-        YSize += H+D;
+        YSize += H + D;
         YSize += InterlineDistance;
-        if(XSize < W)
-            XSize = W;
+        if (XSize < W) XSize = W;
     };
     XSize += PaddingLeft;
 }
 
-void TLines::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
-{
+void TLines::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const {
     auto [W, H, D] = GetTextRectangle(Canvas, MaxWidth);
     Y -= H;
-    for(size_t i = 0; i < size(); i++)
-    {
+    for (size_t i = 0; i < size(); i++) {
         auto [W1, H1, D1] = at(i)->GetTextRectangle(Canvas, MaxWidth);
         at(i)->Draw(Canvas, X, Y + H1, MaxWidth);
 #ifdef __DEBUG__
@@ -515,7 +441,7 @@ void TLines::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, 
         sprintf(Str, "%d", i);
         Canvas->TextOutA(X, Y, Str);
 #endif
-        Y += H1+D1;
+        Y += H1 + D1;
         Y += InterlineDistance;
     };
 }
@@ -532,21 +458,19 @@ int W, H, D;
         CurPageBottom = at(i)->GetPageBottom(Canvas, Y + H1, CurPageBottom, MaxWidth);
         Y += H1 + D1 + InterlineDistance;
         if(Y > CurPageBottom)
-            return CurPageBottom;        
+            return CurPageBottom;
     };
     return CurPageBottom;
 }*/
 
 //*************************************************************************************
-void TLines::Add(TRectangleElement* R, int NTabs)
-{
-    R->PaddingLeft = NTabs*10;
+void TLines::Add(TRectangleElement* R, int NTabs) {
+    R->PaddingLeft = NTabs * 10;
     R->ColorIndex = NTabs;
     push_back(R);
 }
 
-void TLines::SetEditableFlags(int flags)
-{
+void TLines::SetEditableFlags(int flags) {
     /*for(size_t i = 0; i < size(); i++)
         at(i)->SetEditableFlags(flags);*/
     assert(false);
@@ -555,92 +479,76 @@ void TLines::SetEditableFlags(int flags)
 
 //*************************************************************************************
 //*************************************************************************************
-TText::TText(string Text2)
-{
+TText::TText(string Text2) {
     this->Text = Text2;
 }
 
-TText::TText()
-{
-}
-Metrics TText::GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth) const
-{
+TText::TText() {}
+Metrics TText::GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth) const {
     Metrics res;
     Canvas->Font = Canvas->TextFont;
     Canvas->Pen.setColor(Canvas->TextColor);
     string RText = Recognize(Text);
-    if(MaxWidth == -1 || Canvas->TextWidth(RText) < MaxWidth)
-    {
-        res.Width =Canvas->TextWidth(RText);
+    if (MaxWidth == -1 || Canvas->TextWidth(RText) < MaxWidth) {
+        res.Width = Canvas->TextWidth(RText);
         res.Height = Canvas->TextHeight(RText);
         res.Depth = Canvas->TextDepth(RText);
     } else {
         int H = 0;
         string EstimatedStr = RText;
         int Width = 0;
-        while(EstimatedStr.empty() == false)
-        {
+        while (EstimatedStr.empty() == false) {
             size_t split_pos = 0;
-            for(size_t i = 0; i < EstimatedStr.length(); i++)
-                if(EstimatedStr[i] == ' ' || i == EstimatedStr.length()-1)
-                {
-                    if(Canvas->TextWidth(EstimatedStr.substr(0, i)) < MaxWidth || split_pos == 0)
-                        split_pos = i;
+            for (size_t i = 0; i < EstimatedStr.length(); i++)
+                if (EstimatedStr[i] == ' ' || i == EstimatedStr.length() - 1) {
+                    if (Canvas->TextWidth(EstimatedStr.substr(0, i)) < MaxWidth || split_pos == 0) split_pos = i;
                 }
             string substr;
-            if(split_pos == 0 || split_pos == EstimatedStr.length() - 1)
-            {
+            if (split_pos == 0 || split_pos == EstimatedStr.length() - 1) {
                 substr = EstimatedStr;
                 EstimatedStr.clear();
             } else {
                 substr = EstimatedStr.substr(0, split_pos);
-                EstimatedStr = EstimatedStr.substr(split_pos+1);
+                EstimatedStr = EstimatedStr.substr(split_pos + 1);
             }
             int H1, D1;
             H1 = Canvas->TextHeight(substr);
             D1 = Canvas->TextHeight(substr);
-            if(Canvas->TextWidth(substr) > Width)
-                res.Width = Canvas->TextWidth(substr);
-            H += H1+D1;
+            if (Canvas->TextWidth(substr) > Width) res.Width = Canvas->TextWidth(substr);
+            H += H1 + D1;
         };
-        res.Height = H/2;
+        res.Height = H / 2;
         res.Depth = H - res.Height;
     };
     res.Width += PaddingLeft;
     return res;
 }
 
-void TText::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const
-{
-QString S = QString::fromUtf8(Text.c_str());
+void TText::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const {
+    QString S = QString::fromUtf8(Text.c_str());
     Canvas->Font = Canvas->TextFont;
     Canvas->Pen.setColor(GetColor());
     string RText = Recognize(Text);
-    if(MaxWidth == -1 || Canvas->TextWidth(RText) < MaxWidth)
-    {
+    if (MaxWidth == -1 || Canvas->TextWidth(RText) < MaxWidth) {
         Canvas->TextOutA(X, Y, RText, GetColor(), Canvas->Font);
     } else {
         auto [Height, Depth, Width] = GetTextRectangle(Canvas, MaxWidth);
         Y -= Height;
 
         string EstimatedStr = RText;
-        while(EstimatedStr.empty() == false)
-        {
+        while (EstimatedStr.empty() == false) {
             size_t split_pos = 0;
-            for(size_t i = 0; i < EstimatedStr.length(); i++)
-                if(EstimatedStr[i] == ' ' || i == EstimatedStr.length()-1)
-                {
-                    if(Canvas->TextWidth(EstimatedStr.substr(0, i)) < MaxWidth || split_pos == 0)
-                        split_pos = i;
+            for (size_t i = 0; i < EstimatedStr.length(); i++)
+                if (EstimatedStr[i] == ' ' || i == EstimatedStr.length() - 1) {
+                    if (Canvas->TextWidth(EstimatedStr.substr(0, i)) < MaxWidth || split_pos == 0) split_pos = i;
                 }
             string substr;
-            if(split_pos == 0 || split_pos == EstimatedStr.length() - 1)
-            {
+            if (split_pos == 0 || split_pos == EstimatedStr.length() - 1) {
                 substr = EstimatedStr;
                 EstimatedStr.clear();
             } else {
                 substr = EstimatedStr.substr(0, split_pos);
-                EstimatedStr = EstimatedStr.substr(split_pos+1);
+                EstimatedStr = EstimatedStr.substr(split_pos + 1);
             }
             int H1, D1;
             H1 = Canvas->TextHeight(substr);
@@ -650,7 +558,6 @@ QString S = QString::fromUtf8(Text.c_str());
         };
     }
 }
-
 
 //============================================================================
 /*TRASH

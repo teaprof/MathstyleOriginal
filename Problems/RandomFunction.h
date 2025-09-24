@@ -1,13 +1,12 @@
 #ifndef RANDOMFUNCTION_H
 #define RANDOMFUNCTION_H
 
-#include "Base/arithmetic.h"
-
 #include <random>
 
-class TRandomFunction
-{
-public:
+#include "Base/arithmetic.h"
+
+class TRandomFunction {
+  public:
     const static int AllowTrigFunction = 1;
     const static int AllowFracFunction = 2;
     const static int AllowSum = 4;
@@ -17,4 +16,4 @@ public:
     static TNumeric RandomFunction(int Flags, int Level, std::mt19937& rng);
 };
 
-#endif // RANDOMFUNCTION_H
+#endif  // RANDOMFUNCTION_H

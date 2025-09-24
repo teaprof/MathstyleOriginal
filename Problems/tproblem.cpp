@@ -1,28 +1,26 @@
-#include <string.h>
-#include <string>
-#include <sstream>
+#include "tproblem.h"
+
 #include <algorithm>
 #include <iostream>
-#include "tproblem.h"
+#include <sstream>
+#include <string.h>
+#include <string>
+
 #include "Base/polynom.h"
 
-
-TProblem::TProblem()
-{
+TProblem::TProblem() {
     Conditions = std::make_shared<TNumeric>();
     CanRandomize = false;
-//    BuildPhrases();
+    //    BuildPhrases();
 }
-TProblem::TProblem(const TProblem& P)
-{
+TProblem::TProblem(const TProblem& P) {
     Conditions = std::make_shared<TNumeric>(*P.Conditions);
 }
-TProblem::~TProblem()
-{
+TProblem::~TProblem() {
     // nothing to do
 }
-TProblem& TProblem::operator=(const TProblem &other) {
-    if(other.Conditions)
+TProblem& TProblem::operator=(const TProblem& other) {
+    if (other.Conditions)
         Conditions = std::make_shared<TNumeric>(*other.Conditions);
     else {
         Conditions = nullptr;
@@ -31,21 +29,17 @@ TProblem& TProblem::operator=(const TProblem &other) {
     return *this;
 }
 
-
-void TProblem::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary("TProblem"))return;
+void TProblem::BuildPhrases() {
+    if (MyTranslator.CheckDictionary("TProblem")) return;
     MyTranslator.AddDictionary("TProblem");
     MyTranslator.AddEng("Solution");
     MyTranslator.AddRus("Решение");
 }
 
-bool TProblem::Solve(std::shared_ptr<THTMLWriter> Writer)
-{    
-    if(Writer)
-    {
+bool TProblem::Solve(std::shared_ptr<THTMLWriter> Writer) {
+    if (Writer) {
         Writer->PushTranslator(&MyTranslator);
-        //Conditions->DrawMouse = false;
+        // Conditions->DrawMouse = false;
         Writer->BeginDiv("cond");
         Writer->Add(GetTask());
         Writer->AddFormula(*Conditions);
@@ -54,50 +48,42 @@ bool TProblem::Solve(std::shared_ptr<THTMLWriter> Writer)
         Writer->AddHeader1("Solution");
     };
     bool res = GetSolution(Writer);
-    if(Writer)
-    {
-            Writer->EndDiv();
-            Writer->PopTranslator();
+    if (Writer) {
+        Writer->EndDiv();
+        Writer->PopTranslator();
     };
     return res;
 }
 
-void TProblem::SaveToFile(ofstream &f)
-{
+void TProblem::SaveToFile(ofstream& f) {
     char ConditionsPresent;
-    if(Conditions)
-    {
+    if (Conditions) {
         ConditionsPresent = 1;
         f.write((char*)&ConditionsPresent, sizeof(ConditionsPresent));
-        Conditions->WriteToFile(f);
+        Conditions->SaveToFile(f);
     } else {
         ConditionsPresent = 0;
         f.write((char*)&ConditionsPresent, sizeof(ConditionsPresent));
     }
 }
 
-void TProblem::LoadFromFile(ifstream &f)
-{
+void TProblem::LoadFromFile(ifstream& f) {
     Conditions = std::make_shared<TNumeric>();
     char conditions_found;
     f.read(&conditions_found, sizeof(conditions_found));
-    if(conditions_found == 1)
-    {
+    if (conditions_found == 1) {
         Conditions->LoadFromFile(f);
     }
 }
 
-
-vector<std::shared_ptr<TNumeric>> TProblem::GetTypes(std::shared_ptr<const TNumeric> N)
-{
+vector<std::shared_ptr<TNumeric>> TProblem::GetTypes(std::shared_ptr<const TNumeric> N) {
     Q_UNUSED(N);
     return {};
 }
 
 //********************************************************************************************************
 //********************************************************************************************************
-TSimplifyProblem::TSimplifyProblem() : TProblem()
-{
+TSimplifyProblem::TSimplifyProblem() : TProblem() {
     Conditions->operation = OperatorSum;
     Conditions->OperandsPushback(TNumeric("1"));
     Conditions->OperandsPushback(TNumeric("2"));
@@ -106,9 +92,8 @@ TSimplifyProblem::TSimplifyProblem() : TProblem()
     BuildPhrases();
 }
 
-void TSimplifyProblem::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary("TSimplifyProblem"))return;
+void TSimplifyProblem::BuildPhrases() {
+    if (MyTranslator.CheckDictionary("TSimplifyProblem")) return;
     MyTranslator.AddDictionary("TSimplifyProblem");
     MyTranslator.AddEng("Answer: %N");
     MyTranslator.AddRus("Ответ: %N");
@@ -120,13 +105,11 @@ void TSimplifyProblem::BuildPhrases()
     MyTranslator.AddRus("упростить");
 }
 
-string TSimplifyProblem::GetTask()
-{
+string TSimplifyProblem::GetTask() {
     return MyTranslator.tr("Simplify equation");
 }
 
-string TSimplifyProblem::GetShortTask()
-{
+string TSimplifyProblem::GetShortTask() {
     return MyTranslator.tr("simplify");
 }
 
@@ -134,17 +117,13 @@ std::vector<std::shared_ptr<TNumeric>> TSimplifyProblem::getEditables() {
     return {Conditions};
 }
 
-bool TSimplifyProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
+bool TSimplifyProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TNumeric XSimplified = Conditions->Simplify();
-    if(Writer)
-       Writer->AddParagraph("Answer: %N", XSimplified);
+    if (Writer) Writer->AddParagraph("Answer: %N", XSimplified);
     return true;
 }
 
-
-vector<string> TSimplifyProblem::GetKeyWords()
-{
+vector<string> TSimplifyProblem::GetKeyWords() {
     vector<string> Res;
     Res.push_back(MyTranslator.tr("simplify"));
     return Res;

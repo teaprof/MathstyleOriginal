@@ -72,7 +72,7 @@ void TPolynomConditions::SetMaxPower(size_t MaxPower, int Operator)
         TNumeric Temp = GetVarPower(i);
         if(i==0)
         {
-            if(Temp.Operator == OperatorConst && Temp.K=="1")
+            if(Temp.Operator == OperatorConst && Temp.strval=="1")
                 //случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
                 Res = a;
             else
@@ -149,7 +149,7 @@ void TPolynomConditions::SetLeftPartP(const TPolynom &P, bool AllCoef)
         TNumeric Temp = GetVarPower(i);
         if(i==0)
         {
-            if(Temp.Operator == OperatorConst && Temp.K=="1")
+            if(Temp.Operator == OperatorConst && Temp.strval=="1")
                 //случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
                 Sum = a;
             else
@@ -266,8 +266,8 @@ TPolynomialEquality::TPolynomialEquality(size_t MaxPower) : TPolynomConditions(M
 {
     if(MaxPower >= 3)
     {
-        GetCoefP(0)->K = "1";
-        GetCoefP(3)->K = "1";
+        GetCoefP(0)->strval = "1";
+        GetCoefP(3)->strval = "1";
     };
     if(MaxPower >= 6)
     {
@@ -1533,7 +1533,7 @@ TRationalFunctionDerivative::TRationalFunctionDerivative(size_t MaxPowerNominato
         a.SetEditable(true);
         if(i == 0)
         {
-            a.K = "1";
+            a.strval = "1";
             Denominator = a;
         } else {
             TNumeric Temp = a*(UnknownVar^TNumeric(i));

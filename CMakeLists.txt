@@ -29,15 +29,15 @@ qt_add_executable(Schoolar WIN32 MACOSX_BUNDLE
     #Problems/GraphicsProblems.cpp Problems/GraphicsProblems.h
     Problems/ObjectsFactory.cpp Problems/ObjectsFactory.h
     Problems/RandomFunction.cpp Problems/RandomFunction.h
-    Problems/TPolynomIntegralproblem.cpp Problems/TPolynomIntegralproblem.h
+    #Problems/TPolynomIntegralproblem.cpp Problems/TPolynomIntegralproblem.h
     Problems/TPolynomProblems.cpp Problems/TPolynomProblems.h
-    Problems/tderivativeproblem.cpp Problems/tderivativeproblem.h
-    Problems/tmaclaurinseriesproblem.cpp Problems/tmaclaurinseriesproblem.h
-    Problems/tpowerproblems.cpp Problems/tpowerproblems.h
+    #Problems/tderivativeproblem.cpp Problems/tderivativeproblem.h
+    #Problems/tmaclaurinseriesproblem.cpp Problems/tmaclaurinseriesproblem.h
+    #Problems/tpowerproblems.cpp Problems/tpowerproblems.h
     Problems/tproblem.cpp Problems/tproblem.h
-    Problems/trationalsumproblem.cpp Problems/trationalsumproblem.h
-    Problems/tsystemofequations.cpp Problems/tsystemofequations.h
-    Problems/ttrigonometryproblems.cpp Problems/ttrigonometryproblems.h
+    #Problems/trationalsumproblem.cpp Problems/trationalsumproblem.h
+    #Problems/tsystemofequations.cpp Problems/tsystemofequations.h
+    #Problems/ttrigonometryproblems.cpp Problems/ttrigonometryproblems.h
     algebra_operations.cpp algebra_operations.h
     main.cpp
     mainwindow.cpp mainwindow.h mainwindow.ui

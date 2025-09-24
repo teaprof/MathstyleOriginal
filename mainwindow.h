@@ -1,27 +1,24 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QHBoxLayout>
 #include <QMainWindow>
-#include <QTreeWidget>
-#include <QtNetwork>
 #include <QMap>
 #include <QMultiMap>
-#include <QHBoxLayout>
+#include <QTreeWidget>
+#include <QtNetwork>
 
 #include "Problems/tproblem.h"
-//#include "Problems/GraphicsProblems.h"
+// #include "Problems/GraphicsProblems.h"
+#include "tbuttonssheetview.h"
+#include "tglobeview.h"
 #include "toptionswindow.h"
 
-#include "tglobeview.h"
-#include "tbuttonssheetview.h"
-
 namespace Ui {
-    class MainWindow;
+class MainWindow;
 }
 
-
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
     std::shared_ptr<TProblem> SimplifyProblem, LinearEquality, SquareEquality, PolynomialEquality4,
         PolynomialEquality8; /*, RationalSumEquality1, RationalSumEquality2, PowerEquality2,
@@ -35,7 +32,7 @@ class MainWindow : public QMainWindow
     RationalIntegralProblemFactorized;*/
     QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>> WidgetToProblemMap;
 
-    QVBoxLayout *SelectedKeywordsLayout;
+    QVBoxLayout* SelectedKeywordsLayout;
     vector<string> SelectedKeywords;
     void CreateProblems();
     void CreateBook();
@@ -43,34 +40,35 @@ class MainWindow : public QMainWindow
     vector<std::shared_ptr<TProblem>> GetProblemsByKeywords();
     vector<size_t> ProblemsSolved;
 
-    void SelectProblem(); //анализирует текущее состояние GUI и выбирает и отрисовывает проблему
+    void SelectProblem();  // анализирует текущее состояние GUI и выбирает и отрисовывает проблему
 
     void InitProblemsSolved();
     void DoneProblemsSolved();
-public:           
-    TButtonsSheetView *KeywordsButtons;
-    TGlobeView *KeywordsGlobeView;
+
+  public:
+    TButtonsSheetView* KeywordsButtons;
+    TGlobeView* KeywordsGlobeView;
 
     std::mt19937 rng;
-    size_t DirCount; //счетчик созданных директорий с решениями
-    QGraphicsScene *GViewScene;
-    bool FreeDebugVersion; //true в случае бесплатной версии, используемой во время отладки
-    bool Offline; //если true, то обращение к сайту не производится
-    int Language; //язык    
-    QNetworkAccessManager *AccessManager;
-    QTreeWidgetItem *CustomSystems;
-    QTreeWidgetItem *CurrentItem;
+    size_t DirCount;  // счетчик созданных директорий с решениями
+    QGraphicsScene* GViewScene;
+    bool FreeDebugVersion;  // true в случае бесплатной версии, используемой во время отладки
+    bool Offline;  // если true, то обращение к сайту не производится
+    int Language;  // язык
+    QNetworkAccessManager* AccessManager;
+    QTreeWidgetItem* CustomSystems;
+    QTreeWidgetItem* CurrentItem;
 
     vector<std::shared_ptr<TProblem>> Problems;
-    int SelectedProblem; //выбранная и отрисованная задача
+    int SelectedProblem;  // выбранная и отрисованная задача
 
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
 
     std::shared_ptr<TProblem> Problem;
 
     void DrawConditions();
-    //void BuildTree(QTreeWidgetItem& StartItem, vector<TRectangleElement*> Elements); //2del
+    // void BuildTree(QTreeWidgetItem& StartItem, vector<TRectangleElement*> Elements); //2del
 
     QTreeWidgetItem* CreateNode(QTreeWidget* Parent, QString name);
     QTreeWidgetItem* CreateNode(QTreeWidgetItem* Parent, QString name);
@@ -84,28 +82,27 @@ public:
     void MySetIconSize(int Size);
     TOptions* Opt;
 
-
-    vector<string> Directories; //созданные директории
-    vector<string> Files; //созданные файлы
-    void DeleteDirs(); //удаляет директории с решениями
-    string TemporaryRootAbsPath; //корневая директория для поддиректорий с решениями
-    string GetDirectory(size_t DirCount); //выдает директорию вида Temp%d, где %d = DirCount
-
+    vector<string> Directories;   // созданные директории
+    vector<string> Files;         // созданные файлы
+    void DeleteDirs();            // удаляет директории с решениями
+    string TemporaryRootAbsPath;  // корневая директория для поддиректорий с решениями
+    string GetDirectory(size_t DirCount);  // выдает директорию вида Temp%d, где %d = DirCount
 
     /** loads a language by the given language shortcur (e.g. de, en, ...)
-      */
+     */
     void loadLanguage(const QString& rLanguage);
     void loadLanguage(int Language);
 
-    void SetLanguage(int Language); //устанавливает язык у всех std::shared_ptr<TProbl>m*
-private:
+    void SetLanguage(int Language);  // устанавливает язык у всех std::shared_ptr<TProbl>m*
+  private:
     QTranslator m_translator;
-    Ui::MainWindow *ui;
-protected:
-//    virtual void mouseMoveEvent(QMouseEvent *);
+    Ui::MainWindow* ui;
+
+  protected:
+    //    virtual void mouseMoveEvent(QMouseEvent *);
     virtual void changeEvent(QEvent* event);
     virtual void resizeEvent(QResizeEvent* E);
-private slots:
+  private slots:
     void SelectProblemByWidget(QTreeWidgetItem* item);
     void SelectProblemByIndex(size_t Index);
 
@@ -120,11 +117,11 @@ private slots:
     void on_FavoritesTree_itemPressed(QTreeWidgetItem* item, int column);
     void on_treeWidget_8_itemPressed(QTreeWidgetItem* item, int column);
 
-    void on_CreateNewBtn_clicked();
+    /*void on_CreateNewBtn_clicked();
 
-    void on_DeleteBtn_clicked();
+    void on_DeleteBtn_clicked();*/
 
-    void on_pushButton_8_clicked();  
+    void on_pushButton_8_clicked();
 
     void on_TemporaryTree_itemPressed(QTreeWidgetItem* item, int column);
 
@@ -132,7 +129,7 @@ private slots:
 
     void on_pushButton_3_clicked();
 
-public slots:
+  public slots:
     void FileOpen();
     void FileSave();
     void Exit();
@@ -146,4 +143,4 @@ public slots:
     void TestFonts();
 };
 
-#endif // MAINWINDOW_H
+#endif  // MAINWINDOW_H

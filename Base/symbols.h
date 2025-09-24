@@ -2,12 +2,12 @@
 #define SYMBOLS_H
 #include <string>
 using namespace std;
-void UniCode2UTF8(char *dest, int Code);
+void UniCode2UTF8(char* dest, int Code);
 string UniCode2UTF8String(int Code);
 
-string Recognize(string Str); //преобразует управляющие последовательности latex в UTF-8 коды соответствующих символов
+string Recognize(string Str);  // преобразует управляющие последовательности latex в UTF-8 коды соответствующих символов
 
-//Some useful symbol codes
+// Some useful symbol codes
 #define UnicodeElementOf 0x2208
 #define UnicodeMiddleDot 0x22C5
 #define UnicodeInfinity 0x221E
@@ -25,8 +25,8 @@ string Recognize(string Str); //преобразует управляющие п
 #define UnicodeEpsilon 0x03B5
 #define UnicodeIntegral 0x222B
 
-//библиотека кодов в Unicode UTF16
-#define UnicodeFULLWIDTH_LEFT_PARENTHESIS  0xFF08
+// библиотека кодов в Unicode UTF16
+#define UnicodeFULLWIDTH_LEFT_PARENTHESIS 0xFF08
 #define UnicodeFULLWIDTH_RIGHT_PARENTHESIS 0xFF09
 
 #define UnicodeFULLWIDTH_LEFT_CURLY_BRACKET 0xFF5B
@@ -37,16 +37,15 @@ string Recognize(string Str); //преобразует управляющие п
 
 #define UnicodeFULLWIDTH_PLUS_SIGN 0xFF0B
 #define UnicodeFULLWIDTH_HYPHEN_MINUS 0xFF0D
-#define UnicodeFULLWIDTH_LESS_THAN_SIGN  0xFF1C
+#define UnicodeFULLWIDTH_LESS_THAN_SIGN 0xFF1C
 #define UnicodeFULLWIDTH_GREATER_THAN_SIGN 0xFF1E
 #define UnicodeLESS_THAN_OR_SLANTED_EQUAL_TO 0x2A7D
 #define UnicodeGREATER_THAN_OR_SLANTED_EQUAL_TO 0x2A7E
 #define UnicodeFULLWIDTH_EQUALS_SIGN 0xFF1D
 
-
-//Эти значения используются при отрисовке
-//Используем Юникод-расширение таблицы символов
-//#define __USE_UNICODE__
+// Эти значения используются при отрисовке
+// Используем Юникод-расширение таблицы символов
+// #define __USE_UNICODE__
 #ifdef __USE_UNICODE__
 #define MyLeftParenthesis UnicodeFULLWIDTH_LEFT_PARENTHESIS
 #define MyRightParenthesis UnicodeFULLWIDTH_RIGHT_PARENTHESIS
@@ -59,7 +58,7 @@ string Recognize(string Str); //преобразует управляющие п
 
 #define MyPlusSign UnicodeFULLWIDTH_PLUS_SIGN
 #define MyMinusSign UnicodeFULLWIDTH_HYPHEN_MINUS
-#define MyLessThanSign  0x3C
+#define MyLessThanSign 0x3C
 #define MyGreaterThanSign 0x3E
 #define MyLessOrEqualSign UnicodeLESS_THAN_OR_SLANTED_EQUAL_TO
 #define MyGreaterOrEqualSign UnicodeGREATER_THAN_OR_SLANTED_EQUAL_TO
@@ -67,7 +66,7 @@ string Recognize(string Str); //преобразует управляющие п
 
 #else
 
-//Используем обычные символы
+// Используем обычные символы
 #define MyLeftParenthesis '('
 #define MyRightParenthesis ')'
 
@@ -79,7 +78,7 @@ string Recognize(string Str); //преобразует управляющие п
 
 #define MyPlusSign '+'
 #define MyMinusSign '-'
-#define MyLessThanSign  '<'
+#define MyLessThanSign '<'
 #define MyGreaterThanSign '>'
 #define MyLessOrEqualSign UnicodeLessOrEqual
 #define MyGreaterOrEqualSign UnicodeGreaterOrEqual
@@ -87,4 +86,4 @@ string Recognize(string Str); //преобразует управляющие п
 
 #endif
 
-#endif // SYMBOLS_H
+#endif  // SYMBOLS_H

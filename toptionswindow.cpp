@@ -1,22 +1,20 @@
-#include <QFontDialog>
+#include "toptionswindow.h"
+
 #include <QColorDialog>
+#include <QComboBox>
+#include <QFontDialog>
 #include <QLayout>
 #include <QString>
-#include <QComboBox>
-#include "toptionswindow.h"
-#include "ui_toptionswindow.h"
-#include "Base/tline.h"
+
 #include "Base/arithmetic.h"
 #include "Base/tinterval.h"
+#include "Base/tline.h"
 #include "Base/tphrases.h"
+#include "ui_toptionswindow.h"
 
 extern QString ApplicationDirPath;
 
-
-TOptionsWindow::TOptionsWindow(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::TOptionsWindow)
-{
+TOptionsWindow::TOptionsWindow(QWidget* parent) : QDialog(parent), ui(new Ui::TOptionsWindow) {
     Options = new TOptions;
     ui->setupUi(this);
     ui->comboBox->addItem(QString::fromUtf8("English"), QVariant(LangEn));
@@ -24,85 +22,76 @@ TOptionsWindow::TOptionsWindow(QWidget *parent) :
     DrawSolution();
 }
 
-TOptionsWindow::~TOptionsWindow()
-{    
+TOptionsWindow::~TOptionsWindow() {
     delete Options;
-    delete ui;    
+    delete ui;
 }
 
-void TOptionsWindow::SetOptions(TOptions* Options)
-{
+void TOptionsWindow::SetOptions(TOptions* Options) {
     *this->Options = *Options;
     SetLanguage(Options->Language);
     int Index = ui->comboBox->findData(QVariant(Options->Language));
-    if(Index >= 0)
-    {
+    if (Index >= 0) {
         ui->comboBox->setCurrentIndex(Index);
     };
 }
 
-void TOptionsWindow::on_pushButton_clicked()
-{
-bool ok;
-QFont Font = QFontDialog::getFont(&ok, Options->TextFont, this);
-    if(ok)
-    {
+void TOptionsWindow::on_pushButton_clicked() {
+    bool ok;
+    QFont Font = QFontDialog::getFont(&ok, Options->TextFont, this);
+    if (ok) {
         Options->TextFont = Font;
         DrawSolution();
     }
 }
 
-void TOptionsWindow::on_pushButton_2_clicked()
-{
-bool ok;
-QFont Font = QFontDialog::getFont(&ok, Options->FormulaFont, this);
-    if(ok)
-    {
+void TOptionsWindow::on_pushButton_2_clicked() {
+    bool ok;
+    QFont Font = QFontDialog::getFont(&ok, Options->FormulaFont, this);
+    if (ok) {
         Options->FormulaFont = Font;
         DrawSolution();
     }
 }
 
-void TOptionsWindow::on_pushButton_3_clicked()
-{
+void TOptionsWindow::on_pushButton_3_clicked() {
     Options->TextColor = QColorDialog::getColor(Options->TextColor, this);
     DrawSolution();
 }
 
-void TOptionsWindow::on_pushButton_4_clicked()
-{
+void TOptionsWindow::on_pushButton_4_clicked() {
     Options->FormulaColor = QColorDialog::getColor(Options->FormulaColor, this);
     DrawSolution();
 }
 
-void TOptionsWindow::on_pushButton_5_clicked()
-{
-   Options->BackgroundColor = QColorDialog::getColor(Options->BackgroundColor, this);
-   DrawSolution();
+void TOptionsWindow::on_pushButton_5_clicked() {
+    Options->BackgroundColor = QColorDialog::getColor(Options->BackgroundColor, this);
+    DrawSolution();
 }
 
-void TOptionsWindow::DrawSolution()
-{
-TLines* Solution = new TLines;
-TNumeric X("x");
-TNumeric A(2); A.SetEditableFlags(ConstAllowed);
-TNumeric B(3); B.SetEditableFlags(ConstAllowed);
-TNumeric Line1 = MakeEquality(A*X + B*(X^2), TNumeric(0));
-TNumeric Line2 = MakeEquality((A/B)*X + B*MakeLog(X, (X^2)+2), TNumeric(0));
-TNumeric Line3 = MakeEquality(A*MakeSin(X) + B*(X^2), TNumeric(0));
-TNumeric Line4 = MakeEquality(A*X + MakeCos(X^2), TNumeric(0));
-TNumeric SystemOfEquations;
+void TOptionsWindow::DrawSolution() {
+    TLines* Solution = new TLines;
+    TNumeric X("x");
+    TNumeric A(2);
+    A.SetEditableFlags(ConstAllowed);
+    TNumeric B(3);
+    B.SetEditableFlags(ConstAllowed);
+    TNumeric Line1 = MakeEquality(A * X + B * (X ^ 2), TNumeric(0));
+    TNumeric Line2 = MakeEquality((A / B) * X + B * MakeLog(X, (X ^ 2) + 2), TNumeric(0));
+    TNumeric Line3 = MakeEquality(A * MakeSin(X) + B * (X ^ 2), TNumeric(0));
+    TNumeric Line4 = MakeEquality(A * X + MakeCos(X ^ 2), TNumeric(0));
+    TNumeric SystemOfEquations;
     SystemOfEquations.operation = OperatorEqSystem;
     SystemOfEquations.OperandsPushback(Line1);
     SystemOfEquations.OperandsPushback(Line2);
     SystemOfEquations.OperandsPushback(Line3);
     SystemOfEquations.OperandsPushback(Line4);
     Solution->AddLine(TNumeric(SystemOfEquations));
-    //Solution->AddLine(new TLine(MyTranslator.tr("Solution:")));
-    //Solution->AddLine(new TLine(MyTranslator.tr("Examples:")));
-    Solution->AddLine(TNumeric(MakeBelongsTo(X, TInterval(TNumeric(-1), TNumeric(2), true, false).GetNumeric())));
+    // Solution->AddLine(new TLine(MyTranslator.tr("Solution:")));
+    // Solution->AddLine(new TLine(MyTranslator.tr("Examples:")));
+    Solution->AddLine(TNumeric(MakeBelongsTo(X, TInterval(TNumeric(-1), TNumeric(2), true, false).asNumeric())));
 
-    QGraphicsScene *Scene = new QGraphicsScene;
+    QGraphicsScene* Scene = new QGraphicsScene;
     Scene->setBackgroundBrush(QBrush(Options->BackgroundColor));
     auto Canvas = std::make_shared<TPaintCanvas>(Scene);
     Canvas->FormulaFont = Options->FormulaFont;
@@ -116,55 +105,45 @@ TNumeric SystemOfEquations;
     delete Solution;
 };
 
-
-void TOptionsWindow::on_pushButton_6_clicked()
-{
+void TOptionsWindow::on_pushButton_6_clicked() {
     Options->EditableColor = QColorDialog::getColor(Options->EditableColor, this);
     DrawSolution();
 }
 
-void TOptionsWindow::on_checkBox_clicked()
-{
+void TOptionsWindow::on_checkBox_clicked() {
     Options->GetDefaults();
     DrawSolution();
     ui->checkBox->setChecked(false);
 }
 
-void TOptionsWindow::on_pushButton_7_clicked()
-{
+void TOptionsWindow::on_pushButton_7_clicked() {
     this->accept();
 }
 
-void TOptionsWindow::SetLanguage(int Language)
-{
-    if(Options==0) return;
+void TOptionsWindow::SetLanguage(int Language) {
+    if (Options == 0) return;
     Options->Language = Language;
-    //Phrases->SetLanguage(Language);
+    // Phrases->SetLanguage(Language);
     MyTranslator.Language = Language;
     DrawSolution();
 }
 
-void TOptionsWindow::on_comboBox_currentIndexChanged(int index)
-{
-int Language = LangEn;
-    if(index >= 0)
-        Language = ui->comboBox->itemData(index).toInt();
+void TOptionsWindow::on_comboBox_currentIndexChanged(int index) {
+    int Language = LangEn;
+    if (index >= 0) Language = ui->comboBox->itemData(index).toInt();
     SetLanguage(Language);
 }
 
 //*******************************************************************************
-TOptions::TOptions()
-{
+TOptions::TOptions() {
     GetDefaults();
     Load();
 }
-TOptions::~TOptions()
-{
+TOptions::~TOptions() {
     Save();
 }
 
-void TOptions::SaveColor(QSettings& S, QString Key, QColor Color)
-{
+void TOptions::SaveColor(QSettings& S, QString Key, QColor Color) {
     S.beginWriteArray(Key);
     int r, g, b, a;
     Color.getRgb(&r, &g, &b, &a);
@@ -175,8 +154,7 @@ void TOptions::SaveColor(QSettings& S, QString Key, QColor Color)
     S.endArray();
 }
 
-void TOptions::LoadColor(QSettings& S, QString Key, QColor &Color)
-{
+void TOptions::LoadColor(QSettings& S, QString Key, QColor& Color) {
     S.beginReadArray(Key);
     int r, g, b, a;
     r = S.value("red", QVariant(0x88)).toInt();
@@ -187,37 +165,28 @@ void TOptions::LoadColor(QSettings& S, QString Key, QColor &Color)
     S.endArray();
 }
 
-void TOptions::Load()
-{
-QString FileName = ApplicationDirPath + "/settings.ini";
-QSettings S(FileName.toLocal8Bit().data(), QSettings::IniFormat);
+void TOptions::Load() {
+    QString FileName = ApplicationDirPath + "/settings.ini";
+    QSettings S(FileName.toLocal8Bit().data(), QSettings::IniFormat);
     GetDefaults();
-    if(S.contains("TextFont"))
-    {
+    if (S.contains("TextFont")) {
         TextFont.fromString(S.value("TextFont").toString());
     };
-    if(S.contains("FormulaFont"))
-    {
-        FormulaFont.fromString(S.value("FormulaFont").toString());        
+    if (S.contains("FormulaFont")) {
+        FormulaFont.fromString(S.value("FormulaFont").toString());
     };
-    if(S.contains("TextColor"))
-        LoadColor(S, "TextColor", TextColor);
-    if(S.contains("FormulaColor"))
-        LoadColor(S, "FormulaColor", FormulaColor);
-    if(S.contains("EditableColor"))
-        LoadColor(S, "EditableColor", EditableColor);
-    if(S.contains("BackgroundColor"))
-        LoadColor(S, "BackgroundColor", BackgroundColor);
-    if(S.contains("language"))
-    {
+    if (S.contains("TextColor")) LoadColor(S, "TextColor", TextColor);
+    if (S.contains("FormulaColor")) LoadColor(S, "FormulaColor", FormulaColor);
+    if (S.contains("EditableColor")) LoadColor(S, "EditableColor", EditableColor);
+    if (S.contains("BackgroundColor")) LoadColor(S, "BackgroundColor", BackgroundColor);
+    if (S.contains("language")) {
         Language = S.value("language", QVariant(LangEn)).toInt();
     }
 }
 
-void TOptions::Save()
-{
-QString FileName = ApplicationDirPath + "/settings.ini";
-QSettings S(FileName.toLocal8Bit().data(), QSettings::IniFormat);
+void TOptions::Save() {
+    QString FileName = ApplicationDirPath + "/settings.ini";
+    QSettings S(FileName.toLocal8Bit().data(), QSettings::IniFormat);
     S.setValue("language", QVariant(Language));
     S.setValue("TextFont", TextFont.toString());
     S.setValue("FormulaFont", FormulaFont.toString());
@@ -227,9 +196,7 @@ QSettings S(FileName.toLocal8Bit().data(), QSettings::IniFormat);
     SaveColor(S, "BackgroundColor", BackgroundColor);
 }
 
-
-void TOptions::GetDefaults()
-{
+void TOptions::GetDefaults() {
     TextFont = QFont("Helvetica", 14);
     FormulaFont = QFont("Serif", 14);
     TextColor = Qt::black;

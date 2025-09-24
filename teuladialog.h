@@ -4,24 +4,23 @@
 #include <QDialog>
 
 namespace Ui {
-    class TEulaDialog;
+class TEulaDialog;
 }
 
-class TEulaDialog : public QDialog
-{
+class TEulaDialog : public QDialog {
     Q_OBJECT
 
-public:
-    explicit TEulaDialog(QWidget *parent = 0);
+  public:
+    explicit TEulaDialog(QWidget* parent = 0);
     ~TEulaDialog();
 
-private slots:
+  private slots:
     void on_pushButton_clicked();
 
     void on_comboBox_currentIndexChanged(int index);
 
-private:
-    Ui::TEulaDialog *ui;
+  private:
+    Ui::TEulaDialog* ui;
 };
 
-#endif // TEULADIALOG_H
+#endif  // TEULADIALOG_H

@@ -1,13 +1,13 @@
-#include <sstream>
-#include <algorithm>
-#include<vector>
-#include<iostream>
 #include "TPolynomProblems.h"
-//#include "Base/tinterval.h"
+
+#include <algorithm>
+#include <iostream>
+#include <sstream>
+#include <vector>
+// #include "Base/tinterval.h"
 #include "algebra_operations.h"
 
-
-//todo: не показывает полное решение в линейных неравенствах
+// todo: не показывает полное решение в линейных неравенствах
 
 using namespace std;
 
@@ -18,79 +18,68 @@ TNumeric NumericAllReal = MakeInterval(TNumeric("-\\infty"), TNumeric("+\\infty"
 TInterval IntervalAllRealNumbers(TNumeric("-\\infty"), TNumeric("+\\infty"), false, false);
 TNumeric NumPhi = TNumeric("\\phi");
 
-
 const char TSetOfLinearInequalitiesStr[] = "TSetOfLinearInequalities";
 const char TSystemOfLinearInequalitiesStr[] = "TSystemOfLinearInequalities";
 const char TSetOfSquareInequalitiesStr[] = "TSetOfSquareInequalitiesStr";
 const char TSystemOfSquareInequalitiesStr[] = "TSystemOfSquareInequalitiesStr";
 
-
-
-TPolynomConditions::TPolynomConditions(size_t MaxPower, bool HaveRightPart, int operation) : TProblem()
-{
+TPolynomConditions::TPolynomConditions(size_t MaxPower, bool HaveRightPart, Operation operation) : TProblem() {
     UnknownVar = TNumeric("x");
     this->HaveRightPart = HaveRightPart;
     SetMaxPower(MaxPower, operation);
 }
 
-TPolynomConditions::TPolynomConditions(const TPolynom& P, bool HaveRightPart, int operation, bool AllCoef)
-{
+TPolynomConditions::TPolynomConditions(const TPolynom& P, bool HaveRightPart, Operation operation, bool AllCoef) {
     UnknownVar = TNumeric("x");
     Conditions = std::make_shared<TNumeric>();
     this->HaveRightPart = HaveRightPart;
     RightPartID = P.Coef.size() + 2;
-    if(HaveRightPart)
-    {
+    if (HaveRightPart) {
         Conditions->operation = operation;
         Conditions->OperandsPushback(TNumeric("0"));
         TNumeric RightPart("0");
-        RightPart.ID = RightPartID;
-        RightPart.SetEditableFlags(ConstAllowed);
+        RightPart.role = RightPartID;
+        //RightPart.SetEditableFlags(ConstAllowed);
         Conditions->OperandsPushback(TNumeric("0"));
     };
 
     SetLeftPartP(P, AllCoef);
 }
 
-TNumeric TPolynomConditions::GetVarPower(size_t power)
-{
-    if(power == 0) return TNumeric("1");
-    else
-    {
-        if(power == 1) return (UnknownVar);
-        else return (UnknownVar^TNumeric(power));
+TNumeric TPolynomConditions::GetVarPower(size_t power) {
+    if (power == 0)
+        return TNumeric("1");
+    else {
+        if (power == 1)
+            return (UnknownVar);
+        else
+            return (UnknownVar ^ TNumeric(static_cast<int>(power)));
     };
 }
 
-
-void TPolynomConditions::SetMaxPower(size_t MaxPower, int operation)
-{
+void TPolynomConditions::SetMaxPower(size_t MaxPower, Operation operation) {
     this->MaxPower = MaxPower;
     TNumeric Res;
-    for(size_t i = 0; i <= MaxPower; i++)
-    {
+    for (size_t i = 0; i <= MaxPower; i++) {
         TNumeric a(0);
-        a.ClearID();
-        a.ID = i;
-        a.SetEditableFlags(ConstAllowed);
+        a.role = i;
+        //a.SetEditableFlags(ConstAllowed);
         TNumeric Temp = GetVarPower(i);
-        if(i==0)
-        {
-            if(Temp.operation == OperatorConst && Temp.K=="1")
-                //случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
+        if (i == 0) {
+            if (Temp.operation == OperatorConst && Temp.strval == "1")
+                // случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
                 Res = a;
             else
-                Res = a*Temp;
+                Res = a * Temp;
         } else {
-            Res = a*Temp + Res;
+            Res = a * Temp + Res;
         }
     }
-    if(HaveRightPart)
-    {
-        RightPartID = MaxPower+1;
+    if (HaveRightPart) {
+        RightPartID = MaxPower + 1;
         TNumeric RightPart("0");
-        RightPart.ID = RightPartID;
-        RightPart.SetEditableFlags(NoEditable);
+        RightPart.role = RightPartID;
+        //RightPart.SetEditableFlags(NoEditable);
         Conditions = std::make_shared<TNumeric>();
         Conditions->operation = operation;
         Conditions->OperandsPushback(Res);
@@ -100,83 +89,70 @@ void TPolynomConditions::SetMaxPower(size_t MaxPower, int operation)
     }
 }
 
-
-TPolynomConditions::~TPolynomConditions()
-{
-    //nothing to do
+TPolynomConditions::~TPolynomConditions() {
+    // nothing to do
 }
 
-void TPolynomConditions::SetUnknownVar(TNumeric UnknownVar)
-{
+void TPolynomConditions::SetUnknownVar(TNumeric UnknownVar) {
     this->UnknownVar = UnknownVar;
-    if(Conditions)
-    {
+    if (Conditions) {
         TPolynom P = GetP();
         SetLeftPartP(P, true);
     }
 }
 
-
-vector<TNumeric> TPolynomConditions::GetCoef() const
-{
+vector<TNumeric> TPolynomConditions::GetCoef() const {
     vector<TNumeric> Coef2;
-    if(Conditions == 0) throw "TPolynomConditions::GetCoef: Conditions = 0";
-    Coef2.assign(MaxPower+1, TNumeric("0"));
-    for(size_t i = 0; i <= MaxPower; i++)
-    {
-        Coef2[i] = *(Conditions->GetByID(i));
+    if (Conditions == 0) throw "TPolynomConditions::GetCoef: Conditions = 0";
+    Coef2.assign(MaxPower + 1, TNumeric("0"));
+    for (size_t i = 0; i <= MaxPower; i++) {
+        Coef2[i] = *(Conditions->GetByRole(i));
     }
     return Coef2;
 }
 
-TPolynom TPolynomConditions::GetP() const
-{
+TPolynom TPolynomConditions::GetP() const {
     return TPolynom(GetCoef());
 }
 
-void TPolynomConditions::SetLeftPartP(const TPolynom &P, bool AllCoef)
-{
-    if(AllCoef)
-        if(P.Coef.size() == 0) MaxPower = 0;
-        else MaxPower = P.Coef.size() - 1;
-    else MaxPower = P.MajorPower();
+void TPolynomConditions::SetLeftPartP(const TPolynom& P, bool AllCoef) {
+    if (AllCoef)
+        if (P.Coef.size() == 0)
+            MaxPower = 0;
+        else
+            MaxPower = P.Coef.size() - 1;
+    else
+        MaxPower = P.MajorPower();
 
     TNumeric Sum;
-    for(size_t i = 0; i <= MaxPower; i++)
-    {
-        TNumeric a = P.GetCoef(i);
-        a.ClearID();
-        a.ID = i;
-        a.SetEditableFlags(ConstAllowed);
+    for (size_t i = 0; i <= MaxPower; i++) {
+        auto a = P.GetCoef(i);
+        a->role = i;
+        //a.SetEditableFlags(ConstAllowed);
         TNumeric Temp = GetVarPower(i);
-        if(i==0)
-        {
-            if(Temp.operation == OperatorConst && Temp.K=="1")
-                //случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
-                Sum = a;
+        if (i == 0) {
+            if (Temp.operation == OperatorConst && Temp.strval == "1")
+                // случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
+                Sum = *a;
             else
-                Sum = a*Temp;
+                Sum = *a * Temp;
         } else {
-            Sum = a*Temp + Sum;
+            Sum = *a * Temp + Sum;
         }
     }
-    if(HaveRightPart)
-    {
-        //Обновляем Conditions, оставляя RightPart и operation не тронутым (если Conditions != NULL)
+    if (HaveRightPart) {
+        // Обновляем Conditions, оставляя RightPart и operation не тронутым (если Conditions != NULL)
 
         TNumeric RightPart = TNumeric("0");
-        int operation = OperatorEqual;
-        if(Conditions == NULL)
-        {
+        Operation operation = OperatorEqual;
+        if (Conditions == NULL) {
             Conditions = std::make_shared<TNumeric>();
-        }
-        else
-        {
+        } else {
             RightPart = *Conditions->operands[1];
             operation = Conditions->operation;
         };
         RightPartID = MaxPower + 1;
-        RightPart.ID = RightPartID;
+        RightPart.role = RightPartID;
         Conditions->operation = operation;
         Conditions->OperandsClear();
         vector<TNumeric> Test;
@@ -188,123 +164,108 @@ void TPolynomConditions::SetLeftPartP(const TPolynom &P, bool AllCoef)
     }
 }
 
-void TPolynomConditions::SetLeftPart(const TNumeric &a, const TNumeric &b)
-{
+void TPolynomConditions::SetLeftPart(const TNumeric& a, const TNumeric& b) {
     vector<TNumeric> v;
-    v.push_back(b); //x^0
-    v.push_back(a); //x^1
+    v.push_back(b);  // x^0
+    v.push_back(a);  // x^1
     SetLeftPartP(TPolynom(v));
 }
 
-void TPolynomConditions::SetLeftPart(const TNumeric &a, const TNumeric &b, const TNumeric& c)
-{
+void TPolynomConditions::SetLeftPart(const TNumeric& a, const TNumeric& b, const TNumeric& c) {
     vector<TNumeric> v;
-    v.push_back(c); //x^0
-    v.push_back(b); //x^1
-    v.push_back(a); //x^2
+    v.push_back(c);  // x^0
+    v.push_back(b);  // x^1
+    v.push_back(a);  // x^2
     SetLeftPartP(TPolynom(v));
 }
 
-
-PNumeric TPolynomConditions::GetCoefP(size_t power)
-{
-    if(power<=MaxPower)
-    {
-        return Conditions->GetByID(power);
+PNumeric TPolynomConditions::GetCoefP(size_t power) {
+    if (power <= MaxPower) {
+        return Conditions->GetByRole(power);
     };
     throw "TPolynomConditions::GetCoef(size_t power): power > MaxPower";
 }
 
-const PNumeric TPolynomConditions::GetCoef(size_t power) const
-{
-    if(power<=MaxPower)
-    {
-        return Conditions->GetByID(power);
+const PNumeric TPolynomConditions::GetCoef(size_t power) const {
+    if (power <= MaxPower) {
+        return Conditions->GetByRole(power);
     };
     throw "TPolynomConditions::GetCoef(size_t power): power > MaxPower";
 }
-PNumeric TPolynomConditions::GetRightPartP()
-{
-    return Conditions->GetByID(RightPartID);
+PNumeric TPolynomConditions::GetRightPartP() {
+    return Conditions->GetByRole(RightPartID);
 }
 
-TNumeric TPolynomConditions::GetRightPart() const
-{
-    return *(Conditions->GetByID(RightPartID));
+TNumeric TPolynomConditions::GetRightPart() const {
+    return *(Conditions->GetByRole(RightPartID));
 }
-void TPolynomConditions::SetRightPart(const TNumeric& N)
-{
-    PNumeric R = Conditions->GetByID(RightPartID);
-    if(R)
-    {
+void TPolynomConditions::SetRightPart(const TNumeric& N) {
+    PNumeric R = Conditions->GetByRole(RightPartID);
+    if (R) {
         *R = N;
-        R->ID = RightPartID;
+        R->role = RightPartID;
     }
 }
 
-void TPolynomConditions::SaveToFile(ofstream &f)
-{
+void TPolynomConditions::SaveToFile(ofstream& f) {
     uint16_t MaxPower = this->MaxPower;
     f.write((char*)&MaxPower, sizeof(MaxPower));
     uint16_t RightPartID = this->RightPartID;
     f.write((char*)&RightPartID, sizeof(RightPartID));
     UnknownVar.WriteToFile(f);
     uint16_t HaveRightPart;
-    if(this->HaveRightPart) HaveRightPart = 1;
-    else HaveRightPart = 0;
+    if (this->HaveRightPart)
+        HaveRightPart = 1;
+    else
+        HaveRightPart = 0;
     f.write((char*)&HaveRightPart, sizeof(HaveRightPart));
     TProblem::SaveToFile(f);
 }
 
-void TPolynomConditions::LoadFromFile(ifstream &f)
-{
+void TPolynomConditions::LoadFromFile(ifstream& f) {
     uint16_t MaxPower, RightPartID;
     f.read((char*)&MaxPower, sizeof(MaxPower));
     this->MaxPower = MaxPower;
-    if(MaxPower > 100)
-        throw "Incorrect file format";
+    if (MaxPower > 100) throw "Incorrect file format";
     f.read((char*)&RightPartID, sizeof(RightPartID));
     this->RightPartID = RightPartID;
     UnknownVar.LoadFromFile(f);
     uint16_t HaveRightPart;
     f.read((char*)&HaveRightPart, sizeof(HaveRightPart));
-    if(HaveRightPart)this->HaveRightPart = true;
-    else this->HaveRightPart = false;
+    if (HaveRightPart)
+        this->HaveRightPart = true;
+    else
+        this->HaveRightPart = false;
     TProblem::LoadFromFile(f);
 }
 
-
-void TPolynomConditions::Randomize(std::mt19937& rng)
-{
+void TPolynomConditions::Randomize(std::mt19937& rng) {
     TPolynom P;
     P.Coef.assign(MaxPower + 1, TNumeric(0));
     std::uniform_int_distribution<int> dist(-20, 20);
-    for(size_t i = 0; i <= MaxPower; i++)
+    for (size_t i = 0; i <= MaxPower; i++)
         P.Coef[i] = TNumeric(dist(rng));
     SetLeftPartP(P, true);
 }
 
 //******************************************************************************************
 //******************************************************************************************
-TPolynomialEquality::TPolynomialEquality(size_t MaxPower) : TPolynomConditions(MaxPower), TEquality()
-{    
-    if(MaxPower >= 3)
-    {
-        GetCoefP(0)->K = "1";
-        GetCoefP(3)->K = "1";
+TPolynomialEquality::TPolynomialEquality(size_t MaxPower) : TPolynomConditions(MaxPower), TEquality() {
+    if (MaxPower >= 3) {
+        GetCoefP(0)->strval = "1";
+        GetCoefP(3)->strval = "1";
     };
-    if(MaxPower >= 6)
-    {
+    if (MaxPower >= 6) {
         vector<TNumeric> R;
-        R.push_back(TNumeric(-18)/TNumeric(25)); //x^0
-        R.push_back(TNumeric(111)/TNumeric(25)); //x^1
-        R.push_back(TNumeric(-253)/TNumeric(50)); //x^2
-        R.push_back(TNumeric(-143)/TNumeric(20)); //x^3
-        R.push_back(TNumeric(309)/TNumeric(100)); //x^4
-        R.push_back(TNumeric(22)/TNumeric(5)); //x^5
-        R.push_back(TNumeric(1)); //x^6
-        R.push_back(TNumeric(0)); //x^7
-        R.push_back(TNumeric(0)); //x^8
+        R.push_back(TNumeric(-18) / TNumeric(25));   // x^0
+        R.push_back(TNumeric(111) / TNumeric(25));   // x^1
+        R.push_back(TNumeric(-253) / TNumeric(50));  // x^2
+        R.push_back(TNumeric(-143) / TNumeric(20));  // x^3
+        R.push_back(TNumeric(309) / TNumeric(100));  // x^4
+        R.push_back(TNumeric(22) / TNumeric(5));     // x^5
+        R.push_back(TNumeric(1));                    // x^6
+        R.push_back(TNumeric(0));                    // x^7
+        R.push_back(TNumeric(0));                    // x^8
         R.clear();
         R.assign(9, TNumeric(1));
         this->SetLeftPartP(R);
@@ -312,20 +273,15 @@ TPolynomialEquality::TPolynomialEquality(size_t MaxPower) : TPolynomConditions(M
     BuildPhrases();
 }
 
-TPolynomialEquality::TPolynomialEquality(const TPolynom& P, bool AllCoef) : TPolynomConditions(P, true, OperatorEqual, AllCoef), TEquality()
-{
+TPolynomialEquality::TPolynomialEquality(const TPolynom& P, bool AllCoef) :
+    TPolynomConditions(P, true, OperatorEqual, AllCoef), TEquality() {
     BuildPhrases();
 }
 
+TPolynomialEquality::~TPolynomialEquality() {}
 
-TPolynomialEquality::~TPolynomialEquality()
-{
-
-}
-
-void TPolynomialEquality::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()))return;
+void TPolynomialEquality::BuildPhrases() {
+    if (MyTranslator.CheckDictionary(GetClassName())) return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("All denominators should be integer.");
     MyTranslator.AddRus("Все знаменатели должны быть целыми");
@@ -339,8 +295,10 @@ void TPolynomialEquality::BuildPhrases()
     MyTranslator.AddRus("Не могу привести к рациональной форме.");
     MyTranslator.AddEng("Factorizing out %n");
     MyTranslator.AddRus("Выносим %n");
-    MyTranslator.AddEng("Searching for rational roots. These roots are like n/m, where n is divisor of free term, m - is divisor of coefficient of major term.");
-    MyTranslator.AddRus("Ищем рациональные корни. Эти корни должны быть вида n/m, где n - делитель свободного члена, m - делитель старшего коэффициента.");
+    MyTranslator.AddEng("Searching for rational roots. These roots are like n/m, where n is divisor of free term, m - is divisor "
+                        "of coefficient of major term.");
+    MyTranslator.AddRus("Ищем рациональные корни. Эти корни должны быть вида n/m, где n - делитель свободного члена, m - "
+                        "делитель старшего коэффициента.");
     MyTranslator.AddEng("Factorizing free term: ");
     MyTranslator.AddRus("Раскладываем на множители свободный член.");
     MyTranslator.AddEng("%d is simple number");
@@ -399,11 +357,9 @@ void TPolynomialEquality::BuildPhrases()
     MyTranslator.AddRus("многочлен %d степени");
 }
 
-vector<string> TPolynomialEquality::GetKeyWords()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()+"Keywords") == false)
-    {
-        MyTranslator.AddDictionary(GetClassName()+"Keywords");
+vector<string> TPolynomialEquality::GetKeyWords() {
+    if (MyTranslator.CheckDictionary(GetClassName() + "Keywords") == false) {
+        MyTranslator.AddDictionary(GetClassName() + "Keywords");
         MyTranslator.AddEng("equality");
         MyTranslator.AddRus("уравнение");
         MyTranslator.AddEng("polynom");
@@ -415,24 +371,19 @@ vector<string> TPolynomialEquality::GetKeyWords()
     return Res;
 }
 
-
-string TPolynomialEquality::GetTask()
-{
+string TPolynomialEquality::GetTask() {
     char Buf[128];
     sprintf(Buf, MyTranslator.tr("Find roots of polynom of %d power").c_str(), MaxPower);
     return Buf;
-
 }
 
-string TPolynomialEquality::GetShortTask()
-{
+string TPolynomialEquality::GetShortTask() {
     char Buf[128];
     sprintf(Buf, MyTranslator.tr("polynom of %d power").c_str(), MaxPower);
     return Buf;
 }
 
-void TPolynomialEquality::CopyAnswer(const TPolynomialEquality* Eq)
-{
+void TPolynomialEquality::CopyAnswer(const TPolynomialEquality* Eq) {
     Degenerate = Eq->Degenerate;
     AllRootsFound = Eq->AllRootsFound;
     Roots = Eq->Roots;
@@ -445,60 +396,49 @@ void TPolynomialEquality::CopyAnswer(const TPolynomialEquality* Eq)
     Result = Eq->Result;
     LinearMultiplier = Eq->LinearMultiplier;
 };
-void TPolynomialEquality::AddAnswer(const TPolynomialEquality* Eq)
-{
+void TPolynomialEquality::AddAnswer(const TPolynomialEquality* Eq) {
     Degenerate = Degenerate | Eq->Degenerate;
     AllRootsFound = AllRootsFound & Eq->AllRootsFound;
-    for(size_t i = 0; i < Eq->Roots.size(); i++)
-    {
+    for (size_t i = 0; i < Eq->Roots.size(); i++) {
         bool Found = false;
-        for(size_t j = 0; j < Roots.size(); j++)
-            if(Roots[j] == Eq->Roots[i])
-            {
+        for (size_t j = 0; j < Roots.size(); j++)
+            if (Roots[j] == Eq->Roots[i]) {
                 RootsMultiplicity[j] += Eq->RootsMultiplicity[i];
                 Found = true;
             };
-        if(!Found)
-        {
+        if (!Found) {
             Roots.push_back(Eq->Roots[i]);
             RootsMultiplicity.push_back(Eq->RootsMultiplicity[i]);
         };
     };
-    for(size_t i = 0; i < Eq->SquareMods.size(); i++)
-    {
+    for (size_t i = 0; i < Eq->SquareMods.size(); i++) {
         bool Found = false;
-        for(size_t j = 0; j < SquareMods.size(); j++)
-            if(SquareMods[j] == Eq->SquareMods[i])
-            {
+        for (size_t j = 0; j < SquareMods.size(); j++)
+            if (SquareMods[j] == Eq->SquareMods[i]) {
                 SquareModsMultiplicity[j] += Eq->SquareModsMultiplicity[i];
                 Found = true;
             };
-        if(!Found)
-        {
+        if (!Found) {
             SquareMods.push_back(Eq->SquareMods[i]);
             SquareModsMultiplicity.push_back(Eq->SquareModsMultiplicity[i]);
         };
     };
-    for(size_t i = 0; i < Eq->Multiplicators.size(); i++)
-    {
+    for (size_t i = 0; i < Eq->Multiplicators.size(); i++) {
         bool Found = false;
-        for(size_t j = 0; j < Multiplicators.size(); j++)
-            if(Multiplicators[j] == Eq->Multiplicators[i])
-            {
+        for (size_t j = 0; j < Multiplicators.size(); j++)
+            if (Multiplicators[j] == Eq->Multiplicators[i]) {
                 MMultiplicity[j] += Eq->MMultiplicity[i];
                 Found = true;
             };
-        if(!Found)
-        {
+        if (!Found) {
             Multiplicators.push_back(Eq->Multiplicators[i]);
             MMultiplicity.push_back(Eq->MMultiplicity[i]);
         };
     }
-    Result  = Result + Eq->Result;
-    LinearMultiplier = (LinearMultiplier*Eq->LinearMultiplier).Simplify();
+    Result = Result + Eq->Result;
+    LinearMultiplier = (LinearMultiplier * Eq->LinearMultiplier).Simplify();
 };
-void TPolynomialEquality::AddRoot(const TNumeric& N, size_t Multiplicity)
-{
+void TPolynomialEquality::AddRoot(const TNumeric& N, size_t Multiplicity) {
     TPolynomialEquality PE;
     PE.ClearSolution();
     PE.Degenerate = false;
@@ -506,52 +446,43 @@ void TPolynomialEquality::AddRoot(const TNumeric& N, size_t Multiplicity)
     PE.RootsMultiplicity.push_back(Multiplicity);
 
     TPolynom P;
-    P.Coef.push_back(TNumeric("-1")*N);
+    P.Coef.push_back(TNumeric("-1") * N);
     P.Coef.push_back(TNumeric("1"));
     PE.Multiplicators.push_back(P);
     PE.MMultiplicity.push_back(Multiplicity);
 
-    PE.Result.Intervals.push_back(TInterval(N, N, true, true)); // adds [N, N] = {N}
+    PE.Result.Intervals.push_back(TInterval(N, N, true, true));  // adds [N, N] = {N}
     AddAnswer(&PE);
 }
 
-void TPolynomialEquality::AddMultiplicator(const TPolynom& P, size_t Multiplicity)
-{
+void TPolynomialEquality::AddMultiplicator(const TPolynom& P, size_t Multiplicity) {
     TPolynomialEquality PE;
     PE.ClearSolution();
     PE.Multiplicators.push_back(P);
     PE.MMultiplicity.push_back(Multiplicity);
-    if(P.MajorPower() == 2)
-    {
+    if (P.MajorPower() == 2) {
         SquareMods.push_back(P);
         SquareModsMultiplicity.push_back(Multiplicity);
     };
-    if(P.MajorPower() == 0 && P.Coef.size() > 0)
-        LinearMultiplier = (LinearMultiplier*P.Coef[0]).Simplify();
+    if (P.MajorPower() == 0 && P.Coef.size() > 0) LinearMultiplier = (LinearMultiplier * P.Coef[0]).Simplify();
 
     AddAnswer(&PE);
 }
 
-
-bool TPolynomialEquality::CheckRationalAndGetNOK(std::shared_ptr<THTMLWriter> Writer, const TPolynom &P, int& NOK)
-{
+bool TPolynomialEquality::CheckRationalAndGetNOK(std::shared_ptr<THTMLWriter> Writer, const TPolynom& P, int& NOK) {
     NOK = 1;
-    for(size_t Power = 0; Power <= MaxPower; Power++)
-    {
-        if(P.GetCoef(Power).operation != OperatorConst)
-        {
-            P.GetCoef(Power) = P.GetCoef(Power).Simplify(); //пробуем сделать вычисления
+    for (size_t Power = 0; Power <= MaxPower; Power++) {
+        if (P.GetCoef(Power).operation != OperatorConst) {
+            P.GetCoef(Power) = P.GetCoef(Power).Simplify();  // пробуем сделать вычисления
         };
 
-        if(P.GetCoef(Power).operation == OperatorFrac)
-        {
+        if (P.GetCoef(Power).operation == OperatorFrac) {
             TNumeric Denom = P.GetCoef(Power).operands[1]->Simplify();
             P.GetCoef(Power).operands[1] = std::make_shared<TNumeric>(Denom);
 
             int intD;
-            if(!Denom.IsInteger(&intD))
-            {
-                if(Writer)Writer->WriteError("All denominators should be integer.");
+            if (!Denom.isInteger(&intD)) {
+                if (Writer) Writer->WriteError("All denominators should be integer.");
                 return false;
             };
 
@@ -559,337 +490,308 @@ bool TPolynomialEquality::CheckRationalAndGetNOK(std::shared_ptr<THTMLWriter> Wr
 
             TNumeric Nom = P.GetCoef(Power).operands[0]->Simplify();
             P.GetCoef(Power).operands[0] = std::make_shared<TNumeric>(Nom);
-            if(!Nom.IsInteger(0))
-            {
-                if(Writer)Writer->WriteError("All nominators should be integer.");
+            if (!Nom.isInteger(0)) {
+                if (Writer) Writer->WriteError("All nominators should be integer.");
                 return false;
             };
-        } else
-            if(!P.GetCoef(Power).IsInteger(0))
-            {
-                if(Writer)Writer->WriteError("All coefficients should be rational.");
-                return false;
-            };
-    }
-    return true;
-}
-
-bool TPolynomialEquality::GetIntCoefs(std::shared_ptr<THTMLWriter> Writer, int NOK, const TPolynom& P, vector<int> &IntCoefs)
-{
-    //умножаем все коэф на общий знаменатель
-    if(NOK > 1)
-    {
-        if(Writer)
-            Writer->AddParagraph("Reducing to common denominator: multiplying by %N", TNumeric(NOK));
-    };
-    size_t MajorPower = P.MajorPower();
-    IntCoefs.assign(MajorPower+1, 0);
-    for(size_t Power = 0; Power <= MajorPower; Power++)
-    {
-        if(!P.GetCoef(Power).IsInteger(&IntCoefs[Power]))
-        {
-            if(Writer)Writer->WriteError("Can not reduce to rational form.");
+        } else if (!P.GetCoef(Power).isInteger(0)) {
+            if (Writer) Writer->WriteError("All coefficients should be rational.");
             return false;
         };
     }
     return true;
 }
 
+bool TPolynomialEquality::GetIntCoefs(std::shared_ptr<THTMLWriter> Writer, int NOK, const TPolynom& P, vector<int>& IntCoefs) {
+    // умножаем все коэф на общий знаменатель
+    if (NOK > 1) {
+        if (Writer) Writer->AddParagraph("Reducing to common denominator: multiplying by %N", TNumeric(NOK));
+    };
+    size_t MajorPower = P.MajorPower();
+    IntCoefs.assign(MajorPower + 1, 0);
+    for (size_t Power = 0; Power <= MajorPower; Power++) {
+        if (!P.GetCoef(Power).isInteger(&IntCoefs[Power])) {
+            if (Writer) Writer->WriteError("Can not reduce to rational form.");
+            return false;
+        };
+    }
+    return true;
+}
 
-int TPolynomialEquality::TakeOutCommonMultiplicator(std::shared_ptr<THTMLWriter> Writer, vector<int>& IntCoefs)
-{
+int TPolynomialEquality::TakeOutCommonMultiplicator(std::shared_ptr<THTMLWriter> Writer, vector<int>& IntCoefs) {
     Q_UNUSED(Writer);
     int NOD = GetNOD(IntCoefs);
-    for(size_t i = 0; i < IntCoefs.size(); i++)
+    for (size_t i = 0; i < IntCoefs.size(); i++)
         IntCoefs[i] = IntCoefs[i] / NOD;
     return NOD;
 }
 
-bool TPolynomialEquality::TakeOutXk(std::shared_ptr<THTMLWriter> Writer, vector<int>& IntCoefs)
-{
-    //Рассматриваем случай x^k*P(x) = 0
-    size_t ZeroXMult = 0; //кратность корня, равна k
-    while(ZeroXMult <= IntCoefs.size() && IntCoefs[ZeroXMult] == 0) ZeroXMult++;
+bool TPolynomialEquality::TakeOutXk(std::shared_ptr<THTMLWriter> Writer, vector<int>& IntCoefs) {
+    // Рассматриваем случай x^k*P(x) = 0
+    size_t ZeroXMult = 0;  // кратность корня, равна k
+    while (ZeroXMult <= IntCoefs.size() && IntCoefs[ZeroXMult] == 0)
+        ZeroXMult++;
 
-    if(ZeroXMult > 0)
-    {
-        if(Writer)
-        {
+    if (ZeroXMult > 0) {
+        if (Writer) {
             Writer->AddParagraph("Factorizing out %n", MakePow(UnknownVar, TNumeric(ZeroXMult)));
 
-            Writer->AddParagraph("%n - root with multiplicity of %n", MakeEquality(UnknownVar, TNumeric("0")), TNumeric(ZeroXMult));
+            Writer->AddParagraph("%n - root with multiplicity of %n", MakeEquality(UnknownVar, TNumeric("0")),
+                                 TNumeric(ZeroXMult));
 
             AddRoot(TNumeric("0"), ZeroXMult);
             Writer->EndParagraph();
         }
 
-        IntCoefs.erase(IntCoefs.begin(), IntCoefs.begin()+ZeroXMult);
+        IntCoefs.erase(IntCoefs.begin(), IntCoefs.begin() + ZeroXMult);
     };
     return true;
 };
 
-bool TPolynomialEquality::SearchRationalRoots(std::shared_ptr<THTMLWriter> Writer, vector<int>& IntCoefs, TPolynom& PRemaining)
-{
-    if(IntCoefs.size() == 0) return true;
-    vector<TNumeric> RationalRoots; //найденные корни без учёта кратности
+bool TPolynomialEquality::SearchRationalRoots(std::shared_ptr<THTMLWriter> Writer, vector<int>& IntCoefs, TPolynom& PRemaining) {
+    if (IntCoefs.size() == 0) return true;
+    vector<TNumeric> RationalRoots;  // найденные корни без учёта кратности
     Degenerate = false;
     int FreeMember = IntCoefs[0];
     int MajorMember = IntCoefs[IntCoefs.size() - 1];
     vector<int> FreeMemberMults = IntFactorize(FreeMember);
     vector<int> MajorMemberMults = IntFactorize(MajorMember);
 
-    if(Writer)
-        //Writer->AddParagraph("Ищем рациональные корни. Эти корни должны быть вида n/m, где n - делитель свободного члена, m - делитель старшего коэффициента.");
-        Writer->AddParagraph("Searching for rational roots. These roots are like n/m, where n is divisor of free term, m - is divisor of coefficient of major term.");
+    if (Writer)
+        // Writer->AddParagraph("Ищем рациональные корни. Эти корни должны быть вида n/m, где n - делитель свободного члена, m -
+        // делитель старшего коэффициента.");
+        Writer->AddParagraph("Searching for rational roots. These roots are like n/m, where n is divisor of free term, m - is "
+                             "divisor of coefficient of major term.");
 
-    if(Writer)
-    //рисуем найденные множители
+    if (Writer)
+    // рисуем найденные множители
     {
         Writer->AddParagraph("Factorizing free term: ");
         Writer->IncrementNestingLevel();
         TNumeric Temp;
         Temp.operation = OperatorProd;
-        if(FreeMemberMults.size()==1)
-        {
+        if (FreeMemberMults.size() == 1) {
             Writer->AddParagraph("%d is simple number", FreeMember);
         } else {
-            for(size_t i = 0; i < FreeMemberMults.size(); i++) Temp.OperandsPushback(TNumeric(FreeMemberMults[i]));
+            for (size_t i = 0; i < FreeMemberMults.size(); i++)
+                Temp.OperandsPushback(TNumeric(FreeMemberMults[i]));
             Writer->AddFormula(MakeEquality(TNumeric(abs(FreeMember)), Temp));
         }
         Writer->DecrementNestingLevel();
         Writer->AddParagraph("Factorizing major term");
         Writer->IncrementNestingLevel();
         Temp.OperandsClear();
-        if(MajorMemberMults.size()==1)
-        {
+        if (MajorMemberMults.size() == 1) {
             Writer->AddParagraph("%d is simple number", FreeMember);
-        }
-        else {
-            for(size_t i = 0; i < MajorMemberMults.size(); i++) Temp.OperandsPushback(TNumeric(MajorMemberMults[i]));
+        } else {
+            for (size_t i = 0; i < MajorMemberMults.size(); i++)
+                Temp.OperandsPushback(TNumeric(MajorMemberMults[i]));
             Writer->AddFormula(MakeEquality(TNumeric(abs(FreeMember)), Temp));
         };
         Writer->DecrementNestingLevel();
     }
 
-    if(Writer)
-    {
+    if (Writer) {
         Writer->BeginParagraph();
         Writer->Add("Checking roots candidates...");
     };
-    if(find(FreeMemberMults.begin(), FreeMemberMults.end(), 1) == FreeMemberMults.end()) FreeMemberMults.push_back(1); //если небыло единицы среди множителей, добавляем её
-    if(find(MajorMemberMults.begin(), MajorMemberMults.end(), 1) == MajorMemberMults.end()) MajorMemberMults.push_back(1); //если небыло единицы среди множителей, добавляем её
+    if (find(FreeMemberMults.begin(), FreeMemberMults.end(), 1) == FreeMemberMults.end())
+        FreeMemberMults.push_back(1);  // если небыло единицы среди множителей, добавляем её
+    if (find(MajorMemberMults.begin(), MajorMemberMults.end(), 1) == MajorMemberMults.end())
+        MajorMemberMults.push_back(1);  // если небыло единицы среди множителей, добавляем её
 
     TPolynom SourceP(IntCoefs);
     vector<int> FreeProds = GetAllProds(FreeMemberMults);
     vector<int> MajorProds = GetAllProds(MajorMemberMults);
-    for(size_t i = 0; i < FreeProds.size(); i++) //перебираем делители свободного члена
-        for(size_t j = 0; j < MajorProds.size(); j++) //перебираем делители коэф при старшем члене
-            for(int sign = -1; sign <=1; sign+=2) //перебираем знак
+    for (size_t i = 0; i < FreeProds.size(); i++)  // перебираем делители свободного члена
+        for (size_t j = 0; j < MajorProds.size(); j++)  // перебираем делители коэф при старшем члене
+            for (int sign = -1; sign <= 1; sign += 2)  // перебираем знак
             {
-                TNumeric Test; //тестовый корень
-                //Инициализируем тестовый корень
+                TNumeric Test;  // тестовый корень
+                // Инициализируем тестовый корень
                 int N = FreeProds[i];
                 int D = MajorProds[j];
-                if(D == 1)
-                {
-                    Test = TNumeric(sign*N);
+                if (D == 1) {
+                    Test = TNumeric(sign * N);
                 } else {
                     Test.operation = OperatorFrac;
                     Test.OperandsClear();
-                    Test.OperandsPushback(TNumeric(sign*N));
+                    Test.OperandsPushback(TNumeric(sign * N));
                     Test.OperandsPushback(TNumeric(D));
                 };
                 Test = Test.Simplify();
 
                 bool AllreadyFound = false;
-                for(size_t r = 0; r < RationalRoots.size(); r++)
-                {
-                    if(RationalRoots[r] == Test) //Для левой и правой части метод Simplify уже вызывался
+                for (size_t r = 0; r < RationalRoots.size(); r++) {
+                    if (RationalRoots[r] == Test)  // Для левой и правой части метод Simplify уже вызывался
                     {
                         AllreadyFound = true;
                         break;
                     }
                 }
-                if(AllreadyFound == false)
-                    //проверяем тестовый корень
-                    if(SourceP.Calculate(Test) == 0)
-                    {
-                        if(Writer)Writer->AddFormula(MakeEquality(UnknownVar, Test));
+                if (AllreadyFound == false)
+                    // проверяем тестовый корень
+                    if (SourceP.Calculate(Test) == 0) {
+                        if (Writer) Writer->AddFormula(MakeEquality(UnknownVar, Test));
                         RationalRoots.push_back(Test);
                     };
             }
-    if(Writer)Writer->EndParagraph();
+    if (Writer) Writer->EndParagraph();
 
     PRemaining = TPolynom(IntCoefs);
-    if(RationalRoots.size() == 0)
-    {
-        //рациональные корни найти не удалось
-        if(Writer)Writer->AddParagraph("No rational roots found");
+    if (RationalRoots.size() == 0) {
+        // рациональные корни найти не удалось
+        if (Writer) Writer->AddParagraph("No rational roots found");
     } else {
-        //Теперь проверяем кратность корней
-        if(Writer)
-        {
+        // Теперь проверяем кратность корней
+        if (Writer) {
             Writer->BeginParagraph();
             Writer->Add("Checking roots multiplicity");
         };
-        TNumeric Res; //разложение на множители
+        TNumeric Res;  // разложение на множители
         Res.operation = OperatorProd;
-        for(size_t i = 0; i < RationalRoots.size(); i++)
-        {
+        for (size_t i = 0; i < RationalRoots.size(); i++) {
             vector<TNumeric> Divisor;
-            //устанавливаем делитель в x - RationalRoots[i]
+            // устанавливаем делитель в x - RationalRoots[i]
             Divisor.assign(2, TNumeric(0));
-            Divisor[0] = (RationalRoots[i]*TNumeric(-1)).Simplify();
+            Divisor[0] = (RationalRoots[i] * TNumeric(-1)).Simplify();
             Divisor[1] = TNumeric(1);
 
             TPolynom Reminder;
             TPolynom PRemainingPrev = PRemaining;
-            int Multiplicity = 0; //кратность корня
-            do
-            {
+            int Multiplicity = 0;  // кратность корня
+            do {
                 TPolynom Ratio = PRemaining.Div(Divisor, &Reminder);
-                if(Reminder.MajorPower() == 0 && Reminder.GetCoef(0) == 0)
-                //делится без остатка
+                if (Reminder.MajorPower() == 0 && Reminder.GetCoef(0) == 0)
+                // делится без остатка
                 {
                     Multiplicity++;
                     PRemaining = Ratio;
-                }
-                else break;
-            }while(true);
+                } else
+                    break;
+            } while (true);
 
-            if(Multiplicity > 0)
-            {
+            if (Multiplicity > 0) {
                 TNumeric Multiplier;
                 Multiplier.operation = OperatorSum;
                 Multiplier.OperandsPushback(UnknownVar);
-                Multiplier.OperandsPushback((TNumeric(-1)*TNumeric(RationalRoots[i])).Simplify());
-                if(Multiplicity > 1)
-                {
+                Multiplier.OperandsPushback((TNumeric(-1) * TNumeric(RationalRoots[i])).Simplify());
+                if (Multiplicity > 1) {
                     TNumeric Temp = Multiplier;
                     *Multiplier.operands[0] = Temp;
                     *Multiplier.operands[1] = TNumeric(Multiplicity);
                     Multiplier.operation = OperatorPow;
                 };
-                if(Writer)Writer->AddFormula(MakeEquality(PRemainingPrev.GetNumeric(UnknownVar), Multiplier*PRemaining.GetNumeric(UnknownVar)));
+                if (Writer)
+                    Writer->AddFormula(
+                        MakeEquality(PRemainingPrev.asNumeric(UnknownVar), Multiplier * PRemaining.asNumeric(UnknownVar)));
 
-                //Добавляем найденный корень к результатам
+                // Добавляем найденный корень к результатам
                 AddRoot(RationalRoots[i], Multiplicity);
             };
         };
-        if(Writer)Writer->EndParagraph();
+        if (Writer) Writer->EndParagraph();
     };
     return true;
 };
 
-bool TPolynomialEquality::AnalyzePRemaining(std::shared_ptr<THTMLWriter> Writer, const TPolynom& PRemaining)
-{
+bool TPolynomialEquality::AnalyzePRemaining(std::shared_ptr<THTMLWriter> Writer, const TPolynom& PRemaining) {
     AllRootsFound = true;
 
-    //Рассматриваем оставшийся многочлен, который не смогли разложить
-    switch(PRemaining.MajorPower())
-    {
-    case 0: break;
-    case 1: //остался многочлен первой степени
-    {
-        TLinearEquality Eq(PRemaining);
-        if(Writer)Writer->AddParagraph("Solving linear equality: %N", *Eq.Conditions);
-        if(Writer)Writer->IncrementNestingLevel();
-        Eq.GetSolution(Writer);
-        if(Writer)Writer->DecrementNestingLevel();
-        AddAnswer(&Eq);
-    }
-    break;
-
-    case 2: //остался многочлен второй степени
-    {
-        TSquareEquality Eq(PRemaining);
-        if(Writer)Writer->AddParagraph("Solving square equality: %N", *Eq.Conditions);
-        if(Writer)Writer->IncrementNestingLevel();
-        Eq.GetSolution(Writer);
-        if(Writer)Writer->DecrementNestingLevel();
-        AddAnswer(&Eq);
-    }
-    break;
-
-    default:
-    {
-        //остался многочлен третьей или более высокой степени
-        //используем схему Кронекера для факторизации этого многочлена
-        vector<size_t> MMults;
-        vector<TPolynom> Mults = PRemaining.FactorizeKroneker(&MMults);
-        //проверяем, что все множители - не более, чем квадратичные
-        if(Writer)
+    // Рассматриваем оставшийся многочлен, который не смогли разложить
+    switch (PRemaining.MajorPower()) {
+        case 0:
+            break;
+        case 1:  // остался многочлен первой степени
         {
-            Writer->AddParagraph("Using the Kroneckers method");
-            Writer->IncrementNestingLevel();
-            if(Mults.size() == 1)
-            {
-                Writer->AddParagraph("Can not factorize polynom %n", PRemaining.GetNumeric(UnknownVar));
-            } else {
-                TNumeric Factorization;
-                for(size_t i =  0; i < Mults.size(); i++)
-                {
-                    TNumeric Term = Mults[i].GetNumeric(UnknownVar);
-                    if(MMults[i] > 1) Term = Term ^ TNumeric(MMults[i]);
-                    if(i == 0)Factorization = Term;
-                    else Factorization = Factorization*Term;
-                };
-                Writer->AddParagraph("Factorization: %N", Factorization);
-            };
-        };
+            TLinearEquality Eq(PRemaining);
+            if (Writer) Writer->AddParagraph("Solving linear equality: %N", *Eq.Conditions);
+            if (Writer) Writer->IncrementNestingLevel();
+            Eq.GetSolution(Writer);
+            if (Writer) Writer->DecrementNestingLevel();
+            AddAnswer(&Eq);
+        } break;
 
-        for(size_t i = 0; i < Mults.size(); i++)
+        case 2:  // остался многочлен второй степени
         {
-            TPolynomialEquality Eq;
-            switch(Mults[i].MajorPower())
-            {
-            case 0: break;
-            case 1:
-            {
-                TNumeric X = (TNumeric(-1)*Mults[i].Coef[0]).Simplify();
-                AddRoot(X, MMults[i]);
-                if(Writer)Writer->AddParagraph("Found root: %n", X);
-                break;
-            }
-            case 2:
-            {
-                TSquareEquality E;
-                E.UnknownVar = UnknownVar;
-                E.SetLeftPartP(Mults[i]);
-                if(Writer)Writer->AddParagraph("Solving square equality: %N", *E.Conditions);
-                if(Writer)Writer->IncrementNestingLevel();
-                if(E.GetSolution(Writer) == false)
-                {
-                    if(Writer)Writer->DecrementNestingLevel();//Closing <div> opened at "Using the Kronecker method"
-                    if(Writer)Writer->DecrementNestingLevel();
-                    return false;
+            TSquareEquality Eq(PRemaining);
+            if (Writer) Writer->AddParagraph("Solving square equality: %N", *Eq.Conditions);
+            if (Writer) Writer->IncrementNestingLevel();
+            Eq.GetSolution(Writer);
+            if (Writer) Writer->DecrementNestingLevel();
+            AddAnswer(&Eq);
+        } break;
+
+        default: {
+            // остался многочлен третьей или более высокой степени
+            // используем схему Кронекера для факторизации этого многочлена
+            vector<size_t> MMults;
+            vector<TPolynom> Mults = PRemaining.FactorizeKroneker(&MMults);
+            // проверяем, что все множители - не более, чем квадратичные
+            if (Writer) {
+                Writer->AddParagraph("Using the Kroneckers method");
+                Writer->IncrementNestingLevel();
+                if (Mults.size() == 1) {
+                    Writer->AddParagraph("Can not factorize polynom %n", PRemaining.asNumeric(UnknownVar));
+                } else {
+                    TNumeric Factorization;
+                    for (size_t i = 0; i < Mults.size(); i++) {
+                        TNumeric Term = Mults[i].asNumeric(UnknownVar);
+                        if (MMults[i] > 1) Term = Term ^ TNumeric(MMults[i]);
+                        if (i == 0)
+                            Factorization = Term;
+                        else
+                            Factorization = Factorization * Term;
+                    };
+                    Writer->AddParagraph("Factorization: %N", Factorization);
                 };
-                if(Writer)Writer->DecrementNestingLevel();
-                for(size_t i_1 = 0;  i_1< MMults[i]; i_1++)
-                    AddAnswer(&E);
             };
-                break;
-            default:
-                if(Writer)
-                {
-                    Writer->BeginError();
-                    Writer->Add("Can not find roots of remaining polynom:");
-                    Writer->AddFormula(Mults[i].GetNumeric(UnknownVar));
-                    Writer->EndError();
+
+            for (size_t i = 0; i < Mults.size(); i++) {
+                TPolynomialEquality Eq;
+                switch (Mults[i].MajorPower()) {
+                    case 0:
+                        break;
+                    case 1: {
+                        TNumeric X = (TNumeric(-1) * Mults[i].Coef[0]).Simplify();
+                        AddRoot(X, MMults[i]);
+                        if (Writer) Writer->AddParagraph("Found root: %n", X);
+                        break;
+                    }
+                    case 2: {
+                        TSquareEquality E;
+                        E.UnknownVar = UnknownVar;
+                        E.SetLeftPartP(Mults[i]);
+                        if (Writer) Writer->AddParagraph("Solving square equality: %N", *E.Conditions);
+                        if (Writer) Writer->IncrementNestingLevel();
+                        if (E.GetSolution(Writer) == false) {
+                            if (Writer) Writer->DecrementNestingLevel();  // Closing <div> opened at "Using the Kronecker method"
+                            if (Writer) Writer->DecrementNestingLevel();
+                            return false;
+                        };
+                        if (Writer) Writer->DecrementNestingLevel();
+                        for (size_t i_1 = 0; i_1 < MMults[i]; i_1++)
+                            AddAnswer(&E);
+                    }; break;
+                    default:
+                        if (Writer) {
+                            Writer->BeginError();
+                            Writer->Add("Can not find roots of remaining polynom:");
+                            Writer->AddFormula(Mults[i].asNumeric(UnknownVar));
+                            Writer->EndError();
+                        };
+                        AddMultiplicator(Mults[i], MMults[i]);
+                        AllRootsFound = false;
                 };
-                AddMultiplicator(Mults[i], MMults[i]);
-                AllRootsFound = false;
             };
+            if (Writer) Writer->DecrementNestingLevel();
+            break;
         };
-        if(Writer)Writer->DecrementNestingLevel();
-        break;
-    };
     }
     return AllRootsFound;
 }
 
-void TPolynomialEquality::ClearSolution()
-{
+void TPolynomialEquality::ClearSolution() {
     Result.Intervals.clear();
     Roots.clear();
     RootsMultiplicity.clear();
@@ -902,125 +804,106 @@ void TPolynomialEquality::ClearSolution()
     LinearMultiplier = TNumeric(1);
 }
 
-bool TPolynomialEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
-    vector<TNumeric> Coef1; //коэффициенты в виде объектов TNumeric
+bool TPolynomialEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
+    vector<TNumeric> Coef1;  // коэффициенты в виде объектов TNumeric
     Coef1 = GetCoef();
 
     ClearSolution();
 
-    TPolynom SourcePolynom; //полином, прочитанный из условия задачи
+    TPolynom SourcePolynom;  // полином, прочитанный из условия задачи
     SourcePolynom = TPolynom(Coef1);
-    size_t MajorPower = SourcePolynom.MajorPower(); //старшая степень с отличным от нуля коэффициентом
+    size_t MajorPower = SourcePolynom.MajorPower();  // старшая степень с отличным от нуля коэффициентом
 
-    if(MajorPower <= 1)
+    if (MajorPower <= 1)
     // a * x^0 = 0
     {
         TLinearEquality E;
         E.UnknownVar = UnknownVar;
         E.SetLeftPartP(SourcePolynom);
-        if(Writer)
-            Writer->AddParagraph("Solving linear equality: %N", *E.Conditions);
+        if (Writer) Writer->AddParagraph("Solving linear equality: %N", *E.Conditions);
         bool res = E.GetSolution(Writer);
         CopyAnswer(&E);
         return res;
-    } else
-        if(MajorPower == 2)
-        {
-            TSquareEquality E;
-            E.UnknownVar = UnknownVar;
-            E.SetLeftPartP(SourcePolynom);
-            if(Writer)
-                Writer->AddParagraph("Solving square equality: %N", *E.Conditions);
-            if(Writer)Writer->IncrementNestingLevel();
-            bool res = E.GetSolution(Writer);
-            if(Writer)Writer->DecrementNestingLevel();
-            CopyAnswer(&E);
-            return res;
-        } else {
+    } else if (MajorPower == 2) {
+        TSquareEquality E;
+        E.UnknownVar = UnknownVar;
+        E.SetLeftPartP(SourcePolynom);
+        if (Writer) Writer->AddParagraph("Solving square equality: %N", *E.Conditions);
+        if (Writer) Writer->IncrementNestingLevel();
+        bool res = E.GetSolution(Writer);
+        if (Writer) Writer->DecrementNestingLevel();
+        CopyAnswer(&E);
+        return res;
+    } else {
+        // проверяем, чтобы все коэффициенты были рациональными
+        // заодно вычисляем НОК знаменателей всех коэффициентов
+        int NOK;
+        if (CheckRationalAndGetNOK(Writer, SourcePolynom, NOK) == false) return false;
 
-            //проверяем, чтобы все коэффициенты были рациональными
-            //заодно вычисляем НОК знаменателей всех коэффициентов
-            int NOK;
-            if(CheckRationalAndGetNOK(Writer, SourcePolynom, NOK) == false) return false;
+        if (NOK != 1) AddMultiplicator(TPolynom(TNumeric(1) / NOK));  // регистрируем множитель
 
-            if(NOK != 1) AddMultiplicator(TPolynom(TNumeric(1)/NOK));        //регистрируем множитель
+        // заполняем целочисленные коэффициенты
+        vector<int> IntCoef;
+        if (GetIntCoefs(Writer, NOK, SourcePolynom, IntCoef) == false) return false;
 
-            //заполняем целочисленные коэффициенты
-            vector<int> IntCoef;
-            if(GetIntCoefs(Writer, NOK, SourcePolynom, IntCoef) == false) return false;
+        // Теперь выносим общий множитель всех коэффициентов
+        int NOD = TakeOutCommonMultiplicator(Writer, IntCoef);
+        if (NOD != 1) AddMultiplicator(TPolynom(TNumeric(NOD)));  // регистрируем множитель
 
+        if (Writer)
+            Writer->AddParagraph("After simplifying coefficients: %N",
+                                 MakeEquality(TPolynom(IntCoef).asNumeric(UnknownVar), TNumeric(0)));
 
-            //Теперь выносим общий множитель всех коэффициентов
-            int NOD = TakeOutCommonMultiplicator(Writer, IntCoef);
-            if(NOD != 1) AddMultiplicator(TPolynom(TNumeric(NOD)));         //регистрируем множитель
+        // Рассматриваем случай x^k*P(x) = 0
+        if (TakeOutXk(Writer, IntCoef) == false) return false;
 
-            if(Writer)
-                Writer->AddParagraph("After simplifying coefficients: %N", MakeEquality(TPolynom(IntCoef).GetNumeric(UnknownVar), TNumeric(0)));
+        // ТЕПЕРЬ ИЩЕМ СРЕДИ РАЦИОНАЛЬНЫХ КОРНЕЙ
+        TPolynom PRemaining;
+        if (SearchRationalRoots(Writer, IntCoef, PRemaining) == false) return false;
 
-            //Рассматриваем случай x^k*P(x) = 0
-            if(TakeOutXk(Writer, IntCoef) == false) return false;
-
-            //ТЕПЕРЬ ИЩЕМ СРЕДИ РАЦИОНАЛЬНЫХ КОРНЕЙ
-            TPolynom PRemaining;
-            if(SearchRationalRoots(Writer, IntCoef, PRemaining) == false) return false;
-
-            if(AnalyzePRemaining(Writer, PRemaining) == false) return false;
-        };
+        if (AnalyzePRemaining(Writer, PRemaining) == false) return false;
+    };
     SortRoots();
     PrintAnswer(Writer);
     return true;
 }
 
-void TPolynomialEquality::PrintAnswer(std::shared_ptr<THTMLWriter> Writer)
-{
-    if(Roots.size() > 0)
-    {
-        if(Writer)
-        {
+void TPolynomialEquality::PrintAnswer(std::shared_ptr<THTMLWriter> Writer) {
+    if (Roots.size() > 0) {
+        if (Writer) {
             Writer->AddParagraph("Found roots:");
             Writer->IncrementNestingLevel();
-            for(size_t i = 0; i < Roots.size(); i++)
+            for (size_t i = 0; i < Roots.size(); i++)
                 Writer->AddParagraph("%n has multiplicity %d", MakeEquality(UnknownVar, Roots[i]), RootsMultiplicity[i]);
             Writer->DecrementNestingLevel();
         }
     } else {
-        if(AllRootsFound)
-        {
-            if(Writer) Writer->AddParagraph("No roots found.");
-        }
-        else
-        {
-            if(Writer) Writer->WriteError("Can not find all roots.");
+        if (AllRootsFound) {
+            if (Writer) Writer->AddParagraph("No roots found.");
+        } else {
+            if (Writer) Writer->WriteError("Can not find all roots.");
         }
     }
-    if(Multiplicators.size() > 0)
-    {
+    if (Multiplicators.size() > 0) {
         TNumeric Res;
         Res.operation = OperatorProd;
-        for(size_t i = 0; i < Multiplicators.size(); i++)
-        {
-            TNumeric A = Multiplicators[i].GetNumeric(UnknownVar);
-            if(MMultiplicity[i] > 1)
-                A = A^MMultiplicity[i];
+        for (size_t i = 0; i < Multiplicators.size(); i++) {
+            TNumeric A = Multiplicators[i].asNumeric(UnknownVar);
+            if (MMultiplicity[i] > 1) A = A ^ MMultiplicity[i];
             Res.OperandsPushback(A);
         }
-        if(Writer)
-        {
+        if (Writer) {
             Writer->AddParagraph("Factorial expansion: %N", Res);
         }
     } else {
-        if(Writer)Writer->WriteError("Can not factorize polynom.");
+        if (Writer) Writer->WriteError("Can not factorize polynom.");
     }
 }
 
-void TPolynomialEquality::SortRoots()
-{
-    for(size_t i = 1; i < Roots.size(); i++)
-        for(size_t j = 0; j < i; j++)
-        {
-            if(Roots[i].Calculate() < Roots[j].Calculate())
-            {
+void TPolynomialEquality::SortRoots() {
+    for (size_t i = 1; i < Roots.size(); i++)
+        for (size_t j = 0; j < i; j++) {
+            if (Roots[i].Calculate() < Roots[j].Calculate()) {
                 TNumeric T = Roots[i];
                 Roots[i] = Roots[j];
                 Roots[j] = T;
@@ -1032,23 +915,19 @@ void TPolynomialEquality::SortRoots()
         }
 }
 
-
 //********************************************************************************************************
 //********************************************************************************************************
 
-TLinearEquality::TLinearEquality() : TPolynomialEquality(1)
-{
+TLinearEquality::TLinearEquality() : TPolynomialEquality(1) {
     CanRandomize = true;
     BuildPhrases();
 }
 
-TLinearEquality::TLinearEquality(const TPolynom& P) : TPolynomialEquality(P, false)
-{
-    if(P.MajorPower() > 1)  throw "TLinearEquality::TLinearEquality(TPolynom P): P.MajorPower() > 1";
+TLinearEquality::TLinearEquality(const TPolynom& P) : TPolynomialEquality(P, false) {
+    if (P.MajorPower() > 1) throw "TLinearEquality::TLinearEquality(TPolynom P): P.MajorPower() > 1";
 }
-void TLinearEquality::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()))return;
+void TLinearEquality::BuildPhrases() {
+    if (MyTranslator.CheckDictionary(GetClassName())) return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Error: can't find coefficients");
     MyTranslator.AddRus("Ошибка: не могу прочитать коэффициенты");
@@ -1066,11 +945,9 @@ void TLinearEquality::BuildPhrases()
     MyTranslator.AddRus("линейное уравнение");
 }
 
-vector<string> TLinearEquality::GetKeyWords()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()+"Keywords") == false)
-    {
-        MyTranslator.AddDictionary(GetClassName()+"Keywords");
+vector<string> TLinearEquality::GetKeyWords() {
+    if (MyTranslator.CheckDictionary(GetClassName() + "Keywords") == false) {
+        MyTranslator.AddDictionary(GetClassName() + "Keywords");
         MyTranslator.AddEng("equality");
         MyTranslator.AddRus("уравнение");
         MyTranslator.AddEng("linear");
@@ -1082,70 +959,60 @@ vector<string> TLinearEquality::GetKeyWords()
     return Res;
 }
 
-TLinearEquality::~TLinearEquality()
-{
-    //delete Conditions and delete Solution is called by ~TProblem, no need to call them here
+TLinearEquality::~TLinearEquality() {
+    // delete Conditions and delete Solution is called by ~TProblem, no need to call them here
 }
 
-TLinearEquality::TLinearEquality(const TLinearEquality& L) : TPolynomialEquality()
-{
+TLinearEquality::TLinearEquality(const TLinearEquality& L) : TPolynomialEquality() {
     Assign(L);
 }
 
-
-string TLinearEquality::GetTask()
-{
+string TLinearEquality::GetTask() {
     return MyTranslator.tr("Solve linear equality");
 }
 
-string TLinearEquality::GetShortTask()
-{
+string TLinearEquality::GetShortTask() {
     return MyTranslator.tr("linear equality");
 }
 
-void TLinearEquality::Assign(const TLinearEquality& L)
-{
+void TLinearEquality::Assign(const TLinearEquality& L) {
     Conditions = std::make_shared<TNumeric>(*L.Conditions);
 }
 
-
-void TLinearEquality::SetLeftPartP(const TPolynom &P, bool)
-{
+void TLinearEquality::SetLeftPartP(const TPolynom& P, bool) {
     TPolynom P2 = P;
-    if(P2.MajorPower() > 1) throw "TLinearEquality::SetLeftPart(const TPolynom &P): MajorPower > 1";
-    while(P2.Coef.size() < 2) P2.Coef.push_back(TNumeric(0)); //требуем, чтобы все необходимые коэффициенты присутствовали
+    if (P2.MajorPower() > 1) throw "TLinearEquality::SetLeftPart(const TPolynom &P): MajorPower > 1";
+    while (P2.Coef.size() < 2)
+        P2.Coef.push_back(TNumeric(0));  // требуем, чтобы все необходимые коэффициенты присутствовали
     TPolynomialEquality::SetLeftPartP(P2);
 }
 
-bool TLinearEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
+bool TLinearEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     ClearSolution();
     TNumeric& a = *GetCoefP(1);
     TNumeric& b = *GetCoefP(0);
     TNumeric& c = *GetRightPartP();
 
-    if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
-    if(a.Calculate() == 0)
-    {
-        if(Writer)Writer->AddParagraph("Major coefficient (linear) is zero. Graphic is parallel to X axis");
+    if (!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
+    if (a.Calculate() == 0) {
+        if (Writer) Writer->AddParagraph("Major coefficient (linear) is zero. Graphic is parallel to X axis");
         Degenerate = true;
         Roots.clear();
         RootsMultiplicity.clear();
-        if((c-b).Calculate() == 0)
-        {            
-            if(Writer)Writer->AddParagraph("Solution is any number.");
-            if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
+        if ((c - b).Calculate() == 0) {
+            if (Writer) Writer->AddParagraph("Solution is any number.");
+            if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
             Result.Intervals.push_back(IntervalAllRealNumbers);
         } else {
-            if(Writer)Writer->AddParagraph("Free member is non-zerro. No solution.");
-            if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+            if (Writer) Writer->AddParagraph("Free member is non-zerro. No solution.");
+            if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
             Result.Intervals.clear();
         }
     } else {
-        TNumeric X = (c-b)/a;
+        TNumeric X = (c - b) / a;
         TNumeric XSimplified = X.Simplify();
-        if(Writer)Writer->AddParagraph("Only solution exists: ");
-        if(Writer)Writer->AddFormula(MakeEquality(UnknownVar, MakeEquality(X, XSimplified)));
+        if (Writer) Writer->AddParagraph("Only solution exists: ");
+        if (Writer) Writer->AddFormula(MakeEquality(UnknownVar, MakeEquality(X, XSimplified)));
         AddRoot(XSimplified);
     };
     SortRoots();
@@ -1153,8 +1020,7 @@ bool TLinearEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
     return true;
 };
 
-void TLinearEquality::Randomize(std::mt19937& rng)
-{
+void TLinearEquality::Randomize(std::mt19937& rng) {
     std::uniform_int_distribution<int> dist(-20, 20);
     TNumeric A(dist(rng));
     TNumeric B(dist(rng));
@@ -1167,26 +1033,22 @@ void TLinearEquality::Randomize(std::mt19937& rng)
 //********************************************************************************************************
 //********************************************************************************************************
 
-TSquareEquality::TSquareEquality() : TPolynomialEquality(2)
-{
+TSquareEquality::TSquareEquality() : TPolynomialEquality(2) {
     CanRandomize = true;
     BuildPhrases();
 }
 
-TSquareEquality::TSquareEquality(TPolynom P) : TPolynomialEquality(P, false)
-{
-    if(P.MajorPower() > 2)  throw "TSquareEquality::TSquareEquality(TPolynom P): P.MajorPower() > 2";
+TSquareEquality::TSquareEquality(TPolynom P) : TPolynomialEquality(P, false) {
+    if (P.MajorPower() > 2) throw "TSquareEquality::TSquareEquality(TPolynom P): P.MajorPower() > 2";
     BuildPhrases();
 }
 
-TSquareEquality::~TSquareEquality()
-{
-    //delete Conditions and delete Solution is called by ~TProblem, no need to call them here
+TSquareEquality::~TSquareEquality() {
+    // delete Conditions and delete Solution is called by ~TProblem, no need to call them here
 }
 
-void TSquareEquality::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()))return;
+void TSquareEquality::BuildPhrases() {
+    if (MyTranslator.CheckDictionary(GetClassName())) return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Error: can't find coefficients");
     MyTranslator.AddRus("Ошибка: не могу прочитать коэффициенты");
@@ -1210,11 +1072,9 @@ void TSquareEquality::BuildPhrases()
     MyTranslator.AddRus("квадратное уравнение");
 }
 
-vector<string> TSquareEquality::GetKeyWords()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()+"Keywords") == false)
-    {
-        MyTranslator.AddDictionary(GetClassName()+"Keywords");
+vector<string> TSquareEquality::GetKeyWords() {
+    if (MyTranslator.CheckDictionary(GetClassName() + "Keywords") == false) {
+        MyTranslator.AddDictionary(GetClassName() + "Keywords");
         MyTranslator.AddEng("equality");
         MyTranslator.AddRus("уравнение");
         MyTranslator.AddEng("square");
@@ -1226,68 +1086,63 @@ vector<string> TSquareEquality::GetKeyWords()
     return Res;
 }
 
-string TSquareEquality::GetTask()
-{
+string TSquareEquality::GetTask() {
     return MyTranslator.tr("Solve square equality");
 }
 
-string TSquareEquality::GetShortTask()
-{
+string TSquareEquality::GetShortTask() {
     return MyTranslator.tr("square equality");
 }
 
-void TSquareEquality::SetLeftPartP(const TPolynom &P, bool)
-{
+void TSquareEquality::SetLeftPartP(const TPolynom& P, bool) {
     TPolynom P2 = P;
-    if(P2.MajorPower() > 2) throw "TSquareEquality::SetLeftPartP(const TPolynom &P): MajorPower > 2";
-    while(P2.Coef.size() < 3) P2.Coef.push_back(TNumeric(0)); //требуем, чтобы все необходимые коэффициенты присутствовали
+    if (P2.MajorPower() > 2) throw "TSquareEquality::SetLeftPartP(const TPolynom &P): MajorPower > 2";
+    while (P2.Coef.size() < 3)
+        P2.Coef.push_back(TNumeric(0));  // требуем, чтобы все необходимые коэффициенты присутствовали
     TPolynomialEquality::SetLeftPartP(P2);
 }
 
-bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
+bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     ClearSolution();
     TNumeric& a = *GetCoefP(2);
     TNumeric& b = *GetCoefP(1);
     TNumeric& c = *GetCoefP(0);
-    if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
+    if (!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
 
     Result.Intervals.clear();
     Roots.clear();
     RootsMultiplicity.clear();
 
     TNumeric X;
-    if(a.Calculate() == 0)
-    {
-        //решаем линейное уравнение
-        if(Writer) Writer->AddParagraph("Coefficient at square term is zero, so solving the linear equality.");
+    if (a.Calculate() == 0) {
+        // решаем линейное уравнение
+        if (Writer) Writer->AddParagraph("Coefficient at square term is zero, so solving the linear equality.");
 
         TLinearEquality E;
         E.SetLeftPart(b, c);
-        if(Writer)Writer->IncrementNestingLevel();
+        if (Writer) Writer->IncrementNestingLevel();
         E.GetSolution(Writer);
-        if(Writer)Writer->DecrementNestingLevel();
-        //копируем ответ
+        if (Writer) Writer->DecrementNestingLevel();
+        // копируем ответ
         CopyAnswer(&E);
     } else {
-        if(c.Calculate() == 0)
-        {
-            //случай ax^2+bx = 0, возможно b = 0
+        if (c.Calculate() == 0) {
+            // случай ax^2+bx = 0, возможно b = 0
             TNumeric X1("0");
-            if(b.Calculate() == 0)
-            //случай ax^2 = 0
+            if (b.Calculate() == 0)
+            // случай ax^2 = 0
             {
-                if(Writer)Writer->AddParagraph("Equality has one root of twice multiplicity.");
-                if(Writer)Writer->AddFormula(MakeEquality(UnknownVar, X1));
+                if (Writer) Writer->AddParagraph("Equality has one root of twice multiplicity.");
+                if (Writer) Writer->AddFormula(MakeEquality(UnknownVar, X1));
                 Result.Intervals.push_back(TInterval(X1, X1, true, true));
                 AddRoot(X1, 2);
             } else {
-                //случай ax^2+bx = 0
-                TNumeric X2(-b/a);
+                // случай ax^2+bx = 0
+                TNumeric X2(-b / a);
                 TNumeric X2Simplified = X2.Simplify();
-                if(Writer)Writer->AddParagraph("Equality has two different roots.");
-                if(Writer)Writer->AddFormula(MakeEquality(X_1, X1));
-                if(Writer)Writer->AddFormula(MakeEquality(X_2, MakeEquality(X2, X2Simplified)));
+                if (Writer) Writer->AddParagraph("Equality has two different roots.");
+                if (Writer) Writer->AddFormula(MakeEquality(X_1, X1));
+                if (Writer) Writer->AddFormula(MakeEquality(X_2, MakeEquality(X2, X2Simplified)));
                 Result.Intervals.push_back(TInterval(X1, X1, true, true));
                 Result.Intervals.push_back(TInterval(X2Simplified, X2Simplified, true, true));
                 AddRoot(X1);
@@ -1295,47 +1150,43 @@ bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
             }
 
         } else {
-            TNumeric D = (b^TNumeric(2)) - TNumeric(4) * a * c;
+            TNumeric D = (b ^ TNumeric(2)) - TNumeric(4) * a * c;
             TNumeric DSimplified = D.Simplify();
-            if(Writer)
+            if (Writer)
                 Writer->AddParagraph("Finding discriminant: %N", MakeEquality(TNumeric("D"), MakeEquality(D, DSimplified)));
-
 
             double d = DSimplified.Calculate();
 
-            if(d == 0)
-            {
-                if(Writer)Writer->AddParagraph("Discriminant is zero. So equality has one root of twice multiplicity.");
-                TNumeric X1 = (-b+DSimplified.sqrt())/(TNumeric(2)*a);
+            if (d == 0) {
+                if (Writer) Writer->AddParagraph("Discriminant is zero. So equality has one root of twice multiplicity.");
+                TNumeric X1 = (-b + DSimplified.sqrt()) / (TNumeric(2) * a);
                 TNumeric X1Simplified = X1.Simplify();
-                if(Writer)Writer->AddFormula(MakeEquality(UnknownVar, MakeEquality(X1, X1Simplified)));
+                if (Writer) Writer->AddFormula(MakeEquality(UnknownVar, MakeEquality(X1, X1Simplified)));
                 AddRoot(X1Simplified, 2);
             } else {
-                if(d > 0)
-                {
-                    if(Writer)Writer->Add("Discriminant is greater than zero. So equality has two different roots");
+                if (d > 0) {
+                    if (Writer) Writer->Add("Discriminant is greater than zero. So equality has two different roots");
 
-                    TNumeric X1 = (-b+DSimplified.sqrt())/(TNumeric(2)*a);
+                    TNumeric X1 = (-b + DSimplified.sqrt()) / (TNumeric(2) * a);
                     TNumeric X1Simplified = X1.Simplify();
-                    if(Writer)Writer->AddFormula(MakeEquality(X_1, MakeEquality(X1, X1Simplified)));
+                    if (Writer) Writer->AddFormula(MakeEquality(X_1, MakeEquality(X1, X1Simplified)));
                     Result.Intervals.push_back(TInterval(X1Simplified, X1Simplified, true, true));
 
-
-                    TNumeric X2 = (-b-DSimplified.sqrt())/(TNumeric(2)*a);
+                    TNumeric X2 = (-b - DSimplified.sqrt()) / (TNumeric(2) * a);
                     TNumeric X2Simplified = X2.Simplify();
-                    if(Writer)Writer->AddFormula(MakeEquality(X_2, MakeEquality(X2, X2Simplified)));
+                    if (Writer) Writer->AddFormula(MakeEquality(X_2, MakeEquality(X2, X2Simplified)));
                     Result.Intervals.push_back(TInterval(X2Simplified, X2Simplified, true, true));
 
                     AddRoot(X1Simplified);
                     AddRoot(X2Simplified);
                 } else {
-                    if(Writer)Writer->AddParagraph("Discriminant is less than zero. Equation has no roots.");
+                    if (Writer) Writer->AddParagraph("Discriminant is less than zero. Equation has no roots.");
                     TPolynom P;
                     P.Coef.push_back(c);
                     P.Coef.push_back(b);
                     P.Coef.push_back(a);
                     AddMultiplicator(P);
-                    Degenerate = false; //вырожденным не является, просто нет корней
+                    Degenerate = false;  // вырожденным не является, просто нет корней
                 }
             };
         };
@@ -1345,8 +1196,7 @@ bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
     return true;
 }
 
-void TSquareEquality::Randomize(std::mt19937& rng)
-{
+void TSquareEquality::Randomize(std::mt19937& rng) {
     std::uniform_int_distribution<int> dist(-20, 20);
     TNumeric A(dist(rng));
     TNumeric B(dist(rng));
@@ -1358,21 +1208,20 @@ void TSquareEquality::Randomize(std::mt19937& rng)
 //*****************************************************************************************************************************
 //              НЕРАВЕНСТВА
 //*****************************************************************************************************************************
-TPolynomialInequality::TPolynomialInequality(size_t MaxPower, bool Less, bool Strict) : TPolynomConditions(MaxPower, true, OperatorLess)
-{
+TPolynomialInequality::TPolynomialInequality(size_t MaxPower, bool Less, bool Strict) :
+    TPolynomConditions(MaxPower, true, OperatorLess) {
     SetType(Less, Strict);
     BuildPhrases();
 }
 
-TPolynomialInequality::TPolynomialInequality(const TPolynom& P, bool Less, bool Strict, bool AllCoef) : TPolynomConditions(P, true, OperatorLess, AllCoef)
-{
+TPolynomialInequality::TPolynomialInequality(const TPolynom& P, bool Less, bool Strict, bool AllCoef) :
+    TPolynomConditions(P, true, OperatorLess, AllCoef) {
     SetType(Less, Strict);
     BuildPhrases();
 }
 
-void TPolynomialInequality::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()))return;
+void TPolynomialInequality::BuildPhrases() {
+    if (MyTranslator.CheckDictionary(GetClassName())) return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Finding roots of polynom.");
     MyTranslator.AddRus("Ищем корни многочлена");
@@ -1390,11 +1239,9 @@ void TPolynomialInequality::BuildPhrases()
     MyTranslator.AddRus("%d степени");
 }
 
-vector<string> TPolynomialInequality::GetKeyWords()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()+"Keywords") == false)
-    {
-        MyTranslator.AddDictionary(GetClassName()+"Keywords");
+vector<string> TPolynomialInequality::GetKeyWords() {
+    if (MyTranslator.CheckDictionary(GetClassName() + "Keywords") == false) {
+        MyTranslator.AddDictionary(GetClassName() + "Keywords");
         MyTranslator.AddEng("inequality");
         MyTranslator.AddRus("неравенство");
         MyTranslator.AddEng("polynom");
@@ -1406,76 +1253,67 @@ vector<string> TPolynomialInequality::GetKeyWords()
     return Res;
 }
 
-TPolynomialInequality::~TPolynomialInequality()
-{
+TPolynomialInequality::~TPolynomialInequality() {}
 
-}
-
-bool TPolynomialInequality::SetType(bool Less, bool Strict)
-{
-    int operation;
-    if(Less && Strict) operation = OperatorLess;
-    if(Less && !Strict) operation = OperatorLessOrEqual;
-    if(!Less && Strict) operation = OperatorGreater;
-    if(!Less && !Strict) operation = OperatorGreaterOrEqual;
+bool TPolynomialInequality::SetType(bool Less, bool Strict) {
+    Operation operation;
+    if (Less && Strict) operation = OperatorLess;
+    if (Less && !Strict) operation = OperatorLessOrEqual;
+    if (!Less && Strict) operation = OperatorGreater;
+    if (!Less && !Strict) operation = OperatorGreaterOrEqual;
     Conditions->operation = operation;
     this->Less = Less;
     this->Strict = Strict;
     return true;
 }
 
-
-string TPolynomialInequality::GetTask()
-{
+string TPolynomialInequality::GetTask() {
     char Buf[128];
     sprintf(Buf, MyTranslator.tr("Solve polynomial inequality of %d power").c_str(), this->MaxPower);
     return string(Buf);
 }
 
-string TPolynomialInequality::GetShortTask()
-{
+string TPolynomialInequality::GetShortTask() {
     char Buf[128];
     sprintf(Buf, MyTranslator.tr("%d power").c_str(), this->MaxPower);
     return string(Buf);
 }
 
-bool TPolynomialInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
-    vector<TNumeric> Coef1; //коэффициенты в виде объектов TNumeric
+bool TPolynomialInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
+    vector<TNumeric> Coef1;  // коэффициенты в виде объектов TNumeric
     Coef1 = GetCoef();
 
     Result.Intervals.clear();
     TPolynom P(Coef1);
 
     TPolynomialEquality E(P);
-    if(Writer)Writer->AddParagraph("Finding roots of polynom.");
-    if(Writer)Writer->IncrementNestingLevel();
+    if (Writer) Writer->AddParagraph("Finding roots of polynom.");
+    if (Writer) Writer->IncrementNestingLevel();
     bool res = E.GetSolution(Writer);
-    if(Writer)Writer->DecrementNestingLevel();
-    if(res)
-    {
-        if(E.Degenerate)
-        {
-            if(Writer)Writer->AddParagraph("Left side of inequality is degenerated.");
-            if(Strict)
-            {
-                if(Writer)Writer->AddParagraph("Because inequality is strict it has no solution in this case.");
+    if (Writer) Writer->DecrementNestingLevel();
+    if (res) {
+        if (E.Degenerate) {
+            if (Writer) Writer->AddParagraph("Left side of inequality is degenerated.");
+            if (Strict) {
+                if (Writer) Writer->AddParagraph("Because inequality is strict it has no solution in this case.");
                 Result.Intervals.clear();
-            }
-            else
-            {
-                if(Writer)Writer->AddParagraph("Because inequality is unstrict the solution is any number");
+            } else {
+                if (Writer) Writer->AddParagraph("Because inequality is unstrict the solution is any number");
                 Result = E.Result;
             }
         } else {
             size_t MajorPower = P.MajorPower();
 
-            int CurSign; //текущий знак
+            int CurSign;  // текущий знак
             int LeaderTermSign;
-            if(P.GetCoef(MajorPower).Calculate() < 0) LeaderTermSign = -1;
-            else LeaderTermSign = +1;
-            if(MajorPower % 2 == 0) CurSign = LeaderTermSign; //четная степень
-            else CurSign = -LeaderTermSign; //нечетная степень
+            if (P.GetCoef(MajorPower).Calculate() < 0)
+                LeaderTermSign = -1;
+            else
+                LeaderTermSign = +1;
+            if (MajorPower % 2 == 0)
+                CurSign = LeaderTermSign;  // четная степень
+            else
+                CurSign = -LeaderTermSign;  // нечетная степень
             /*            {
                 if(P.GetCoef(MajorPower).Calculate() < 0) CurSign = LeaderTermSign; //-x^3 > 0 при x = -inf
                 else CurSign = -LeaderTermSign; //x^3 < 0 при x = -inf
@@ -1483,45 +1321,39 @@ bool TPolynomialInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
 
             TNumeric LeftX = NumericMinusInf;
             bool IncludeLeft = false;
-            for(size_t i = 0; i <= E.Roots.size(); i++)
-            {
+            for (size_t i = 0; i <= E.Roots.size(); i++) {
                 TNumeric RightX;
                 bool IncludeRight;
-                if(i < E.Roots.size())
-                {
+                if (i < E.Roots.size()) {
                     RightX = E.Roots[i];
                     IncludeRight = !Strict;
-                }
-                else
-                {
+                } else {
                     RightX = NumericPlusInf;
                     IncludeRight = false;
                 };
 
-                bool Include = false; //итсина, если многочлен на текущем сегменте LeftX..RightX удовлетворяет неравенству
-                if(Less && CurSign == -1)Include = true;
-                if(!Less && CurSign == 1)Include = true;
-                if(Include)
-                    Result = Result + TInterval(LeftX, RightX, IncludeLeft, IncludeRight);
+                bool Include = false;  // итсина, если многочлен на текущем сегменте LeftX..RightX удовлетворяет неравенству
+                if (Less && CurSign == -1) Include = true;
+                if (!Less && CurSign == 1) Include = true;
+                if (Include) Result = Result + TInterval(LeftX, RightX, IncludeLeft, IncludeRight);
 
-                //переходим к следующему участку
-                if(i < E.Roots.size() && E.RootsMultiplicity[i] % 2 == 1) CurSign = -CurSign;
+                // переходим к следующему участку
+                if (i < E.Roots.size() && E.RootsMultiplicity[i] % 2 == 1) CurSign = -CurSign;
                 LeftX = RightX;
                 IncludeLeft = IncludeRight;
             }
         }
     } else {
-        if(Writer)Writer->WriteError("Can not find roots.");
+        if (Writer) Writer->WriteError("Can not find roots.");
         res = false;
     }
-    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, Result.GetNumeric()));
+    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, Result.asNumeric()));
     return res;
 }
 
-vector<std::shared_ptr<TNumeric>> TPolynomialInequality::GetTypes(std::shared_ptr<const TNumeric> N)
-{
+vector<std::shared_ptr<TNumeric>> TPolynomialInequality::GetTypes(std::shared_ptr<const TNumeric> N) {
     vector<std::shared_ptr<TNumeric>> Types;
-    if(N != Conditions) return Types;
+    if (N != Conditions) return Types;
     Types.push_back(TPolynomialInequality(GetP(), false, false).Conditions);
     Types.push_back(TPolynomialInequality(GetP(), true, false).Conditions);
     Types.push_back(TPolynomialInequality(GetP(), false, true).Conditions);
@@ -1529,58 +1361,55 @@ vector<std::shared_ptr<TNumeric>> TPolynomialInequality::GetTypes(std::shared_pt
     return Types;
 }
 
-void TPolynomialInequality::SetType(std::shared_ptr<TNumeric> N, size_t Type)
-{
-    if(N == Conditions) //Проверяем, чтобы клик был по всему уравнению
+void TPolynomialInequality::SetType(std::shared_ptr<TNumeric> N, size_t Type) {
+    if (N == Conditions)  // Проверяем, чтобы клик был по всему уравнению
     {
-        switch(Type)
-        {
-        case 0: SetType(false, false); break;
-        case 1: SetType(true, false); break;
-        case 2: SetType(false, true); break;
-        case 3: SetType(true, true); break;
-        default: break;
+        switch (Type) {
+            case 0:
+                SetType(false, false);
+                break;
+            case 1:
+                SetType(true, false);
+                break;
+            case 2:
+                SetType(false, true);
+                break;
+            case 3:
+                SetType(true, true);
+                break;
+            default:
+                break;
         }
     }
 }
 
-void TPolynomialInequality::SaveToFile(ofstream &f)
-{
+void TPolynomialInequality::SaveToFile(ofstream& f) {
     f.write((char*)&Strict, sizeof(Strict));
     f.write((char*)&Less, sizeof(Less));
     TPolynomConditions::SaveToFile(f);
 }
 
-void TPolynomialInequality::LoadFromFile(ifstream &f)
-{
+void TPolynomialInequality::LoadFromFile(ifstream& f) {
     f.read((char*)&Strict, sizeof(Strict));
     f.read((char*)&Less, sizeof(Less));
     TPolynomConditions::LoadFromFile(f);
 }
 
-
-
-
 //*****************************************************************************************************************************
 //*****************************************************************************************************************************
-TLinearInequality::TLinearInequality(bool Less, bool Strict) : TPolynomialInequality(1, Less, Strict)
-{
+TLinearInequality::TLinearInequality(bool Less, bool Strict) : TPolynomialInequality(1, Less, Strict) {
     CanRandomize = true;
     BuildPhrases();
 }
 
-TLinearInequality::TLinearInequality(const TLinearInequality *L, bool Less, bool Strict) : TPolynomialInequality(L->GetP(), Less, Strict)
-{
+TLinearInequality::TLinearInequality(const TLinearInequality* L, bool Less, bool Strict) :
+    TPolynomialInequality(L->GetP(), Less, Strict) {
     BuildPhrases();
 }
 
-TLinearInequality::~TLinearInequality()
-{
-
-}
-void TLinearInequality::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()))return;
+TLinearInequality::~TLinearInequality() {}
+void TLinearInequality::BuildPhrases() {
+    if (MyTranslator.CheckDictionary(GetClassName())) return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Error: can't find coefficients");
     MyTranslator.AddRus("Ошибка: не могу прочитать коэффициенты");
@@ -1595,11 +1424,9 @@ void TLinearInequality::BuildPhrases()
     MyTranslator.AddEng("Solve linear inequality");
     MyTranslator.AddRus("Решить линейное неравенство");
 }
-vector<string> TLinearInequality::GetKeyWords()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()+"Keywords") == false)
-    {
-        MyTranslator.AddDictionary(GetClassName()+"Keywords");
+vector<string> TLinearInequality::GetKeyWords() {
+    if (MyTranslator.CheckDictionary(GetClassName() + "Keywords") == false) {
+        MyTranslator.AddDictionary(GetClassName() + "Keywords");
         MyTranslator.AddEng("inequality");
         MyTranslator.AddRus("неравенство");
         MyTranslator.AddEng("linear");
@@ -1611,73 +1438,71 @@ vector<string> TLinearInequality::GetKeyWords()
     return Res;
 }
 
-string TLinearInequality::GetTask()
-{
-    if(Strict)
+string TLinearInequality::GetTask() {
+    if (Strict)
         return MyTranslator.tr("Solve strict linear inequality");
     else
         return MyTranslator.tr("Solve unstrict linear inequality");
 }
 
-string TLinearInequality::GetShortTask()
-{
+string TLinearInequality::GetShortTask() {
     return MyTranslator.tr("Solve linear inequality");
 }
 
-
-bool TLinearInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
+bool TLinearInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TNumeric& a = *GetCoefP(1);
     TNumeric& b = *GetCoefP(0);
     TNumeric& c = *GetRightPartP();
     Result.Intervals.clear();
 
-    if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
+    if (!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
 
     Result.Intervals.clear();
 
-    if((Less && a.Calculate() > 0) || (!Less && a.Calculate()<0))
-    {
-        TNumeric X = (c - b)/a;
+    if ((Less && a.Calculate() > 0) || (!Less && a.Calculate() < 0)) {
+        TNumeric X = (c - b) / a;
         TNumeric XSimplified = X.Simplify();
-        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(NumericMinusInf, XSimplified, false, !Strict)));
+        if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(NumericMinusInf, XSimplified, false, !Strict)));
         Result.Intervals.push_back(TInterval(NumericMinusInf, XSimplified, false, !Strict));
     };
-    if((Less && a.Calculate() < 0) || (!Less && a.Calculate()>0))
-    {
-        if(Writer)Writer->AddParagraph("Because coefficient in linear term is less than zero, the direction of inequality is reversed");
-        TNumeric X = (c - b)/a;
+    if ((Less && a.Calculate() < 0) || (!Less && a.Calculate() > 0)) {
+        if (Writer)
+            Writer->AddParagraph("Because coefficient in linear term is less than zero, the direction of inequality is reversed");
+        TNumeric X = (c - b) / a;
         TNumeric XSimplified = X.Simplify();
-        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(XSimplified, NumericPlusInf, !Strict, false)));
+        if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(XSimplified, NumericPlusInf, !Strict, false)));
         Result.Intervals.push_back(TInterval(XSimplified, NumericPlusInf, !Strict, false));
     };
 
-    if(a.Calculate() == 0)
-    {
-        //прямая горизонтальна
-        if((Less && b.Calculate() < c.Calculate()) || (!Less && b.Calculate() > c.Calculate()) || (b.Calculate() == c.Calculate() && !Strict))
-        {
-            if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(NumericMinusInf, NumericPlusInf)));
+    if (a.Calculate() == 0) {
+        // прямая горизонтальна
+        if ((Less && b.Calculate() < c.Calculate()) || (!Less && b.Calculate() > c.Calculate()) ||
+            (b.Calculate() == c.Calculate() && !Strict)) {
+            if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(NumericMinusInf, NumericPlusInf)));
             Result.Intervals.push_back(TInterval(NumericMinusInf, NumericPlusInf, false, false));
-        }
-        else
-        {
-            if(Writer)Writer->AddParagraph("No solution");
-            if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+        } else {
+            if (Writer) Writer->AddParagraph("No solution");
+            if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
             Result.Intervals.clear();
         }
     }
     return true;
 }
 
-void TLinearInequality::Randomize(std::mt19937& rng)
-{
-    switch(rng() % 4)
-    {
-    case 0: SetType(true, true); break;
-    case 1: SetType(false, true); break;
-    case 2: SetType(true, false); break;
-    case 3: SetType(false, false); break;
+void TLinearInequality::Randomize(std::mt19937& rng) {
+    switch (rng() % 4) {
+        case 0:
+            SetType(true, true);
+            break;
+        case 1:
+            SetType(false, true);
+            break;
+        case 2:
+            SetType(true, false);
+            break;
+        case 3:
+            SetType(false, false);
+            break;
     }
     TLinearEquality E;
     E.Randomize(rng);
@@ -1713,23 +1538,19 @@ void TLinearInequality::SetType(std::shared_ptr<TNumeric> N, size_t Type)
 
 //**************************************************************************************
 //**************************************************************************************
-TSquareInequality::TSquareInequality(bool Less, bool Strict) : TPolynomialInequality(2, Less, Strict)
-{
+TSquareInequality::TSquareInequality(bool Less, bool Strict) : TPolynomialInequality(2, Less, Strict) {
     CanRandomize = true;
     BuildPhrases();
 }
 
-TSquareInequality::TSquareInequality(const TSquareInequality *L, bool Less, bool Strict) : TPolynomialInequality(L->GetP(), Less, Strict)
-{
+TSquareInequality::TSquareInequality(const TSquareInequality* L, bool Less, bool Strict) :
+    TPolynomialInequality(L->GetP(), Less, Strict) {
     BuildPhrases();
 }
 
-TSquareInequality::~TSquareInequality()
-{
-}
-void TSquareInequality::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()))return;
+TSquareInequality::~TSquareInequality() {}
+void TSquareInequality::BuildPhrases() {
+    if (MyTranslator.CheckDictionary(GetClassName())) return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Error: can't find coefficients");
     MyTranslator.AddRus("Ошибка: не могу прочитать коэффициенты");
@@ -1769,11 +1590,9 @@ void TSquareInequality::BuildPhrases()
     MyTranslator.AddRus("квадратное неравенство");
 }
 
-vector<string> TSquareInequality::GetKeyWords()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()+"Keywords") == false)
-    {
-        MyTranslator.AddDictionary(GetClassName()+"Keywords");
+vector<string> TSquareInequality::GetKeyWords() {
+    if (MyTranslator.CheckDictionary(GetClassName() + "Keywords") == false) {
+        MyTranslator.AddDictionary(GetClassName() + "Keywords");
         MyTranslator.AddEng("inequality");
         MyTranslator.AddRus("неравенство");
         MyTranslator.AddEng("square");
@@ -1785,125 +1604,98 @@ vector<string> TSquareInequality::GetKeyWords()
     return Res;
 }
 
-
-string TSquareInequality::GetTask()
-{
+string TSquareInequality::GetTask() {
     return MyTranslator.tr("Solve square inequality");
 }
 
-string TSquareInequality::GetShortTask()
-{
+string TSquareInequality::GetShortTask() {
     return MyTranslator.tr("square inequality");
 }
 
 /*void TSquareInequality::SetCoef(const TNumeric& a, const TNumeric &b, const TNumeric &c)
 {
-    std::shared_ptr<TNumeric> a1 = Conditions->GetByID(IDa);
-    std::shared_ptr<TNumeric> b1 = Conditions->GetByID(IDb);
-    std::shared_ptr<TNumeric> c1 = Conditions->GetByID(IDc);
+    std::shared_ptr<TNumeric> a1 = Conditions->GetByRole(IDa);
+    std::shared_ptr<TNumeric> b1 = Conditions->GetByRole(IDb);
+    std::shared_ptr<TNumeric> c1 = Conditions->GetByRole(IDc);
     *(a1) = a;
     *(b1) = b;
     *(c1) = c;
 }*/
 
-bool TSquareInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
+bool TSquareInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TSquareEquality Eq;
     TNumeric& a = *GetCoefP(2);
     TNumeric& b = *GetCoefP(1);
     TNumeric& c = *GetCoefP(0);
-    if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
+    if (!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
 
-    if(!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
+    if (!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate())) return false;
 
     Result.Intervals.clear();
 
-    if(a.Calculate() == 0)
-    {
-        //вырожденное квадратное уравнение
-        if(Writer)Writer->AddParagraph("Major (square) term is zero so inequality is degenerated.");
-        if(b.Calculate() == 0)
-        {
-            //корней нет, то есть прямая горизонтальна
-            if(Writer)Writer->AddParagraph("Linear term is zero so equality corresponds to horizontal line.");
-            if(c.Calculate() < 0)
-            {
-                //прямая ниже оси X
-                if(Writer)Writer->AddParagraph("Free term is less than zero so line is below X axis.");
-                if(Less)
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
+    if (a.Calculate() == 0) {
+        // вырожденное квадратное уравнение
+        if (Writer) Writer->AddParagraph("Major (square) term is zero so inequality is degenerated.");
+        if (b.Calculate() == 0) {
+            // корней нет, то есть прямая горизонтальна
+            if (Writer) Writer->AddParagraph("Linear term is zero so equality corresponds to horizontal line.");
+            if (c.Calculate() < 0) {
+                // прямая ниже оси X
+                if (Writer) Writer->AddParagraph("Free term is less than zero so line is below X axis.");
+                if (Less) {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
                     Result.Intervals.push_back(IntervalAllRealNumbers);
-                }
-                else
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+                } else {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
                     Result.Intervals.clear();
                 }
             };
-            if(c.Calculate() == 0)
-            {
-                if(Writer)Writer->AddParagraph("Free term is zero so line coincides with X axis.");
-                if(Strict)
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+            if (c.Calculate() == 0) {
+                if (Writer) Writer->AddParagraph("Free term is zero so line coincides with X axis.");
+                if (Strict) {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
                     Result.Intervals.clear();
-                }
-                else
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
+                } else {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
                     Result.Intervals.push_back(IntervalAllRealNumbers);
                 }
             }
-            if(c.Calculate() > 0)
-            {
-                if(Writer)Writer->AddParagraph("Free term is greater than zero so line is above X axis.");
-                if(Less)
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+            if (c.Calculate() > 0) {
+                if (Writer) Writer->AddParagraph("Free term is greater than zero so line is above X axis.");
+                if (Less) {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
                     Result.Intervals.clear();
-                }
-                else
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
+                } else {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
                     Result.Intervals.push_back(IntervalAllRealNumbers);
                 }
             }
         };
-        if(b.Calculate() > 0)
-        {
-            //должен быть один корень
-            if(Writer)Writer->AddParagraph("Linear term is greater than zero so only root exists.");
-            TNumeric X = TNumeric("-1")*c/b;
+        if (b.Calculate() > 0) {
+            // должен быть один корень
+            if (Writer) Writer->AddParagraph("Linear term is greater than zero so only root exists.");
+            TNumeric X = TNumeric("-1") * c / b;
             TNumeric XSimplified = X.Simplify();
-            if(Writer)Writer->AddFormula(MakeEquality(UnknownVar, XSimplified));
-            if(Less)
-            {
-                if(Writer)Writer->AddFormula(MakeInterval(NumericMinusInf, XSimplified, false, !Strict));
+            if (Writer) Writer->AddFormula(MakeEquality(UnknownVar, XSimplified));
+            if (Less) {
+                if (Writer) Writer->AddFormula(MakeInterval(NumericMinusInf, XSimplified, false, !Strict));
                 Result.Intervals.push_back(TInterval(NumericMinusInf, XSimplified, false, !Strict));
-            }
-            else
-            {
-                if(Writer)Writer->AddFormula(MakeInterval(XSimplified, NumericPlusInf, !Strict, false));
+            } else {
+                if (Writer) Writer->AddFormula(MakeInterval(XSimplified, NumericPlusInf, !Strict, false));
                 Result.Intervals.push_back(TInterval(XSimplified, NumericMinusInf, !Strict, false));
             }
-
         };
-        if(b.Calculate() < 0)
-        {
-            //должен быть один корень
-            if(Writer)Writer->AddParagraph("Linear term is less than zero so only root exists.");
-            TNumeric X = TNumeric("-1")*c/b;
+        if (b.Calculate() < 0) {
+            // должен быть один корень
+            if (Writer) Writer->AddParagraph("Linear term is less than zero so only root exists.");
+            TNumeric X = TNumeric("-1") * c / b;
             TNumeric XSimplified = X.Simplify();
-            if(Writer)Writer->AddFormula(MakeEquality(UnknownVar, XSimplified));
-            if(Less)
-            {
-                if(Writer)Writer->AddFormula(MakeInterval(XSimplified, NumericPlusInf, !Strict, false));
+            if (Writer) Writer->AddFormula(MakeEquality(UnknownVar, XSimplified));
+            if (Less) {
+                if (Writer) Writer->AddFormula(MakeInterval(XSimplified, NumericPlusInf, !Strict, false));
                 Result.Intervals.push_back(TInterval(XSimplified, NumericMinusInf, !Strict, false));
-            }
-            else
-            {
-                if(Writer)Writer->AddFormula(MakeInterval(NumericMinusInf, XSimplified, false, !Strict));
+            } else {
+                if (Writer) Writer->AddFormula(MakeInterval(NumericMinusInf, XSimplified, false, !Strict));
                 Result.Intervals.push_back(TInterval(NumericMinusInf, XSimplified, false, !Strict));
             }
         };
@@ -1912,128 +1704,107 @@ bool TSquareInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
         Eq.SetLeftPart(a, b, c);
         TIntervalsSet Roots;
 
-        if(Writer)Writer->AddParagraph("Finding roots of corresponding square equality.");
-        if(Writer)Writer->IncrementNestingLevel();
+        if (Writer) Writer->AddParagraph("Finding roots of corresponding square equality.");
+        if (Writer) Writer->IncrementNestingLevel();
         Eq.GetSolution(Writer);
-        if(Writer)Writer->DecrementNestingLevel();
+        if (Writer) Writer->DecrementNestingLevel();
         Roots = Eq.Result;
 
-        if(Roots.Intervals.size() == 0)
-        {
-            //корней нет
-            if(a.Calculate() < 0)
-            {
-                if(Writer)Writer->AddParagraph("Major (square) coefficient is less than zero so parabola looks down.");
-                if(Less)
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
+        if (Roots.Intervals.size() == 0) {
+            // корней нет
+            if (a.Calculate() < 0) {
+                if (Writer) Writer->AddParagraph("Major (square) coefficient is less than zero so parabola looks down.");
+                if (Less) {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
                     Result.Intervals.push_back(IntervalAllRealNumbers);
-                }
-                else
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+                } else {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
                     Result.Intervals.clear();
                 }
             } else {
-                if(Writer)Writer->AddParagraph("Major (square) coefficient is greater than zero so parabola looks up.");
-                if(Less)
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+                if (Writer) Writer->AddParagraph("Major (square) coefficient is greater than zero so parabola looks up.");
+                if (Less) {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
                     Result.Intervals.clear();
-                }
-                else
-                {
-                    if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
+                } else {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
                     Result.Intervals.push_back(IntervalAllRealNumbers);
                 }
             };
         };
-        if(Roots.Intervals.size() == 1)
-        {
-            //один корень
-            if(Writer)Writer->AddParagraph("Parabola intersects X axis at only one point.");
+        if (Roots.Intervals.size() == 1) {
+            // один корень
+            if (Writer) Writer->AddParagraph("Parabola intersects X axis at only one point.");
             TNumeric X = Roots.Intervals[0].Left;
 
-            if(a.Calculate() < 0)
-            {
-                if(Writer)Writer->AddParagraph("Major (square) coefficient is less than zero so parabola looks down.");
-                if(Less)
-                    if(Strict)
-                    {
-                        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeUnion(MakeInterval(NumericMinusInf, TNumeric(X), false, !Strict), MakeInterval(TNumeric(X), NumericPlusInf, false, false))));
+            if (a.Calculate() < 0) {
+                if (Writer) Writer->AddParagraph("Major (square) coefficient is less than zero so parabola looks down.");
+                if (Less)
+                    if (Strict) {
+                        if (Writer)
+                            Writer->AddFormula(
+                                MakeBelongsTo(UnknownVar, MakeUnion(MakeInterval(NumericMinusInf, TNumeric(X), false, !Strict),
+                                                                    MakeInterval(TNumeric(X), NumericPlusInf, false, false))));
                         Result.Intervals.push_back(TInterval(NumericMinusInf, X, false, !Strict));
-                    }
-                    else
-                    {
-                        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
+                    } else {
+                        if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
                         Result.Intervals.push_back(TInterval(NumericMinusInf, NumericPlusInf));
                     }
-                else
-                    if(Strict)
-                    {
-                        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
-                        Result.Intervals.clear();
-                    }
-                    else
-                    {
-                        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInline(TNumeric("{"), X, TNumeric("}"))));
-                        Result.Intervals.push_back(TInterval(X, X, !Strict, !Strict));
-                    }
+                else if (Strict) {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+                    Result.Intervals.clear();
+                } else {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInline(TNumeric("{"), X, TNumeric("}"))));
+                    Result.Intervals.push_back(TInterval(X, X, !Strict, !Strict));
+                }
 
             } else {
-                if(Writer)Writer->AddParagraph("Major (square) coefficient is greater than zero so parabola looks up.");
-                if(Less)
-                    if(Strict)
-                    {
-                        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+                if (Writer) Writer->AddParagraph("Major (square) coefficient is greater than zero so parabola looks up.");
+                if (Less)
+                    if (Strict) {
+                        if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
                         Result.Intervals.clear();
-                    }
-                    else
-                    {
-                        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInline(TNumeric("{"), X, TNumeric("}"))));
+                    } else {
+                        if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInline(TNumeric("{"), X, TNumeric("}"))));
                         Result.Intervals.push_back(TInterval(X, X, !Strict, !Strict));
                     }
-                else
-                    if(Strict)
-                    {
-                        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeUnion(MakeInterval(NumericMinusInf, TNumeric(X), false, !Strict), MakeInterval(TNumeric(X), NumericPlusInf, false, false))));
-                        Result.Intervals.push_back(TInterval(NumericMinusInf, X, false, !Strict));
-                        Result.Intervals.push_back(TInterval(X, NumericPlusInf, !Strict, false));
-                    }
-                    else
-                    {
-                        if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
-                        Result.Intervals.push_back(TInterval(NumericMinusInf, NumericPlusInf));
-                    }
+                else if (Strict) {
+                    if (Writer)
+                        Writer->AddFormula(
+                            MakeBelongsTo(UnknownVar, MakeUnion(MakeInterval(NumericMinusInf, TNumeric(X), false, !Strict),
+                                                                MakeInterval(TNumeric(X), NumericPlusInf, false, false))));
+                    Result.Intervals.push_back(TInterval(NumericMinusInf, X, false, !Strict));
+                    Result.Intervals.push_back(TInterval(X, NumericPlusInf, !Strict, false));
+                } else {
+                    if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, NumericAllReal));
+                    Result.Intervals.push_back(TInterval(NumericMinusInf, NumericPlusInf));
+                }
             };
         };
-        if(Roots.Intervals.size() == 2)
-        {
-            //два корня
+        if (Roots.Intervals.size() == 2) {
+            // два корня
             TNumeric X1 = Roots.Intervals[0].Left;
             TNumeric X2 = Roots.Intervals[1].Left;
-            if(X1.Calculate() > X2.Calculate())
-            {
+            if (X1.Calculate() > X2.Calculate()) {
                 TNumeric T = X1;
                 X1 = X2;
                 X2 = T;
             }
 
-            if(a.Calculate()<0)
-            {
-                if(Writer)Writer->AddParagraph("Major (square) coefficient is less than zero so parabola looks down.");
+            if (a.Calculate() < 0) {
+                if (Writer) Writer->AddParagraph("Major (square) coefficient is less than zero so parabola looks down.");
+            } else {
+                if (Writer) Writer->AddParagraph("Major (square) coefficient is greater than zero so parabola looks up.");
             }
-            else
-            {
-                if(Writer)Writer->AddParagraph("Major (square) coefficient is greater than zero so parabola looks up.");
-            }
-            if((Less && a.Calculate() < 0) || (!Less && a.Calculate()>0))
-            {
-                if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeUnion(MakeInterval(NumericMinusInf, TNumeric(X1), false, !Strict), MakeInterval(TNumeric(X2), NumericPlusInf, !Strict, false))));
+            if ((Less && a.Calculate() < 0) || (!Less && a.Calculate() > 0)) {
+                if (Writer)
+                    Writer->AddFormula(
+                        MakeBelongsTo(UnknownVar, MakeUnion(MakeInterval(NumericMinusInf, TNumeric(X1), false, !Strict),
+                                                            MakeInterval(TNumeric(X2), NumericPlusInf, !Strict, false))));
                 Result.Intervals.push_back(TInterval(NumericMinusInf, X1, false, !Strict));
                 Result.Intervals.push_back(TInterval(X2, NumericMinusInf, !Strict, false));
             } else {
-                if(Writer)Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(X1, X2, !Strict, !Strict)));
+                if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(X1, X2, !Strict, !Strict)));
                 Result.Intervals.push_back(TInterval(X1, X2, !Strict, !Strict));
             };
         };
@@ -2041,20 +1812,25 @@ bool TSquareInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
     return true;
 }
 
-void TSquareInequality::Randomize(std::mt19937& rng)
-{
-    switch(rng() % 4)
-    {
-    case 0: SetType(true, true); break;
-    case 1: SetType(false, true); break;
-    case 2: SetType(true, false); break;
-    case 3: SetType(false, false); break;
+void TSquareInequality::Randomize(std::mt19937& rng) {
+    switch (rng() % 4) {
+        case 0:
+            SetType(true, true);
+            break;
+        case 1:
+            SetType(false, true);
+            break;
+        case 2:
+            SetType(true, false);
+            break;
+        case 3:
+            SetType(false, false);
+            break;
     }
     TSquareEquality E;
     E.Randomize(rng);
     SetLeftPartP(TPolynom(E.GetCoef()), true);
 }
-
 
 /*vector<TNumeric> TSquareInequality::GetTypes(std::shared_ptr<TNumeric> N)
 {
@@ -2083,18 +1859,13 @@ void TSquareInequality::SetType(std::shared_ptr<TNumeric> N, size_t Type)
 }*/
 //*****************************************************************************************************************************
 
-TPolynomDerivative::TPolynomDerivative(size_t MaxPower) : TPolynomConditions(MaxPower, false)
-{
+TPolynomDerivative::TPolynomDerivative(size_t MaxPower) : TPolynomConditions(MaxPower, false) {
     CanRandomize = true;
     BuildPhrases();
 }
-TPolynomDerivative::~TPolynomDerivative()
-{
-
-}
-void TPolynomDerivative::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()))return;
+TPolynomDerivative::~TPolynomDerivative() {}
+void TPolynomDerivative::BuildPhrases() {
+    if (MyTranslator.CheckDictionary(GetClassName())) return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Find derivative of polynom of degree %d");
     MyTranslator.AddRus("Найдите производную многочлена степени %d");
@@ -2102,11 +1873,9 @@ void TPolynomDerivative::BuildPhrases()
     MyTranslator.AddRus("многочлен степени %d");
 }
 
-vector<string> TPolynomDerivative::GetKeyWords()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()+"Keywords") == false)
-    {
-        MyTranslator.AddDictionary(GetClassName()+"Keywords");
+vector<string> TPolynomDerivative::GetKeyWords() {
+    if (MyTranslator.CheckDictionary(GetClassName() + "Keywords") == false) {
+        MyTranslator.AddDictionary(GetClassName() + "Keywords");
         MyTranslator.AddEng("derivative");
         MyTranslator.AddRus("производная");
         MyTranslator.AddEng("polynom");
@@ -2118,63 +1887,55 @@ vector<string> TPolynomDerivative::GetKeyWords()
     return Res;
 }
 
-
-string TPolynomDerivative::GetTask()
-{
+string TPolynomDerivative::GetTask() {
     char Buf[128];
     sprintf(Buf, MyTranslator.tr("Find derivative of polynom of degree %d").c_str(), MaxPower);
     return string(Buf);
 }
 
-string TPolynomDerivative::GetShortTask()
-{
+string TPolynomDerivative::GetShortTask() {
     char Buf[128];
     sprintf(Buf, MyTranslator.tr("polynom of degree %d").c_str(), MaxPower);
     return string(Buf);
 }
 
-bool TPolynomDerivative::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
+bool TPolynomDerivative::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TPolynom P = GetP();
-    if(Writer)
-    {
+    if (Writer) {
         TPolynom D = P.Derivative();
         TPolynom DSimplified = D;
-        for(size_t i = 0; i < DSimplified.Coef.size(); i++) DSimplified.Coef[i] = DSimplified.Coef[i].Simplify();
+        for (size_t i = 0; i < DSimplified.Coef.size(); i++)
+            DSimplified.Coef[i] = DSimplified.Coef[i].Simplify();
         TNumeric dP;
         dP.operation = OperatorDeriv;
-        dP.OperandsPushback(P.GetNumeric());
+        dP.OperandsPushback(P.asNumeric());
         Writer->AddFormula(MakeEquality(dP, TNumeric(" ")));
-        Writer->AddFormula(MakeEquality(D.GetNumeric(), TNumeric(" ")));
-        Writer->AddFormula(DSimplified.GetNumeric());
+        Writer->AddFormula(MakeEquality(D.asNumeric(), TNumeric(" ")));
+        Writer->AddFormula(DSimplified.asNumeric());
     }
     return true;
 }
 
-void TPolynomDerivative::Randomize(std::mt19937& rng)
-{
+void TPolynomDerivative::Randomize(std::mt19937& rng) {
     TPolynom P;
-    P.Coef.assign(MaxPower+1, TNumeric(0));
+    P.Coef.assign(MaxPower + 1, TNumeric(0));
     std::uniform_int_distribution<int> dist(-20, 20);
-    for(size_t i = 0; i <= MaxPower; i++)
+    for (size_t i = 0; i <= MaxPower; i++)
         P.Coef[i] = TNumeric(dist(rng));
     SetLeftPartP(P);
 }
 
 //*****************************************************************************************************************************
 
-TRationalFunctionDerivative::TRationalFunctionDerivative(size_t MaxPowerNominator, size_t MaxPowerDenominator) : TRationalFunctionConditions(OperatorDeriv, false, MaxPowerNominator, MaxPowerDenominator)
-{
+TRationalFunctionDerivative::TRationalFunctionDerivative(size_t MaxPowerNominator, size_t MaxPowerDenominator) :
+    TRationalFunctionConditions(OperatorDeriv, false, MaxPowerNominator, MaxPowerDenominator) {
     CanRandomize = true;
     BuildPhrases();
 }
-TRationalFunctionDerivative::~TRationalFunctionDerivative()
-{    
-}
+TRationalFunctionDerivative::~TRationalFunctionDerivative() {}
 
-void TRationalFunctionDerivative::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()))return;
+void TRationalFunctionDerivative::BuildPhrases() {
+    if (MyTranslator.CheckDictionary(GetClassName())) return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Finding derivative of fraction");
     MyTranslator.AddRus("Ищем производную дроби");
@@ -2188,11 +1949,9 @@ void TRationalFunctionDerivative::BuildPhrases()
     MyTranslator.AddRus("производная рациональной функции степеней %d/%d");
 }
 
-vector<string> TRationalFunctionDerivative::GetKeyWords()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()+"Keywords") == false)
-    {
-        MyTranslator.AddDictionary(GetClassName()+"Keywords");
+vector<string> TRationalFunctionDerivative::GetKeyWords() {
+    if (MyTranslator.CheckDictionary(GetClassName() + "Keywords") == false) {
+        MyTranslator.AddDictionary(GetClassName() + "Keywords");
         MyTranslator.AddEng("derivative");
         MyTranslator.AddRus("производная");
         MyTranslator.AddEng("rational");
@@ -2204,78 +1963,71 @@ vector<string> TRationalFunctionDerivative::GetKeyWords()
     return Res;
 }
 
-string TRationalFunctionDerivative::GetTask()
-{
+string TRationalFunctionDerivative::GetTask() {
     return MyTranslator.tr("Find derivative of rational function");
 }
 
-string TRationalFunctionDerivative::GetShortTask()
-{
+string TRationalFunctionDerivative::GetShortTask() {
     char Buf[128];
     sprintf(Buf, MyTranslator.tr("rational function of %d/%d powers").c_str(), MaxPowerNominator, MaxPowerDenominator);
     return Buf;
 }
 
-bool TRationalFunctionDerivative::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
+bool TRationalFunctionDerivative::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TRationalFunction R;
-    R.P.Coef.assign(MaxPowerNominator+1, TNumeric(0));
-    for(size_t i = 0; i <= MaxPowerNominator; i++)
-    {
-        PNumeric v = Conditions->GetByID(i);
-        if(!v)
+    R.P.Coef.assign(MaxPowerNominator + 1, TNumeric(0));
+    for (size_t i = 0; i <= MaxPowerNominator; i++) {
+        PNumeric v = Conditions->GetByRole(i);
+        if (!v)
             return false;
         else
             R.P.Coef[i] = v;
     }
-    R.Q.Coef.assign(MaxPowerDenominator+1, TNumeric(0));
-    for(size_t i = 0; i <= MaxPowerDenominator; i++)
-    {
-        PNumeric v = Conditions->GetByID(i+MaxPowerNominator+1);
-        if(!v)
+    R.Q.Coef.assign(MaxPowerDenominator + 1, TNumeric(0));
+    for (size_t i = 0; i <= MaxPowerDenominator; i++) {
+        PNumeric v = Conditions->GetByRole(i + MaxPowerNominator + 1);
+        if (!v)
             return false;
         else
             R.Q.Coef[i] = v;
     }
-    if(Writer)
-    {
+    if (Writer) {
         TRationalFunction D = R.Derivative();
         TRationalFunction DSimplified = D;
-        for(size_t i = 0; i < DSimplified.P.Coef.size(); i++) DSimplified.P.Coef[i] = DSimplified.P.Coef[i].Simplify();
-        for(size_t i = 0; i < DSimplified.Q.Coef.size(); i++) DSimplified.Q.Coef[i] = DSimplified.Q.Coef[i].Simplify();
+        for (size_t i = 0; i < DSimplified.P.Coef.size(); i++)
+            DSimplified.P.Coef[i] = DSimplified.P.Coef[i].Simplify();
+        for (size_t i = 0; i < DSimplified.Q.Coef.size(); i++)
+            DSimplified.Q.Coef[i] = DSimplified.Q.Coef[i].Simplify();
         TNumeric dP;
         TNumeric MainAndO;
         dP.operation = OperatorDeriv;
-        dP.OperandsPushback(R.GetNumeric());
+        dP.OperandsPushback(R.asNumeric());
         MainAndO = DSimplified.GetMainPartAndO();
         Writer->AddFormula(MakeEquality(dP, TNumeric(" ")));
         Writer->AddParagraph("Finding derivative of fraction");
-        Writer->AddFormula(MakeEquality(D.GetNumeric(), TNumeric(" ")));
+        Writer->AddFormula(MakeEquality(D.asNumeric(), TNumeric(" ")));
         Writer->AddParagraph("After simplifying: ");
-        Writer->AddFormula(MakeEquality(DSimplified.GetNumeric(), TNumeric(" ")));
+        Writer->AddFormula(MakeEquality(DSimplified.asNumeric(), TNumeric(" ")));
         Writer->AddParagraph("Extracting polynomial part");
         Writer->AddFormula(MainAndO);
     }
     return true;
 }
 
-
-void TRationalFunctionDerivative::SaveToFile(ofstream &f)
-{
+void TRationalFunctionDerivative::SaveToFile(ofstream& f) {
     TRationalFunctionConditions::SaveToFile(f);
     TProblem::SaveToFile(f);
 }
 
-void TRationalFunctionDerivative::LoadFromFile(ifstream &f)
-{
+void TRationalFunctionDerivative::LoadFromFile(ifstream& f) {
     TRationalFunctionConditions::LoadFromFile(f);
     TProblem::LoadFromFile(f);
 }
 
-
-
-TRationalFunctionConditions::TRationalFunctionConditions(int operation, bool HaveRightPart, size_t MaxPowerNominator, size_t MaxPowerDenominator)
-{
+TRationalFunctionConditions::TRationalFunctionConditions(Operation operation,
+                                                         bool HaveRightPart,
+                                                         size_t MaxPowerNominator,
+                                                         size_t MaxPowerDenominator) {
     this->operation = operation;
     this->MaxPowerNominator = MaxPowerNominator;
     this->MaxPowerDenominator = MaxPowerDenominator;
@@ -2299,39 +2051,34 @@ void TRationalFunctionConditions::operator=(const TRationalFunctionConditions& R
     Assign(R);
 }*/
 
-void TRationalFunctionConditions::SetMaxPower(size_t MaxPowerNominator, size_t MaxPowerDenominator)
-{
+void TRationalFunctionConditions::SetMaxPower(size_t MaxPowerNominator, size_t MaxPowerDenominator) {
     TNumeric Nominator;
     Nominator.operation = OperatorSum;
-    for(size_t i = 0; i <= MaxPowerNominator; i++)
-    {
+    for (size_t i = 0; i <= MaxPowerNominator; i++) {
         TNumeric a(0);
         a.ClearID();
-        a.ID = GetNominatorCoefID(i);
+        a.role = GetNominatorCoefID(i);
         a.SetEditableFlags(ConstAllowed);
-        if(i == 0)
-        {
+        if (i == 0) {
             Nominator = a;
         } else {
-            TNumeric Temp = a*(UnknownVar^TNumeric(i));
+            TNumeric Temp = a * (UnknownVar ^ TNumeric(i));
             Nominator = Temp + Nominator;
         }
     }
 
     TNumeric Denominator;
     Denominator.operation = OperatorSum;
-    for(size_t i = 0; i <= MaxPowerDenominator; i++)
-    {
+    for (size_t i = 0; i <= MaxPowerDenominator; i++) {
         TNumeric a(0);
         a.ClearID();
-        a.ID = GetDenominatorCoefID(i);
+        a.role = GetDenominatorCoefID(i);
         a.SetEditableFlags(ConstAllowed);
-        if(i == 0)
-        {
-            a.K = "1";
+        if (i == 0) {
+            a.strval = "1";
             Denominator = a;
         } else {
-            TNumeric Temp = a*(UnknownVar^TNumeric(i));
+            TNumeric Temp = a * (UnknownVar ^ TNumeric(i));
             Denominator = Temp + Denominator;
         }
     }
@@ -2343,11 +2090,10 @@ void TRationalFunctionConditions::SetMaxPower(size_t MaxPowerNominator, size_t M
     this->MaxPowerNominator = MaxPowerNominator;
     this->MaxPowerDenominator = MaxPowerDenominator;
 
-    if(HaveRightPart)
-    {
+    if (HaveRightPart) {
         TNumeric RightPart("0");
         RightPart.SetEditableFlags(NoEditable);
-        RightPart.ID = RightPartID();
+        RightPart.role = RightPartID();
         Conditions = std::make_shared<TNumeric>();
         Conditions->operation = operation;
         Conditions->OperandsPushback(Res);
@@ -2355,70 +2101,52 @@ void TRationalFunctionConditions::SetMaxPower(size_t MaxPowerNominator, size_t M
     } else {
         Conditions = std::make_shared<TNumeric>(Res);
     }
-
 }
 
-size_t TRationalFunctionConditions::GetNominatorCoefID(size_t power)
-{
+size_t TRationalFunctionConditions::GetNominatorCoefID(size_t power) {
     return power;
 }
 
-size_t TRationalFunctionConditions::GetDenominatorCoefID(size_t power)
-{
+size_t TRationalFunctionConditions::GetDenominatorCoefID(size_t power) {
     return MaxPowerNominator + 1 + power;
 }
 
+TRationalFunctionConditions::~TRationalFunctionConditions() {}
 
-TRationalFunctionConditions::~TRationalFunctionConditions()
-{
-
-}
-
-void TRationalFunctionConditions::SetRightPart(const TNumeric& R)
-{
-    if(HaveRightPart)
-    {
-        TNumeric& RP = Conditions->GetByID(RightPartID()).value();
+void TRationalFunctionConditions::SetRightPart(const TNumeric& R) {
+    if (HaveRightPart) {
+        TNumeric& RP = Conditions->GetByRole(RightPartID()).value();
         RP = R;
-        RP.ID = RightPartID();
+        RP.role = RightPartID();
     } else {
-
     }
 }
 
-TNumeric& TRationalFunctionConditions::GetRightPartP()
-{
-    return Conditions->GetByID(RightPartID()).value();
+TNumeric& TRationalFunctionConditions::GetRightPartP() {
+    return Conditions->GetByRole(RightPartID()).value();
 }
 
-TNumeric TRationalFunctionConditions::GetRightPart() const
-{
-    return *Conditions->GetByID(RightPartID());
+TNumeric TRationalFunctionConditions::GetRightPart() const {
+    return *Conditions->GetByRole(RightPartID());
 }
 
-
-TPolynom TRationalFunctionConditions::GetNominatorP()
-{
+TPolynom TRationalFunctionConditions::GetNominatorP() {
     vector<TNumeric> Coefs;
-    Coefs.assign(MaxPowerNominator+1, TNumeric("0"));
-    for(size_t i = 0; i <= MaxPowerNominator; i++)
-        Coefs[i] = *Conditions->GetByID(GetNominatorCoefID(i));
+    Coefs.assign(MaxPowerNominator + 1, TNumeric("0"));
+    for (size_t i = 0; i <= MaxPowerNominator; i++)
+        Coefs[i] = *Conditions->GetByRole(GetNominatorCoefID(i));
     return TPolynom(Coefs);
 }
 
-TPolynom TRationalFunctionConditions::GetDenominatorP()
-{
+TPolynom TRationalFunctionConditions::GetDenominatorP() {
     vector<TNumeric> Coefs;
-    Coefs.assign(MaxPowerDenominator+1, TNumeric("0"));
-    for(size_t i = 0; i <= MaxPowerDenominator; i++)
-        Coefs[i] = *Conditions->GetByID(GetDenominatorCoefID(i));
+    Coefs.assign(MaxPowerDenominator + 1, TNumeric("0"));
+    for (size_t i = 0; i <= MaxPowerDenominator; i++)
+        Coefs[i] = *Conditions->GetByRole(GetDenominatorCoefID(i));
     return TPolynom(Coefs);
 }
 
-
-
-void TRationalFunctionConditions::SaveToFile(ofstream &f)
-{
+void TRationalFunctionConditions::SaveToFile(ofstream& f) {
     uint16_t MaxPowerNominator = this->MaxPowerNominator;
     uint16_t MaxPowerDenominator = this->MaxPowerDenominator;
     f.write((char*)&MaxPowerNominator, sizeof(MaxPowerNominator));
@@ -2426,8 +2154,7 @@ void TRationalFunctionConditions::SaveToFile(ofstream &f)
     UnknownVar.WriteToFile(f);
 }
 
-void TRationalFunctionConditions::LoadFromFile(ifstream &f)
-{
+void TRationalFunctionConditions::LoadFromFile(ifstream& f) {
     uint16_t MaxPowerNominator;
     uint16_t MaxPowerDenominator;
     f.read((char*)&MaxPowerNominator, sizeof(MaxPowerNominator));
@@ -2437,100 +2164,101 @@ void TRationalFunctionConditions::LoadFromFile(ifstream &f)
     UnknownVar.LoadFromFile(f);
 }
 
-void TRationalFunctionConditions::SetNominator(const TPolynom &P, bool AllCoef)
-{
-    if(AllCoef)
-        if(P.Coef.size() == 0) MaxPowerNominator = 0;
-        else MaxPowerNominator = P.Coef.size() - 1;
-    else MaxPowerNominator = P.MajorPower();
+void TRationalFunctionConditions::SetNominator(const TPolynom& P, bool AllCoef) {
+    if (AllCoef)
+        if (P.Coef.size() == 0)
+            MaxPowerNominator = 0;
+        else
+            MaxPowerNominator = P.Coef.size() - 1;
+    else
+        MaxPowerNominator = P.MajorPower();
 
     TNumeric Sum;
-    for(size_t i = 0; i <= MaxPowerNominator; i++)
-    {
+    for (size_t i = 0; i <= MaxPowerNominator; i++) {
         TNumeric a = P.GetCoef(i);
         a.ClearID();
-        a.ID = GetNominatorCoefID(i);
+        a.role = GetNominatorCoefID(i);
         a.SetEditableFlags(ConstAllowed);
         TNumeric Temp = GetVarPower(i);
-        if(i==0)
-        {
-            if(Temp.operation == OperatorConst && Temp.K=="1")
-                //случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
+        if (i == 0) {
+            if (Temp.operation == OperatorConst && Temp.strval == "1")
+                // случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
                 Sum = a;
             else
-                Sum = a*Temp;
+                Sum = a * Temp;
         } else {
-            Sum = a*Temp + Sum;
+            Sum = a * Temp + Sum;
         }
     }
-    TNumeric *N = GetNominator();
+    TNumeric* N = GetNominator();
     *N = Sum;
 }
 
-void TRationalFunctionConditions::SetDenominator(const TPolynom &P, bool AllCoef)
-{
-    if(AllCoef)
-        if(P.Coef.size() == 0) MaxPowerDenominator = 0;
-        else MaxPowerDenominator = P.Coef.size() - 1;
-    else MaxPowerDenominator = P.MajorPower();
+void TRationalFunctionConditions::SetDenominator(const TPolynom& P, bool AllCoef) {
+    if (AllCoef)
+        if (P.Coef.size() == 0)
+            MaxPowerDenominator = 0;
+        else
+            MaxPowerDenominator = P.Coef.size() - 1;
+    else
+        MaxPowerDenominator = P.MajorPower();
 
     TNumeric Sum;
-    for(size_t i = 0; i <= MaxPowerDenominator; i++)
-    {
+    for (size_t i = 0; i <= MaxPowerDenominator; i++) {
         TNumeric a = P.GetCoef(i);
         a.ClearID();
-        a.ID = GetDenominatorCoefID(i);
+        a.role = GetDenominatorCoefID(i);
         a.SetEditableFlags(ConstAllowed);
         TNumeric Temp = GetVarPower(i);
-        if(i==0)
-        {
-            if(Temp.operation == OperatorConst && Temp.K=="1")
-                //случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
+        if (i == 0) {
+            if (Temp.operation == OperatorConst && Temp.strval == "1")
+                // случай специально для многочленов по x - вместо 0+a*x^0 делаем просто a
                 Sum = a;
             else
-                Sum = a*Temp;
+                Sum = a * Temp;
         } else {
-            Sum = a*Temp + Sum;
+            Sum = a * Temp + Sum;
         }
     }
-    TNumeric *D = GetDenominator();
+    TNumeric* D = GetDenominator();
     *D = Sum;
 }
 
-TNumeric TRationalFunctionConditions::GetVarPower(size_t power)
-{
-    if(power == 0) return TNumeric("1");
-    else
-    {
-        if(power == 1) return (UnknownVar);
-        else return (UnknownVar^TNumeric(power));
+TNumeric TRationalFunctionConditions::GetVarPower(size_t power) {
+    if (power == 0)
+        return TNumeric("1");
+    else {
+        if (power == 1)
+            return (UnknownVar);
+        else
+            return (UnknownVar ^ TNumeric(static_cast<int>(power)));
     };
 }
 
-TNumeric *TRationalFunctionConditions::GetNominator()
-{
-    if(HaveRightPart)return Conditions->operands[0]->operands[0].get();
-    else return Conditions->operands[0].get();
+TNumeric* TRationalFunctionConditions::GetNominator() {
+    if (HaveRightPart)
+        return Conditions->operands[0]->operands[0].get();
+    else
+        return Conditions->operands[0].get();
 }
 
-TNumeric *TRationalFunctionConditions::GetDenominator()
-{
-    if(HaveRightPart)return Conditions->operands[0]->operands[1].get();
-    else return Conditions->operands[1].get();
+TNumeric* TRationalFunctionConditions::GetDenominator() {
+    if (HaveRightPart)
+        return Conditions->operands[0]->operands[1].get();
+    else
+        return Conditions->operands[1].get();
 }
 
-void TRationalFunctionConditions::Randomize(std::mt19937& rng)
-{
+void TRationalFunctionConditions::Randomize(std::mt19937& rng) {
     TPolynom Nominator;
     Nominator.Coef.assign(MaxPowerNominator + 1, TNumeric(0));
     std::uniform_int_distribution<int> dist(-20, 20);
-    for(size_t i = 0; i <= MaxPowerNominator; i++)
+    for (size_t i = 0; i <= MaxPowerNominator; i++)
         Nominator.Coef[i] = TNumeric(dist(rng));
     SetNominator(Nominator);
     TPolynom Denominator;
     Denominator.Coef.assign(MaxPowerDenominator + 1, TNumeric(0));
-    for(size_t i = 0; i <= MaxPowerDenominator; i++)
+    for (size_t i = 0; i <= MaxPowerDenominator; i++)
         Denominator.Coef[i] = TNumeric(dist(rng));
     SetDenominator(Denominator);
-
 }

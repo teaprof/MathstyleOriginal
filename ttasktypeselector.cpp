@@ -1,16 +1,14 @@
 #include "ttasktypeselector.h"
-#include "ui_ttasktypeselector.h"
+
+#include <QGraphicsItem>
+#include <QGraphicsItemGroup>
+#include <QGraphicsScene>
+
 #include "Base/formulaplotter.h"
 #include "Base/tline.h"
+#include "ui_ttasktypeselector.h"
 
-#include <QGraphicsScene>
-#include <QGraphicsItemGroup>
-#include <QGraphicsItem>
-
-TTaskTypeSelector::TTaskTypeSelector(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::TTaskTypeSelector)
-{
+TTaskTypeSelector::TTaskTypeSelector(QWidget* parent) : QDialog(parent), ui(new Ui::TTaskTypeSelector) {
     ui->setupUi(this);
     connect(ui->graphicsView, SIGNAL(SelectionChanged()), this, SLOT(SelectionChanged()));
     connect(ui->graphicsView, SIGNAL(SelectionDone()), this, SLOT(SelectionDone()));
@@ -18,14 +16,12 @@ TTaskTypeSelector::TTaskTypeSelector(QWidget *parent) :
     connect(ui->pushButton_2, SIGNAL(clicked()), this, SLOT(SelectionCanceled()));
 }
 
-TTaskTypeSelector::~TTaskTypeSelector()
-{
+TTaskTypeSelector::~TTaskTypeSelector() {
     delete ui;
 }
 
-void TTaskTypeSelector::SetTypes(vector<std::shared_ptr<TNumeric>> Types)
-{
-QGraphicsScene *Scene= new QGraphicsScene(ui->graphicsView);
+void TTaskTypeSelector::SetTypes(vector<std::shared_ptr<TNumeric>> Types) {
+    QGraphicsScene* Scene = new QGraphicsScene(ui->graphicsView);
     Scene->setBackgroundBrush(QBrush(BackgroundColor));
     auto Canvas = std::make_shared<TPaintCanvas>(Scene);
     Canvas->TextFont = TextFont;
@@ -37,16 +33,15 @@ QGraphicsScene *Scene= new QGraphicsScene(ui->graphicsView);
     int Y = 0;
     int X = 0;
     RectToNum.clear();
-    QGraphicsItem *GI;
-    for(size_t i = 0; i < Types.size(); i++)
-    {
+    QGraphicsItem* GI;
+    for (size_t i = 0; i < Types.size(); i++) {
         TConstFormulaPlotter fp(Types[i]);
         auto [W, H, D] = fp.GetTextRectangle(Canvas);
-        QGraphicsItem* I = Scene->addRect(X-5, Y-H-5, W+10, H+D+10, QPen(BackgroundColor));
+        QGraphicsItem* I = Scene->addRect(X - 5, Y - H - 5, W + 10, H + D + 10, QPen(BackgroundColor));
         fp.Draw(Canvas, X, Y);
         I->setFlag(QGraphicsItem::ItemIsSelectable);
-        Y += H + D + (H + D); //one height spacing
-        RectToNum.insert(pair<QGraphicsItem*, size_t>(I, i));       
+        Y += H + D + (H + D);  // one height spacing
+        RectToNum.insert(pair<QGraphicsItem*, size_t>(I, i));
         GI = I;
     }
     (void)GI;
@@ -54,14 +49,11 @@ QGraphicsScene *Scene= new QGraphicsScene(ui->graphicsView);
     ui->graphicsView->ensurePolished();
 }
 
-void TTaskTypeSelector::SelectionChanged()
-{
+void TTaskTypeSelector::SelectionChanged() {
     map<QGraphicsItem*, size_t>::iterator it;
-    for (it=RectToNum.begin() ; it != RectToNum.end(); it++ )
-    {
+    for (it = RectToNum.begin(); it != RectToNum.end(); it++) {
         QGraphicsItem* i = it->first;
-        if(i->isSelected())
-        {
+        if (i->isSelected()) {
             SelectedNum = it->second;
             ui->pushButton->setDisabled(false);
             return;
@@ -70,50 +62,37 @@ void TTaskTypeSelector::SelectionChanged()
     ui->pushButton->setDisabled(true);
 }
 
-void TTaskTypeSelector::SetFonts(QFont TextFont, QFont FormulaFont)
-{
+void TTaskTypeSelector::SetFonts(QFont TextFont, QFont FormulaFont) {
     this->TextFont = TextFont;
     this->FormulaFont = FormulaFont;
 }
 
-void TTaskTypeSelector::SetColors(QColor FormulaColor, QColor EditableColor,  QColor BackgroundColor)
-{
+void TTaskTypeSelector::SetColors(QColor FormulaColor, QColor EditableColor, QColor BackgroundColor) {
     this->FormulaColor = FormulaColor;
     this->EditableColor = EditableColor;
     this->BackgroundColor = BackgroundColor;
 }
 
-void TTaskTypeSelector::SelectionCanceled()
-{
+void TTaskTypeSelector::SelectionCanceled() {
     reject();
 }
 
-void TTaskTypeSelector::SelectionDone()
-{
+void TTaskTypeSelector::SelectionDone() {
     accept();
 }
 
 //******************************************************************************************************
 
-QFormulaSelector::QFormulaSelector(QWidget *parent) :
-    QGraphicsView(parent)
-{
+QFormulaSelector::QFormulaSelector(QWidget* parent) : QGraphicsView(parent) {}
 
-}
+QFormulaSelector::~QFormulaSelector() {}
 
-QFormulaSelector::~QFormulaSelector()
-{
-
-}
-
-void QFormulaSelector::mouseDoubleClickEvent(QMouseEvent *Event)
-{
+void QFormulaSelector::mouseDoubleClickEvent(QMouseEvent* Event) {
     Q_UNUSED(Event);
     emit SelectionDone();
 }
 
-void QFormulaSelector::mousePressEvent(QMouseEvent *event)
-{
+void QFormulaSelector::mousePressEvent(QMouseEvent* event) {
     QGraphicsView::mousePressEvent(event);
     emit SelectionChanged();
 }

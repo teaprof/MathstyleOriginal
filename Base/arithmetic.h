@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-//todo: упрощение выражений вида a^log(b, a) => exp(ln(b)/ln(a)*ln(a)) = exp(ln(b)) = b
+// todo: упрощение выражений вида a^log(b, a) => exp(ln(b)/ln(a)*ln(a)) = exp(ln(b)) = b
 #ifndef arithmeticH
 #define arithmeticH
 
@@ -8,225 +8,237 @@
 #define NaN NAN
 #define Infinity INFINITY
 
-#include <vector>
-#include <map>
-#include <string>
 #include <fstream>
-#include <optional>
 #include <functional>
+#include <map>
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 using namespace std;
 
+enum Operation {
+    OperatorEqual = 7,
+    OperatorConst = 0,
+    OperatorSum = 1,
+    OperatorMinus = 6,
+    OperatorProd = 2,
+    OperatorSqrt = 3,
+    OperatorPow = 4,
+    OperatorFrac = 5,
 
-const int OperatorEqual = 7;
-const int OperatorConst = 0;
-const int OperatorSum = 1;
-const int OperatorMinus = 6;
-const int OperatorProd = 2;
-const int OperatorSqrt = 3;
-const int OperatorPow = 4;
-const int OperatorFrac = 5;
+    OperatorEqSet = 8,     // совокупность уравнений
+    OperatorEqSystem = 9,  // система уравнений
 
-const int OperatorEqSet = 8; //совокупность уравнений
-const int OperatorEqSystem = 9; //система уравнений
+    OperatorBelongsTo = 11,
+    OperatorInterval = 12,         // (x1, x2)
+    OperatorSegmentInterval = 13,  //[x1, x2)
+    OperatorIntervalSegment = 14,  //(x1, x2]
+    OperatorSegment = 15,          //[x1, x2]
 
+    OperatorInline = 16,  // все операнды в одну строчку /// \wtf?
 
-const int OperatorBelongsTo = 11;
-const int OperatorInterval = 12; // (x1, x2)
-const int OperatorSegmentInterval = 13; //[x1, x2)
-const int OperatorIntervalSegment = 14; //(x1, x2]
-const int OperatorSegment = 15; //[x1, x2]
+    OperatorUnion = 18,
+    OperatorIntersection = 19,
 
-const int OperatorInline = 16; //все операнды в одну строчку /// \wtf?
+    OperatorLessOrEqual = 20,
+    OperatorLess = 21,
+    OperatorGreater = 22,
+    OperatorGreaterOrEqual = 23,
 
-const int OperatorUnion = 18;
-const int OperatorIntersection = 19;
+    OperatorSubIndex = 24,  /// \todo: wtf? this is not an arithmetic operator
+    OperatorSupIndex = 25,  /// \todo: wtf? this is not an arithmetic operator
 
+    OperatorDeriv = 26,
 
-const int OperatorLessOrEqual = 20;
-const int OperatorLess = 21;
-const int OperatorGreater = 22;
-const int OperatorGreaterOrEqual = 23;
+    OperatorSin = 27,
+    OperatorCos = 28,
+    OperatorTg = 29,
+    OperatorCtg = 30,
 
-const int OperatorSubIndex = 24; /// \todo: wtf? this is not an arithmetic operator
-const int OperatorSupIndex = 25; /// \todo: wtf? this is not an arithmetic operator
+    OperatorArcsin = 31,
+    OperatorArccos = 32,
+    OperatorArctg = 33,
 
-const int OperatorDeriv = 26;
+    OperatorLog = 34,  // logarithm of Operands[0] with base of Operands[1] = ln(Operands[0])/ln(Operands[1])
+    OperatorLn = 35,   // natural logarithm
+    OperatorLg = 36,   // decimal logarithm
 
-const int OperatorSin = 27;
-const int OperatorCos = 28;
-const int OperatorTg = 29;
-const int OperatorCtg = 30;
+    OperatorPlusMinus = 37,
+    //  OperatorModule = 38,
+    OperatorExp = 39,
+    OperatorIntegral = 40,  //\int Operands[0] dOperands[1]
+    OperatorAbs = 41,       // modulus
+    OperatorSign = 42,      // signum
 
-const int OperatorArcsin = 31;
-const int OperatorArccos = 32;
-const int OperatorArctg = 33;
+    OperatorSmallO = 43,  // o(x^n)
+    OperatorBigO = 44,    // O(x^n)
 
-const int OperatorLog = 34; //logarithm of Operands[0] with base of Operands[1] = ln(Operands[0])/ln(Operands[1])
-const int OperatorLn = 35; //natural logarithm
-const int OperatorLg = 36; //decimal logarithm
-
-const int OperatorPlusMinus = 37;
-//const int OperatorModule = 38;
-const int OperatorExp = 39;
-const int OperatorIntegral = 40; //\int Operands[0] dOperands[1]
-const int OperatorAbs = 41; //modulus
-const int OperatorSign = 42; //signum
-
-const int OperatorSmallO = 43; //o(x^n)
-const int OperatorBigO = 44; //O(x^n)
-
-const int OperatorSh = 45;
-const int OperatorCh = 46;
-
-
-enum TEditableFlags
-{
-    NoEditable = 0x00,
-    ConstAllowed = 0x01,
-    FunctionsAllowed = 0x02
-    //NextFlag = 0x04 and so on
+    OperatorSh = 45,
+    OperatorCh = 46
 };
 
-class TNumeric : public std::enable_shared_from_this<TNumeric>
-{
-    void CreateClear(); //создает чистый TNumeric
-    void Assign(const TNumeric& N);
+int GetOperatorPriority(Operation OpCode);
+int CompareOperatorsPriority(Operation OpCode1, Operation OpCode2);
 
+class TNumeric : public std::enable_shared_from_this<TNumeric> {
+    /// упрощает выражение, где последним оператором является тригонометрическая функция
+    TNumeric SimplifyTrig() const;
+    /// упрощает выражение, где последним оператором является обратная тригонометрическая функция
+    TNumeric SimplifyInverseTrig() const;
+    /// упрощает выражение, где последним оператором является Log(A, B)
+    TNumeric SimplifyLog() const;
+    /// если это возможно, представляет объект в виде рациональной дроби; если не возможно, то false
+    bool asRational(int& Nominator, int& Denominator) const ;
+    /// упрощает функции везде, где возможно
+    TNumeric SimplifyFunctions() const;
 
-    TNumeric SimplifyTrig() const; //упрощает выражение, где последним оператором является тригонометрическая функция
-    TNumeric SimplifyInverseTrig() const; //упрощает выражение, где последним оператором является обратная тригонометрическая функция
-    TNumeric SimplifyLog() const; //упрощает выражение, где последним оператором является Log(A, B)
-    bool GetRational(int &Nominator, int &Denominator); //если это возможно, представляет объект в виде рациональной дроби; если не возможно, то false
-    void SimplifyFunctions(); //упрощает функции везде, где возможно
+    /// интерфейс к mathomatic
+    TNumeric MathoCmd(const string& Cmd) const;
 
-    TNumeric MathoCmd(const string& Cmd) const; //интерфейс к mathomatic
+    /// проверяет, был ли чем-нибудь инициализирован объект ранее; если не был, то вызывает исключение
+    void CheckInitialized() const;
 
-    void CheckInitialized() const; //проверяет, был ли чем-нибудь инициализирован объект ранее; если не был, то вызывает исключение
+    /// make TNumeric constructos accessible from this class only (see enable_shared_from_this documentation)
+    struct Private {
+        explicit Private() = default;
+    };
 
-    struct Private{ explicit Private() = default; }; // make TNumeric constructos accessible from this class only (see enable_shared_from_this documentation)
-public:
-    static int GetOperatorPriority(int OpCode);
-    static int CompareOperatorsPriority(int OpCode1, int OpCode2);
-    bool EditableFlags{NoEditable}; /// \todo: rename to isEditable
-    mutable int ID; //идентификатор, по которому можно получить указатель на объект TNumeric
+  public:
+    /// идентификатор, по которому можно получить указатель на объект TNumeric
+    int role;
+    /// представление в виде строки (доступно только если operation == Operator::Const) /// \todo: проверить
+    string strval;
+    /// код операции
+    Operation operation;
+    /// операнды
+    vector<std::shared_ptr<const TNumeric>> operands;
+    std::shared_ptr<TNumeric> at(size_t index) {
+        return std::const_pointer_cast<TNumeric>(operands[index]);
+    }
 
-    vector<std::shared_ptr<TNumeric>> operands; //на прямую можно вызывать только Operands.operation[] и const-функции (типа size())
-    void OperandsPushback(const TNumeric &Val);
-    void OperandsPushback(TNumeric &&Val);
+    void OperandsPushback(const TNumeric& Val);
+    void OperandsPushback(TNumeric&& Val);
     void OperandsPushback(std::shared_ptr<TNumeric> val);
     void OperandsClear();
 
-    string K; // todo: wtf?
-    int operation;
-    TNumeric();
-    TNumeric(TNumeric&& numeric);
+    TNumeric() = default;
+    /// initialize operands with the same pointers as N.operands
+    TNumeric(const TNumeric& N) = default;
+    TNumeric(TNumeric&& numeric) = default;
+    TNumeric& operator=(const TNumeric& N) = default;
+    TNumeric& operator=(TNumeric&& N) = default;
     virtual ~TNumeric();
-    std::shared_ptr<TNumeric> deepCopy();
-    explicit TNumeric(double d);
-    explicit TNumeric(int d);
-    explicit TNumeric(size_t d);
-    explicit TNumeric(string d);
-    TNumeric(const TNumeric& N);
 
-    template<class ... Args>
-    static std::shared_ptr<TNumeric> create(Args ... args) {
+    explicit TNumeric(double value);
+    explicit TNumeric(int value);
+    explicit TNumeric(std::string value);
+
+    TNumeric deepCopy() const;
+    std::shared_ptr<TNumeric> deepCopyPtr() const;
+
+    template<class... Args>
+    static std::shared_ptr<TNumeric> create(Args... args) {
         return std::make_shared<TNumeric>(args...);
     }
 
-    bool IsVariable() const; //returns true if object is like "x" or "x_{something}" (object designates variable)
-    bool IsEqual(const TNumeric &N) const; //Если *this и N совпадают полностью друг с другом
-    bool DependsOn(const char* variable) const; //Если variable хоть как-то входит в выражение, то true
-    bool operator==(const TNumeric& N) const; //Если *this - N символьно равно нулю, то true
-    bool operator!=(const TNumeric& N) const
-    {
-        return !operator == (N);
-    }
-    bool operator==(double Value) const
-    {
-        TNumeric Temp = Simplify();
-        if(Temp.CanCalculate()) return Temp.Calculate() == Value;
-        else return false;
-    }
-    bool operator!=(double Value) const
-    {
-        return !operator ==(Value);
-    }
+    /// returns true if object is like "x" or "x_{something}" (object designates variable)
+    bool IsVariable() const;
+    /// Если *this и N совпадают полностью друг с другом
+    bool IsEqual(const TNumeric& N) const;
+    /// Если variable хоть как-то входит в выражение, то true
+    bool DependsOn(const char* variable) const;
+    /// Если *this - N символьно равно нулю, то true
+    bool operator==(const TNumeric& N) const;
+    bool operator!=(const TNumeric& N) const;
+    bool operator==(double Value) const;
+    bool operator!=(double Value) const;
 
-    void operator=(const TNumeric& N);
     TNumeric operator*(const TNumeric& N) const;
-    TNumeric operator*(int N) const  { return this->operator *(TNumeric(N)); }
+    TNumeric operator*(int N) const {
+        return this->operator*(TNumeric(N));
+    }
     TNumeric operator+(const TNumeric& N) const;
-    TNumeric operator+(int N) const  { return this->operator +(TNumeric(N)); }
+    TNumeric operator+(int N) const {
+        return this->operator+(TNumeric(N));
+    }
     TNumeric operator-(const TNumeric& N) const;
-    TNumeric operator-(int N) const  { return this->operator -(TNumeric(N)); }
-    TNumeric operator-() const ;
+    TNumeric operator-(int N) const {
+        return this->operator-(TNumeric(N));
+    }
+    TNumeric operator-() const;
     TNumeric operator/(const TNumeric& N) const;
-    TNumeric operator/(int N) const  { return this->operator /(TNumeric(N)); }
+    TNumeric operator/(int N) const {
+        return this->operator/(TNumeric(N));
+    }
     TNumeric sqrt() const;
     TNumeric operator^(const TNumeric& N) const;
-    TNumeric operator^(int N) const  { return this->operator ^(TNumeric(N)); }
+    TNumeric operator^(int N) const {
+        return this->operator^(TNumeric(N));
+    }
 
     TNumeric Derivative(const string VarName = "x") const;
 
-    //Создает совокупоность из двух уравнений: N1 | N2
+    /// Создает совокупоность из двух уравнений: N1 | N2
     void MakeEqSet(const TNumeric& N1, const TNumeric& N2);
-    //Создает систему из двух уравнений: N1 & N2
+    /// Создает систему из двух уравнений: N1 & N2
     void MakeEqSystem(const TNumeric& N1, const TNumeric& N2);
 
     void Assign(const char* str);
     void Assign(char* str);
 
     string CodeBasic() const;
-    void SimplifyPresentation(); //упрощает представление формулы (заменяет a^(1/2) на sqrt(a))
+    /// упрощает представление формулы (заменяет a^(1/2) на sqrt(a))
+    TNumeric SimplifyPresentation() const;
 
     double Calculate() const;
     TNumeric Substitute(const string& var, const TNumeric& Val) const;
 
-    bool hasID(int ID);
-    std::shared_ptr<TNumeric> GetByID(int ID);
-    void ClearID(); //устанавливает ID у себя и всех потомков в -1
+    bool hasRole(int role) const;
+    std::shared_ptr<const TNumeric> GetByRole(int role) const;
+    TNumeric replaceByRole(int role, TNumeric&& N);
 
     TNumeric Simplify() const;
     TNumeric Unfactor() const;
 
-    bool CanCalculate() const; //true, если выражение является арифметическим выражением и является полным, то есть не содержит пустых прямоугольников
-    void SetEditableFlags(int Flags) {  //устанавливает значение Editable у себя и у всех потомков
-        (void)Flags;
-        ///\todo: todo
-    }
+    /// true, если выражение является арифметическим выражением и является полным, то есть не содержит пустых прямоугольников
+    bool CanCalculate() const;
 
-    void LoadFromFile(ifstream &f);
-    void WriteToFile(ofstream &f);
+    /// возвращает true, если коэффициент является целым числом. Число записывает в Int
+    bool isInteger(int* Int) const;
+    bool isInteger() const;
 
-    bool IsInteger(int* Int = 0) const; //возвращает true, если коэффициент является целым числом. Число записывает в Int
+    /// обозначаем функции, которых нет в пакете mathomatic, за новые переменные a_i; первая переменная получает номер StartID;
+    /// StartID постепенно увеличивается
+    TNumeric EliminateUnimplementedFunctions(size_t& StartID,
+                            map<string, TNumeric>& vars_to_functions) const;
+    /// заменяем переменные обратно на функции
+    TNumeric RestoreUnimplementedFunctions(const map<string, TNumeric>& vars_to_functions) const;
 
-    void EliminateFunctions(size_t &StartID, map<string, TNumeric>& Map); //обозначаем функции, которых нет в пакете mathomatic, за новые переменные a_i; первая переменная получает номер StartID;
-    //StartID постепенно увеличивается
-    void RestoreFunctions(const map<string, TNumeric>& V); //заменяем переменные обратно на функции
+    void LoadFromFile(ifstream& f);
+    void SaveToFile(ofstream& f);
 };
 
 using PNumeric = std::shared_ptr<TNumeric>;
 
-
 string DeleteExternalBrackets(string q);
 TNumeric MakeEquality(const TNumeric& N1, const TNumeric& N2);
 TNumeric MakeBelongsTo(const TNumeric& N1, const TNumeric& N2);
-TNumeric MakeInterval(const TNumeric &X1, const TNumeric& X2, bool includeleft = false, bool includeright = false);
-TNumeric MakeInline(const TNumeric &N1, const TNumeric &N2);
-TNumeric MakeInline(const TNumeric &N1, const TNumeric &N2, const TNumeric &N3);
-TNumeric MakeUnion(const TNumeric &N1, const TNumeric &N2);
-TNumeric MakeSubscript(const TNumeric &N1, const TNumeric &N2);
-TNumeric MakeSuperscript(const TNumeric &N1, const TNumeric &N2);
-TNumeric MakePow(const TNumeric &N1, const TNumeric &N2);
-TNumeric MakeExp(const TNumeric &N);
-TNumeric MakeCh(const TNumeric &N);
-TNumeric MakeSh(const TNumeric &N);
+TNumeric MakeInterval(const TNumeric& X1, const TNumeric& X2, bool includeleft = false, bool includeright = false);
+TNumeric MakeInline(const TNumeric& N1, const TNumeric& N2);
+TNumeric MakeInline(const TNumeric& N1, const TNumeric& N2, const TNumeric& N3);
+TNumeric MakeUnion(const TNumeric& N1, const TNumeric& N2);
+TNumeric MakeSubscript(const TNumeric& N1, const TNumeric& N2);
+TNumeric MakeSuperscript(const TNumeric& N1, const TNumeric& N2);
+TNumeric MakePow(const TNumeric& N1, const TNumeric& N2);
+TNumeric MakeExp(const TNumeric& N);
+TNumeric MakeCh(const TNumeric& N);
+TNumeric MakeSh(const TNumeric& N);
 TNumeric MakeSqrt(const TNumeric& N);
 
-TNumeric MakeFrac(const TNumeric &N1, const TNumeric &N2);
-TNumeric MakeProd(TNumeric&& N1, TNumeric &&N2);
+TNumeric MakeFrac(const TNumeric& N1, const TNumeric& N2);
+TNumeric MakeProd(TNumeric&& N1, TNumeric&& N2);
 TNumeric MakeLn(const TNumeric& N1);
 TNumeric MakeLog(const TNumeric& N, const TNumeric& Base);
 
@@ -250,12 +262,14 @@ TNumeric MakeSetOfEquations(const TNumeric& N1, const TNumeric& N2);
 TNumeric MakeIntegral(const TNumeric& N, const TNumeric& dx);
 TNumeric MakeIntegral(const TNumeric& N, const string& dx);
 
-TNumeric GetPolynom(size_t Power, size_t StartID); //конструирует многочлен с нулевыми коэффициентами. ID устанавливаются от StartID до StartID+Power
+TNumeric GetPolynom(
+    size_t Power,
+    size_t StartID);  // конструирует многочлен с нулевыми коэффициентами. role устанавливаются от StartID до StartID+Power
 
 //---------------------------------------------------------------------------
-std::shared_ptr<TNumeric> FindParent(std::shared_ptr<TNumeric> Root, std::shared_ptr<TNumeric> Child);
-bool CanErase(std::shared_ptr<TNumeric> Root, std::shared_ptr<TNumeric>* WhatToDelete);
-void EraseNumeric(std::shared_ptr<TNumeric>* Root, std::shared_ptr<TNumeric>* WhatToDelete);
+std::shared_ptr<const TNumeric> FindParent(std::shared_ptr<const TNumeric> Root, std::shared_ptr<const TNumeric> Child);
+bool CanErase(std::shared_ptr<const TNumeric> Root, std::shared_ptr<const TNumeric>* WhatToDelete);
+//std::shared_ptr<const TNumeric> EraseNumeric(std::shared_ptr<const TNumeric> Root, std::shared_ptr<const TNumeric> WhatToDelete);
 //---------------------------------------------------------------------------
 
 extern TNumeric NumPi;

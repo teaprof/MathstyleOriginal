@@ -5,23 +5,22 @@
 #include <QUrl>
 
 namespace Ui {
-    class TAboutDialog;
+class TAboutDialog;
 }
 
-class TAboutDialog : public QDialog
-{
+class TAboutDialog : public QDialog {
     Q_OBJECT
 
-public:
-    explicit TAboutDialog(QWidget *parent = 0);
+  public:
+    explicit TAboutDialog(QWidget* parent = 0);
     ~TAboutDialog();
 
-private slots:
+  private slots:
     void on_pushButton_clicked();
-//    void anchorClicked(const QUrl&   Link);
+    //    void anchorClicked(const QUrl&   Link);
 
-private:
-    Ui::TAboutDialog *ui;
+  private:
+    Ui::TAboutDialog* ui;
 };
 
-#endif // TABOUTDIALOG_H
+#endif  // TABOUTDIALOG_H

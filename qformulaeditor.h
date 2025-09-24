@@ -1,27 +1,26 @@
 #ifndef QFORMULAEDITOR_H
 #define QFORMULAEDITOR_H
 
+#include <QFrame>
+#include <QGroupBox>
+#include <QIcon>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QToolButton>
+#include <QWidget>
+
+#include <string>
+
 #include "Base/arithmetic.h"
 #include "Base/editableformula.h"
 #include "Problems/tproblem.h"
-
-
-#include <QToolButton>
-#include <QPushButton>
-#include <QWidget>
-#include <QFrame>
-#include <QIcon>
-#include <QGroupBox>
-#include <QScrollArea>
-#include <string>
 using namespace std;
 
-class QFormulaArea : public QWidget
-{
+class QFormulaArea : public QWidget {
     Q_OBJECT
-public:
-    vector<TNumeric> Saved; //для команды Undo
-    size_t curSaved_idx; //индекс в массиве Saved, используется командой Undo
+  public:
+    vector<TNumeric> Saved;  // для команды Undo
+    size_t curSaved_idx;     // индекс в массиве Saved, используется командой Undo
 
     int MinWidth, MinHeight;
     QWidget* FormulaArea;
@@ -33,19 +32,19 @@ public:
     std::shared_ptr<TNumeric> Formula;
     std::shared_ptr<TEditableFormula> EditableFormula;
 
-    explicit QFormulaArea(QWidget *parent = 0);
+    explicit QFormulaArea(QWidget* parent = 0);
     ~QFormulaArea();
 
     void DebugPrintBuffer();
     void SetFormula(std::shared_ptr<TNumeric> Formula);
-signals:
-    void OnSelectionChanged(TNumeric *NewSelection);
+  signals:
+    void OnSelectionChanged(TNumeric* NewSelection);
     void OnButtonsChanged(int EditableFlags, int CanEraseFlag, bool IsConst);
     void OnEnableUndo(bool Enabled);
     void OnEnableRedo(bool Enabled);
 
-public slots:
-    void Save(); //для команды Undo
+  public slots:
+    void Save();  // для команды Undo
     void Undo();
     void Redo();
     void SetUndoRedoEnabled();
@@ -68,29 +67,28 @@ public slots:
     void InsertArctg();
     void InsertLn();
     void InsertLog();
-    void InsertX();        
+    void InsertX();
     void InsertExp();
     void InsertSh();
     void InsertCh();
     void Edit();
 
-protected:
-
-       virtual void paintEvent(QPaintEvent *event);
-       virtual void mouseMoveEvent(QMouseEvent *event);
-       virtual void mousePressEvent(QMouseEvent *event);
-       virtual bool event(QEvent *);
-       virtual void mouseDoubleClickEvent(QMouseEvent *);
-//       virtual void resizeEvent(QResizeEvent* E);
+  protected:
+    virtual void paintEvent(QPaintEvent* event);
+    virtual void mouseMoveEvent(QMouseEvent* event);
+    virtual void mousePressEvent(QMouseEvent* event);
+    virtual bool event(QEvent*);
+    virtual void mouseDoubleClickEvent(QMouseEvent*);
+    //       virtual void resizeEvent(QResizeEvent* E);
 };
 
-class QFormulaEditor : public QWidget
-{
-        Q_OBJECT
+class QFormulaEditor : public QWidget {
+    Q_OBJECT
     QFormulaArea* FormulaArea;
     QScrollArea* ScrollArea;
-public:
-    explicit QFormulaEditor(QWidget *parent = 0);
+
+  public:
+    explicit QFormulaEditor(QWidget* parent = 0);
     ~QFormulaEditor();
     void SetArithmeticsVisible(bool Visible);
     void SetArithmeticsEnabled(bool Enabled);
@@ -98,67 +96,68 @@ public:
     void SetFunctionsVisible(bool Visible);
     void SetFunctionsEnabled(bool Enabled);
 
-    void SetPos(QToolButton *Button, int Col, int Row);
+    void SetPos(QToolButton* Button, int Col, int Row);
 
     void SetFonts(const QFont& TextFont, const QFont& FormulaFont);
     void SetColors(const QColor& FormulaColor, const QColor& EditableColor, const QColor& BackgroundColor);
     void SetTask(const string& Task);
-    //void SetFormula(std::shared_ptr<TNumeric> Formula);
+    // void SetFormula(std::shared_ptr<TNumeric> Formula);
     void setProblem(std::shared_ptr<TProblem> problem);
 
     void TranslateButtons();
 
     QToolButton* RegisterButton(const char* Img, QString ToolTip, QWidget* Parent, int Col, int Row, const char* Slot);
-    void SetBoxGeometry(QGroupBox *Box, int Height);
+    void SetBoxGeometry(QGroupBox* Box, int Height);
 
-signals:
-    void OnSelectionChanged(TNumeric *NewSelection);
+  signals:
+    void OnSelectionChanged(TNumeric* NewSelection);
 
-public slots:
+  public slots:
     void OnButtonsChanged(int EditableFlags, int CanEraseFlag, bool IsConst);
     void OnSelectionChangedSlot(TNumeric* NewSelection);
 
     void OnEnableUndo(bool Enabled);
     void OnEnableRedo(bool Enabled);
-protected:      
-      int ButtonWidth;
-      int ButtonHeight;
-      int ButtonPadding; //расстояние между кнопками
 
-      QToolButton* BPlus;
-      QToolButton* BMinus;
-      QToolButton* BProd;
-      QToolButton* BFrac;
-      QToolButton* BPower;
-      QToolButton* BClear;
-      QToolButton* BEdit;
-      QToolButton* BSqrt;
-      QToolButton* BSimplify;
-      QGroupBox* ArithmeticsBox;
-      QToolButton* BSin;
-      QToolButton* BCos;
-      QToolButton* BTan;
-      QToolButton* BArctan;
-      QToolButton* BArcsin;
-      QToolButton* BArccos;
-      QToolButton* BLog;
-      QToolButton* BLn;
-      QToolButton* BX;
-      QToolButton* BExp;
-      QToolButton* BCh;
-      QToolButton* BSh;
-      QToolButton* BErase;
-      QGroupBox* FunctionBox;
-      QToolButton* BUndo;
-      QToolButton* BRedo;
-      QGroupBox* NavigationBox;
+  protected:
+    int ButtonWidth;
+    int ButtonHeight;
+    int ButtonPadding;  // расстояние между кнопками
 
-       virtual void paintEvent(QPaintEvent *event);
-/*       virtual void mouseMoveEvent(QMouseEvent *event);
-       virtual void mousePressEvent(QMouseEvent *event);*/
-       virtual bool event(QEvent *);
-/*       virtual void mouseDoubleClickEvent(QMouseEvent *);*/
-       virtual void resizeEvent(QResizeEvent* E);
+    QToolButton* BPlus;
+    QToolButton* BMinus;
+    QToolButton* BProd;
+    QToolButton* BFrac;
+    QToolButton* BPower;
+    QToolButton* BClear;
+    QToolButton* BEdit;
+    QToolButton* BSqrt;
+    QToolButton* BSimplify;
+    QGroupBox* ArithmeticsBox;
+    QToolButton* BSin;
+    QToolButton* BCos;
+    QToolButton* BTan;
+    QToolButton* BArctan;
+    QToolButton* BArcsin;
+    QToolButton* BArccos;
+    QToolButton* BLog;
+    QToolButton* BLn;
+    QToolButton* BX;
+    QToolButton* BExp;
+    QToolButton* BCh;
+    QToolButton* BSh;
+    QToolButton* BErase;
+    QGroupBox* FunctionBox;
+    QToolButton* BUndo;
+    QToolButton* BRedo;
+    QGroupBox* NavigationBox;
+
+    virtual void paintEvent(QPaintEvent* event);
+    /*       virtual void mouseMoveEvent(QMouseEvent *event);
+           virtual void mousePressEvent(QMouseEvent *event);*/
+    virtual bool event(QEvent*);
+    /*       virtual void mouseDoubleClickEvent(QMouseEvent *);*/
+    virtual void resizeEvent(QResizeEvent* E);
 };
 
-#endif // QFORMULAEDITOR_H
+#endif  // QFORMULAEDITOR_H

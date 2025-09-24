@@ -4,25 +4,24 @@
 #include <QDialog>
 
 namespace Ui {
-    class TSelectSLAUsize;
+class TSelectSLAUsize;
 }
 
-class TSelectSLAUsize : public QDialog
-{
+class TSelectSLAUsize : public QDialog {
     Q_OBJECT
 
-public:
+  public:
     int VarsCount, EqCount;
-    explicit TSelectSLAUsize(QWidget *parent = 0);
+    explicit TSelectSLAUsize(QWidget* parent = 0);
     ~TSelectSLAUsize();
 
-private slots:
+  private slots:
     void on_pushButton_clicked();
 
     void on_pushButton_2_clicked();
 
-private:
-    Ui::TSelectSLAUsize *ui;
+  private:
+    Ui::TSelectSLAUsize* ui;
 };
 
-#endif // TSELECTSLAUSIZE_H
+#endif  // TSELECTSLAUSIZE_H

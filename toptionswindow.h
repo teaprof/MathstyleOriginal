@@ -4,14 +4,12 @@
 #include <QDialog>
 #include <QSettings>
 
-
 namespace Ui {
-    class TOptionsWindow;
+class TOptionsWindow;
 }
 
-class TOptions
-{
-public:
+class TOptions {
+  public:
     QFont TextFont;
     QFont FormulaFont;
     QColor TextColor;
@@ -28,15 +26,14 @@ public:
     void Load();
     void Save();
     void SaveColor(QSettings& S, QString Key, QColor Color);
-    void LoadColor(QSettings& S, QString Key, QColor &Color);
+    void LoadColor(QSettings& S, QString Key, QColor& Color);
 };
 
-class TOptionsWindow : public QDialog
-{
+class TOptionsWindow : public QDialog {
     Q_OBJECT
 
-public:
-    explicit TOptionsWindow(QWidget *parent = 0);
+  public:
+    explicit TOptionsWindow(QWidget* parent = 0);
     ~TOptionsWindow();
 
     TOptions* Options;
@@ -47,8 +44,7 @@ public:
 
     void SetLanguage(int Language);
 
-
-private slots:
+  private slots:
     void on_pushButton_clicked();
 
     void on_pushButton_2_clicked();
@@ -67,8 +63,8 @@ private slots:
 
     void on_comboBox_currentIndexChanged(int index);
 
-private:
-    Ui::TOptionsWindow *ui;
+  private:
+    Ui::TOptionsWindow* ui;
 };
 
-#endif // TOPTIONSWINDOW_H
+#endif  // TOPTIONSWINDOW_H

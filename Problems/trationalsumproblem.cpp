@@ -1,31 +1,39 @@
-#include <sstream>
-#include "Base/polynom.h"
-#include "TPolynomProblems.h"
 #include "trationalsumproblem.h"
 
-size_t TRationalSumConditions::GetPStartIndex(size_t N)
-{
-    //N must be in set {0, 1, 2, 3}
-    if(N == 0) return 0;
-    else return GetPStartIndex(N-1)+MaxPower+1;
+#include "TPolynomProblems.h"
+
+#include <sstream>
+
+#include "Base/polynom.h"
+
+size_t TRationalSumConditions::GetPStartIndex(size_t N) {
+    // N must be in set {0, 1, 2, 3}
+    if (N == 0)
+        return 0;
+    else
+        return GetPStartIndex(N - 1) + MaxPower + 1;
 }
 
-size_t TRationalSumConditions::GetQStartIndex(size_t N)
-{
-    //N must be in set {0, 1, 2, 3}
-    if(N == 0) return GetPStartIndex(3)+MaxPower+1;
-    else return GetQStartIndex(N-1)+MaxPower+1;
+size_t TRationalSumConditions::GetQStartIndex(size_t N) {
+    // N must be in set {0, 1, 2, 3}
+    if (N == 0)
+        return GetPStartIndex(3) + MaxPower + 1;
+    else
+        return GetQStartIndex(N - 1) + MaxPower + 1;
 }
 
-void TRationalSumConditions::SetSigns(int Sign1, int Sign2)
-{
+void TRationalSumConditions::SetSigns(int Sign1, int Sign2) {
     int Op1, Op2;
 
-    if(Sign1 == 1)Op1 = OperatorSum;
-    else Op1 = OperatorMinus;
+    if (Sign1 == 1)
+        Op1 = OperatorSum;
+    else
+        Op1 = OperatorMinus;
 
-    if(Sign2 == 1)Op2 = OperatorSum;
-    else Op2 = OperatorMinus;
+    if (Sign2 == 1)
+        Op2 = OperatorSum;
+    else
+        Op2 = OperatorMinus;
 
     Conditions->operands[0]->operation = Op1;
     Conditions->operands[1]->operation = Op2;
@@ -34,9 +42,7 @@ void TRationalSumConditions::SetSigns(int Sign1, int Sign2)
     this->Sign2 = Sign2;
 }
 
-
-TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int Sign2) : TProblem()
-{
+TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int Sign2) : TProblem() {
     this->MaxPower = MaxPower;
     TNumeric Res;
     Res.operation = OperatorEqual;
@@ -51,25 +57,23 @@ TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int S
     Res.OperandsPushback(Right);
     Conditions = std::make_shared<TNumeric>(Res);
 
-    if(MaxPower == 1)
-    {
-        int SampleCoefs[] = {-3, 1, +3, 1, +6, 1, -6, 1, -1, 1,  +1, 1, +2, 1, -2, 1};
-        for(size_t i = 0; i < 16; i++)
-        {
+    if (MaxPower == 1) {
+        int SampleCoefs[] = {-3, 1, +3, 1, +6, 1, -6, 1, -1, 1, +1, 1, +2, 1, -2, 1};
+        for (size_t i = 0; i < 16; i++) {
             char Buf[20];
             sprintf(Buf, "%d", SampleCoefs[i]);
-            Conditions->GetByID(i)->K = Buf;
+            Conditions->GetByRole(i)->strval = Buf;
         };
     } else {
-        for(size_t i = 0; i < (MaxPower+1)*10; i++) //берём с запасом
+        for (size_t i = 0; i < (MaxPower + 1) * 10; i++)  // берём с запасом
         {
-            if(Conditions->hasID(i)) {
-                PNumeric P = Conditions->GetByID(i);;
-                if(P != nullptr)
-                {
+            if (Conditions->hasRole(i)) {
+                PNumeric P = Conditions->GetByRole(i);
+                ;
+                if (P != nullptr) {
                     char Buf[20];
-                    sprintf(Buf, "%d", (int) i);
-                    P->K = Buf;
+                    sprintf(Buf, "%d", (int)i);
+                    P->strval = Buf;
                 };
             }
         }
@@ -77,84 +81,71 @@ TRationalSumConditions::TRationalSumConditions(size_t MaxPower, int Sign1, int S
     SetSigns(Sign1, Sign2);
 }
 
-TRationalSumConditions::TRationalSumConditions(const TRationalSumConditions& R, int Sign1, int Sign2) : TProblem(R)
-{
-    //this->MaxPower = MaxPower;
+TRationalSumConditions::TRationalSumConditions(const TRationalSumConditions& R, int Sign1, int Sign2) : TProblem(R) {
+    // this->MaxPower = MaxPower;
     Conditions = std::make_shared<TNumeric>(*R.Conditions);
     SetSigns(Sign1, Sign2);
 }
 
-
-TRationalSumConditions::~TRationalSumConditions()
-{
-//nothing to do
+TRationalSumConditions::~TRationalSumConditions() {
+    // nothing to do
 }
 
-vector<TNumeric> TRationalSumConditions::GetCoefs(size_t StartID)
-{
-vector<TNumeric> Res;
-    Res.assign(MaxPower+1, TNumeric(0));
-    for(size_t power = 0; power <= MaxPower; power++)
-    {
-        Res[power] = *(Conditions->GetByID(StartID + power));
+vector<TNumeric> TRationalSumConditions::GetCoefs(size_t StartID) {
+    vector<TNumeric> Res;
+    Res.assign(MaxPower + 1, TNumeric(0));
+    for (size_t power = 0; power <= MaxPower; power++) {
+        Res[power] = *(Conditions->GetByRole(StartID + power));
     }
     return Res;
 }
-vector<TNumeric> TRationalSumConditions::GetPCoef(size_t N)
-{
+vector<TNumeric> TRationalSumConditions::GetPCoef(size_t N) {
     return GetCoefs(GetPStartIndex(N));
 }
 
-vector<TNumeric> TRationalSumConditions::GetQCoef(size_t N)
-{
+vector<TNumeric> TRationalSumConditions::GetQCoef(size_t N) {
     return GetCoefs(GetQStartIndex(N));
 }
-TPolynom TRationalSumConditions::GetP(size_t N)
-{
+TPolynom TRationalSumConditions::GetP(size_t N) {
     return TPolynom(GetPCoef(N));
 }
 
-TPolynom TRationalSumConditions::GetQ(size_t N)
-{
+TPolynom TRationalSumConditions::GetQ(size_t N) {
     return TPolynom(GetQCoef(N));
 }
 
-
-void TRationalSumConditions::Randomize(std::mt19937& rng)
-{
+void TRationalSumConditions::Randomize(std::mt19937& rng) {
     std::uniform_int_distribution<int> dist(-20, 20);
-    for(size_t i = 0; i <= MaxPower; i++)
-        for(size_t j = 0; j < 4; j++)
-        {
-            int ID = GetPStartIndex(j) + i;
-            PNumeric N = Conditions->GetByID(ID);
+    for (size_t i = 0; i <= MaxPower; i++)
+        for (size_t j = 0; j < 4; j++) {
+            int role = GetPStartIndex(j) + i;
+            PNumeric N = Conditions->GetByRole(role);
             *N = TNumeric(dist(rng));
             N->SetEditableFlags(ConstAllowed);
-            N->ID = ID;
+            N->role = role;
 
-            ID = GetQStartIndex(j) + i;
-            PNumeric N2 = Conditions->GetByID(ID);
+            role = GetQStartIndex(j) + i;
+            PNumeric N2 = Conditions->GetByRole(role);
             *N2 = TNumeric(dist(rng));
             N2->SetEditableFlags(ConstAllowed);
-            N2->ID = ID;
+            N2->role = role;
         }
 }
 
 //*******************************************************************************************************************
-TRationalSumEquality::TRationalSumEquality(size_t MaxPower, int Sign1, int Sign2) : TRationalSumConditions(MaxPower, Sign1, Sign2), TEquality()
-{
+TRationalSumEquality::TRationalSumEquality(size_t MaxPower, int Sign1, int Sign2) :
+    TRationalSumConditions(MaxPower, Sign1, Sign2), TEquality() {
     CanRandomize = true;
     BuildPhrases();
 }
 
-TRationalSumEquality::TRationalSumEquality(const TRationalSumEquality& R, int Sign1, int Sign2) : TRationalSumConditions(R, Sign1, Sign2), TEquality()
-{
+TRationalSumEquality::TRationalSumEquality(const TRationalSumEquality& R, int Sign1, int Sign2) :
+    TRationalSumConditions(R, Sign1, Sign2), TEquality() {
     BuildPhrases();
 }
 
-void TRationalSumEquality::BuildPhrases()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()))return;
+void TRationalSumEquality::BuildPhrases() {
+    if (MyTranslator.CheckDictionary(GetClassName())) return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Finding the range of function definition: all denominators should be non-zero.");
     MyTranslator.AddRus("Ищем область определения: все знаменатели должны быть ненулевыми");
@@ -174,81 +165,67 @@ void TRationalSumEquality::BuildPhrases()
     MyTranslator.AddRus("рациональное уравнение %d степени");
 }
 
-TRationalSumEquality::~TRationalSumEquality()
-{
+TRationalSumEquality::~TRationalSumEquality() {}
 
-}
-
-string TRationalSumEquality::GetTask()
-{
+string TRationalSumEquality::GetTask() {
     char Buf[128];
     sprintf(Buf, MyTranslator.tr("Solve rational equality with polynoms of %d power").c_str(), MaxPower);
     return string(Buf);
 }
 
-string TRationalSumEquality::GetShortTask()
-{
+string TRationalSumEquality::GetShortTask() {
     char Buf[128];
     sprintf(Buf, MyTranslator.tr("rational equality of %d power").c_str(), MaxPower);
     return string(Buf);
 }
 
-bool TRationalSumEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer)
-{
-TPolynom P1 = GetP(0);
-TPolynom P2 = GetP(1);
-TPolynom P3 = GetP(2);
-TPolynom P4 = GetP(3);
+bool TRationalSumEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
+    TPolynom P1 = GetP(0);
+    TPolynom P2 = GetP(1);
+    TPolynom P3 = GetP(2);
+    TPolynom P4 = GetP(3);
 
-TPolynom Q1 = GetQ(0);
-TPolynom Q2 = GetQ(1);
-TPolynom Q3 = GetQ(2);
-TPolynom Q4 = GetQ(3);
+    TPolynom Q1 = GetQ(0);
+    TPolynom Q2 = GetQ(1);
+    TPolynom Q3 = GetQ(2);
+    TPolynom Q4 = GetQ(3);
 
-TIntervalsSet ODZ(TInterval(NumericMinusInf, NumericPlusInf, false, false));
+    TIntervalsSet ODZ(TInterval(NumericMinusInf, NumericPlusInf, false, false));
 
-    //Находим ОДЗ
-    if(Writer)Writer->AddParagraph("Finding the range of function definition: all denominators should be non-zero.");
+    // Находим ОДЗ
+    if (Writer) Writer->AddParagraph("Finding the range of function definition: all denominators should be non-zero.");
     TPolynomialEquality E1(Q1);
-    if(E1.GetSolution(Writer))
-    {
-       ODZ = ODZ - E1.Result;
+    if (E1.GetSolution(Writer)) {
+        ODZ = ODZ - E1.Result;
     };
     TPolynomialEquality E2(Q2);
-    if(E2.GetSolution(Writer))
-    {
+    if (E2.GetSolution(Writer)) {
         ODZ = ODZ - E2.Result;
     };
     TPolynomialEquality E3(Q3);
-    if(E3.GetSolution(Writer))
-    {
+    if (E3.GetSolution(Writer)) {
         ODZ = ODZ - E3.Result;
     };
     TPolynomialEquality E4(Q4);
-    if(E4.GetSolution(Writer))
-    {
+    if (E4.GetSolution(Writer)) {
         ODZ = ODZ - E4.Result;
     };
 
-    if(Writer)
-        Writer->AddParagraph("The range of function definition: %N", MakeBelongsTo(TNumeric("x"), ODZ.GetNumeric()));
+    if (Writer) Writer->AddParagraph("The range of function definition: %N", MakeBelongsTo(TNumeric("x"), ODZ.asNumeric()));
 
-    if(ODZ.Intervals.size() == 0)
-    {
-        if(Writer)
-        {
+    if (ODZ.Intervals.size() == 0) {
+        if (Writer) {
             Writer->BeginParagraph();
             Writer->Add("The range of definition is empty. So there is no solution.");
             Writer->AddFormula(MakeBelongsTo(TNumeric("x"), EmptySet));
             Writer->EndParagraph();
         }
         return true;
-    } else {        
+    } else {
         TNumeric Left, Right;
-        Left = (P1.GetNumeric()*Q2.GetNumeric()+P2.GetNumeric()*Q1.GetNumeric())/(Q1.GetNumeric()*Q2.GetNumeric());
-        Right = (P3.GetNumeric()*Q4.GetNumeric()+P4.GetNumeric()*Q3.GetNumeric())/(Q3.GetNumeric()*Q4.GetNumeric());
-        if(Writer)
-        {
+        Left = (P1.asNumeric() * Q2.asNumeric() + P2.asNumeric() * Q1.asNumeric()) / (Q1.asNumeric() * Q2.asNumeric());
+        Right = (P3.asNumeric() * Q4.asNumeric() + P4.asNumeric() * Q3.asNumeric()) / (Q3.asNumeric() * Q4.asNumeric());
+        if (Writer) {
             Writer->BeginParagraph();
             Writer->AddParagraph("Reducing to common denominator: ");
             Writer->AddFormula(MakeEquality(Left, Right));
@@ -256,92 +233,88 @@ TIntervalsSet ODZ(TInterval(NumericMinusInf, NumericPlusInf, false, false));
         };
         TPolynom LeftP, LeftQ, RightP, RightQ;
         TPolynom LeftPSimplified, LeftQSimplified, RightPSimplified, RightQSimplified;
-        if(Sign1 == +1)
-            LeftP = P1*Q2+P2*Q1;
+        if (Sign1 == +1)
+            LeftP = P1 * Q2 + P2 * Q1;
         else
-            LeftP = P1*Q2-P2*Q1;
-        LeftQ = Q1*Q2;
-        if(Sign2 == +1)
-            RightP = P3*Q4+P4*Q3;
+            LeftP = P1 * Q2 - P2 * Q1;
+        LeftQ = Q1 * Q2;
+        if (Sign2 == +1)
+            RightP = P3 * Q4 + P4 * Q3;
         else
-            RightP = P3*Q4-P4*Q3;
-        RightQ = Q3*Q4;
-        if(Writer)Writer->AddFormula(MakeEquality(LeftP.GetNumeric()/LeftQ.GetNumeric(), RightP.GetNumeric()/RightQ.GetNumeric()));
+            RightP = P3 * Q4 - P4 * Q3;
+        RightQ = Q3 * Q4;
+        if (Writer)
+            Writer->AddFormula(MakeEquality(LeftP.asNumeric() / LeftQ.asNumeric(), RightP.asNumeric() / RightQ.asNumeric()));
 
-        TPolynom BigL = LeftP*RightQ - RightP*LeftQ;
-        if(Writer)
-        {
+        TPolynom BigL = LeftP * RightQ - RightP * LeftQ;
+        if (Writer) {
             Writer->BeginParagraph();
             Writer->Add("Carrying all to the left side and reducing to common denominator");
-            Writer->AddFormula(MakeEquality(BigL.GetNumeric(), TNumeric("0")));
+            Writer->AddFormula(MakeEquality(BigL.asNumeric(), TNumeric("0")));
             Writer->EndParagraph();
         };
 
-        TPolynomialEquality PE(BigL, false);        
-        if(PE.GetSolution(Writer))
-        {
-
-                //копируем решение с учётом ОДЗ
+        TPolynomialEquality PE(BigL, false);
+        if (PE.GetSolution(Writer)) {
+            // копируем решение с учётом ОДЗ
             TIntervalsSet Res = PE.Result * ODZ;
-            if(Writer)
-            {
+            if (Writer) {
                 Writer->BeginParagraph();
                 Writer->Add("Answer taking into account rangle of definition: ");
-                Writer->AddFormula(MakeBelongsTo(TNumeric("x"), Res.GetNumeric()));
+                Writer->AddFormula(MakeBelongsTo(TNumeric("x"), Res.asNumeric()));
                 Writer->EndParagraph();
             }
             return true;
-        } return false;
+        }
+        return false;
     };
 }
 
-vector<std::shared_ptr<TNumeric>> TRationalSumEquality::GetTypes(std::shared_ptr<const TNumeric> N)
-{
+vector<std::shared_ptr<TNumeric>> TRationalSumEquality::GetTypes(std::shared_ptr<const TNumeric> N) {
     vector<std::shared_ptr<TNumeric>> Res;
-    if(N == Conditions->operands[0])
-    {
+    if (N == Conditions->operands[0]) {
         Res.push_back(TRationalSumEquality(*this, +1, Sign2).Conditions);
         Res.push_back(TRationalSumEquality(*this, -1, Sign2).Conditions);
     };
-    if(N == Conditions->operands[1])
-    {
+    if (N == Conditions->operands[1]) {
         Res.push_back(TRationalSumEquality(*this, Sign1, +1).Conditions);
         Res.push_back(TRationalSumEquality(*this, Sign1, -1).Conditions);
     };
     return Res;
 }
 
-void TRationalSumEquality::SetType(std::shared_ptr<TNumeric> N, size_t Type)
-{
- vector<TNumeric> Res;
-    if(N == Conditions->operands[0])
-    {
-        switch(Type)
-        {
-            case 0: SetSigns(+1, Sign2); break;
-            case 1: SetSigns(-1, Sign2); break;
+void TRationalSumEquality::SetType(std::shared_ptr<TNumeric> N, size_t Type) {
+    vector<TNumeric> Res;
+    if (N == Conditions->operands[0]) {
+        switch (Type) {
+            case 0:
+                SetSigns(+1, Sign2);
+                break;
+            case 1:
+                SetSigns(-1, Sign2);
+                break;
         };
     };
-    if(N == Conditions->operands[1])
-    {
-        switch(Type)
-        {
-            case 0: SetSigns(Sign1, +1); break;
-            case 1: SetSigns(Sign1, -1); break;
+    if (N == Conditions->operands[1]) {
+        switch (Type) {
+            case 0:
+                SetSigns(Sign1, +1);
+                break;
+            case 1:
+                SetSigns(Sign1, -1);
+                break;
         };
     };
 }
-vector<string> TRationalSumEquality::GetKeyWords()
-{
-    if(MyTranslator.CheckDictionary(GetClassName()+"Keywords") == false)
-    {
-        MyTranslator.AddDictionary(GetClassName()+"Keywords");
+vector<string> TRationalSumEquality::GetKeyWords() {
+    if (MyTranslator.CheckDictionary(GetClassName() + "Keywords") == false) {
+        MyTranslator.AddDictionary(GetClassName() + "Keywords");
         MyTranslator.AddEng("equality");
         MyTranslator.AddRus("уравнение");
         MyTranslator.AddEng("rational");
         MyTranslator.AddRus("рациональная");
     }
-vector<string> Res;
+    vector<string> Res;
     Res.push_back(MyTranslator.tr("rational"));
     Res.push_back(MyTranslator.tr("equality"));
     return Res;

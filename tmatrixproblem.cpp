@@ -1,5 +1,3 @@
 #include "tmatrixproblem.h"
 
-TMatrixProblem::TMatrixProblem()
-{
-}
+TMatrixProblem::TMatrixProblem() {}

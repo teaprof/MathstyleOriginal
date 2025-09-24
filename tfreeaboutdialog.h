@@ -4,22 +4,21 @@
 #include <QDialog>
 
 namespace Ui {
-    class TFreeAboutDialog;
+class TFreeAboutDialog;
 }
 
-class TFreeAboutDialog : public QDialog
-{
+class TFreeAboutDialog : public QDialog {
     Q_OBJECT
 
-public:
-    explicit TFreeAboutDialog(QWidget *parent = 0);
+  public:
+    explicit TFreeAboutDialog(QWidget* parent = 0);
     ~TFreeAboutDialog();
 
-private slots:
+  private slots:
     void on_pushButton_clicked();
 
-private:
-    Ui::TFreeAboutDialog *ui;
+  private:
+    Ui::TFreeAboutDialog* ui;
 };
 
-#endif // TFREEABOUTDIALOG_H
+#endif  // TFREEABOUTDIALOG_H

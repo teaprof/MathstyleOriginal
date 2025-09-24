@@ -1,5 +1,3 @@
 #include "texpressionploter.h"
 
-TExpressionPloter::TExpressionPloter()
-{
-}
+TExpressionPloter::TExpressionPloter() {}
