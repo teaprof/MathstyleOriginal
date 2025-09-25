@@ -13,7 +13,8 @@ int TKeywordsModel::columnCount(const QModelIndex& parent) const {
 QVariant TKeywordsModel::data(const QModelIndex& index, int role) const {
     Q_UNUSED(index);
     if (role == Qt::DisplayRole) {
-        if (index.row() < List.count()) return List[index.row()];
+        if (index.row() < List.count())
+            return List[index.row()];
     }
     return QVariant();
 }
@@ -78,5 +79,6 @@ void TButtonsSheetView::AddString(QString Word) {
 
 void TButtonsSheetView::OnKeywordPressed(const QModelIndex& Index) {
     QVariant Data = Model->data(Index);
-    if (Data.isValid()) emit Picked(Data.toString());
+    if (Data.isValid())
+        emit Picked(Data.toString());
 }

@@ -23,8 +23,10 @@ TMatrix::~TMatrix() {
 }
 
 TNumeric* TMatrix::at(size_t y, size_t x) {
-    if (y >= Rows) throw "TMatrix::at: y >= Cols";
-    if (x >= Cols) throw "TMatrix::at: x >= Rows";
+    if (y >= Rows)
+        throw "TMatrix::at: y >= Cols";
+    if (x >= Cols)
+        throw "TMatrix::at: x >= Rows";
 
     size_t Index = y * Cols + x;
     return Data[Index];

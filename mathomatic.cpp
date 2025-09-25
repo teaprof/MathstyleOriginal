@@ -40,7 +40,8 @@ std::string math_process(const char* command, bool* Ok, std::string* ErrorStr) {
         *Ok = true;
         ErrorStr->clear();
     } else {
-        if (error_str != 0) *ErrorStr = std::string(error_str);
+        if (error_str != 0)
+            *ErrorStr = std::string(error_str);
         // error_str should not be free()d
         *Ok = false;
         res.clear();

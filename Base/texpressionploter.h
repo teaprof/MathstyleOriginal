@@ -67,8 +67,8 @@ class TExpressionPloter : public TRectangleElement {
     void SubIndexDraw(TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets);
 
     void LinesGetTextRectangle(TPaintCanvas* Canvas, int& Width, int& Height, int& Depth, bool WithBrackets, int LeftMargin = 0);
-    void LinesDraw(
-        TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets, int LeftMargin = 0);
+    void
+        LinesDraw(TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets, int LeftMargin = 0);
 
     void EqSystemGetTextRectangle(TPaintCanvas* Canvas, int& Width, int& Height, int& Depth, bool WithBrackets);
     void EqSystemDraw(TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets);

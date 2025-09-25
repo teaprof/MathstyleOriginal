@@ -9,8 +9,8 @@ class TRationalSumConditions : public TProblem {
     //  ------- + -------- = --------- +  ----------
     //  Q1_n(x)   Q2_n(x)   Q3_n(x)       Q4_n(x)
     // знаки определяются Sign1 и Sign2
-    size_t GetPStartIndex(
-        size_t N);  // возвращает StartID для числителя N-ой дроби, выполняется Coef[0].role = StartID, Coef[1].role = StartID+1, ...
+    size_t GetPStartIndex(size_t N);  // возвращает StartID для числителя N-ой дроби, выполняется Coef[0].role = StartID,
+                                      // Coef[1].role = StartID+1, ...
     size_t GetQStartIndex(size_t N);  // то же для знаменателя
     vector<TNumeric> GetCoefs(size_t StartID);  // возвращает коэффициенты с role от StartIndex до StartIndex+MaxPower+1
 

@@ -23,7 +23,8 @@ class TEditableFormula : public TFormulaPlotter {
     }
     bool isEditable(std::shared_ptr<const TNumeric> child) const {
         auto v = isEditable(numeric_, child);
-        if (v.has_value() && v.value() == true) return true;
+        if (v.has_value() && v.value() == true)
+            return true;
         return false;
     }
     bool isEditableNonRecursive(std::shared_ptr<const TNumeric> element) const {

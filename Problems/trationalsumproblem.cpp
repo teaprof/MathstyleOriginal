@@ -145,7 +145,8 @@ TRationalSumEquality::TRationalSumEquality(const TRationalSumEquality& R, int Si
 }
 
 void TRationalSumEquality::BuildPhrases() {
-    if (MyTranslator.CheckDictionary(GetClassName())) return;
+    if (MyTranslator.CheckDictionary(GetClassName()))
+        return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Finding the range of function definition: all denominators should be non-zero.");
     MyTranslator.AddRus("Ищем область определения: все знаменатели должны быть ненулевыми");
@@ -193,7 +194,8 @@ bool TRationalSumEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TIntervalsSet ODZ(TInterval(NumericMinusInf, NumericPlusInf, false, false));
 
     // Находим ОДЗ
-    if (Writer) Writer->AddParagraph("Finding the range of function definition: all denominators should be non-zero.");
+    if (Writer)
+        Writer->AddParagraph("Finding the range of function definition: all denominators should be non-zero.");
     TPolynomialEquality E1(Q1);
     if (E1.GetSolution(Writer)) {
         ODZ = ODZ - E1.Result;
@@ -211,7 +213,8 @@ bool TRationalSumEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
         ODZ = ODZ - E4.Result;
     };
 
-    if (Writer) Writer->AddParagraph("The range of function definition: %N", MakeBelongsTo(TNumeric("x"), ODZ.asNumeric()));
+    if (Writer)
+        Writer->AddParagraph("The range of function definition: %N", MakeBelongsTo(TNumeric("x"), ODZ.asNumeric()));
 
     if (ODZ.Intervals.size() == 0) {
         if (Writer) {

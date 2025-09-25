@@ -90,7 +90,7 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
     /// упрощает выражение, где последним оператором является Log(A, B)
     TNumeric SimplifyLog() const;
     /// если это возможно, представляет объект в виде рациональной дроби; если не возможно, то false
-    bool asRational(int& Numerator, int& Denominator) const ;
+    bool asRational(int& Numerator, int& Denominator) const;
     /// упрощает функции везде, где возможно
     TNumeric SimplifyFunctions() const;
 
@@ -211,8 +211,7 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
 
     /// обозначаем функции, которых нет в пакете mathomatic, за новые переменные a_i; первая переменная получает номер StartID;
     /// StartID постепенно увеличивается
-    TNumeric EliminateUnimplementedFunctions(size_t& StartID,
-                            map<string, TNumeric>& vars_to_functions) const;
+    TNumeric EliminateUnimplementedFunctions(size_t& StartID, map<string, TNumeric>& vars_to_functions) const;
     /// заменяем переменные обратно на функции
     TNumeric RestoreUnimplementedFunctions(const map<string, TNumeric>& vars_to_functions) const;
 
@@ -269,7 +268,8 @@ TNumeric GetPolynom(
 //---------------------------------------------------------------------------
 std::shared_ptr<const TNumeric> FindParent(std::shared_ptr<const TNumeric> Root, std::shared_ptr<const TNumeric> Child);
 bool CanErase(std::shared_ptr<const TNumeric> Root, std::shared_ptr<const TNumeric>* WhatToDelete);
-//std::shared_ptr<const TNumeric> EraseNumeric(std::shared_ptr<const TNumeric> Root, std::shared_ptr<const TNumeric> WhatToDelete);
+// std::shared_ptr<const TNumeric> EraseNumeric(std::shared_ptr<const TNumeric> Root, std::shared_ptr<const TNumeric>
+// WhatToDelete);
 //---------------------------------------------------------------------------
 
 extern TNumeric NumPi;

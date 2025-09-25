@@ -78,7 +78,8 @@ void TSolutionBrowser::Print() {
 
 void TSolutionBrowser::ExportToPDF() {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Export as Pdf.."), "", tr("PDF files (*.pdf)"));
-    if (fileName.isEmpty()) return;
+    if (fileName.isEmpty())
+        return;
 
     QPrinter printer;
     printer.setOutputFormat(QPrinter::PdfFormat);

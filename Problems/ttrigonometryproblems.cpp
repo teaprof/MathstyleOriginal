@@ -18,7 +18,8 @@ TLinearTrigEquality::TLinearTrigEquality(const TNumeric& UnknownVar, const TNume
 }
 
 void TLinearTrigEquality::BuildPhrases() {
-    if (MyTranslator.CheckDictionary("TLinearTrigEquality")) return;
+    if (MyTranslator.CheckDictionary("TLinearTrigEquality"))
+        return;
     MyTranslator.AddDictionary("TLinearTrigEquality");
     MyTranslator.AddEng("Can not find one or more coefficients.");
     MyTranslator.AddRus("Не могу найти коэффициенты");
@@ -140,27 +141,32 @@ string TLinearTrigEquality::GetShortTask() {
 }
 
 bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
-    if (Conditions == 0) return false;
+    if (Conditions == 0)
+        return false;
     TNumeric a = *(Conditions->GetByRole(IDa));
     TNumeric b = *(Conditions->GetByRole(IDb));
     TNumeric c = *(Conditions->GetByRole(IDc));
     TrigRoots.clear();
     Result.Intervals.clear();
     if (!a.CanCalculate() || !b.CanCalculate() || !c.CanCalculate()) {
-        if (Writer) Writer->WriteError("Can not find one or more coefficients.");
+        if (Writer)
+            Writer->WriteError("Can not find one or more coefficients.");
         return false;
     }
     if (a == 0 && b == 0)
     // 0 cosx + 0 sinx = c
     {
         if (c == 0) {
-            if (Writer) Writer->AddParagraph("Equality is always true, so any number is solution.");
+            if (Writer)
+                Writer->AddParagraph("Equality is always true, so any number is solution.");
             Result.Intervals.push_back(IntervalAllRealNumbers);
         } else {
-            if (Writer) Writer->AddParagraph("Equality is always false so it has no solution.");
+            if (Writer)
+                Writer->AddParagraph("Equality is always false so it has no solution.");
             Result.Intervals.push_back(EmptySet);
         }
-        if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, Result.asNumeric()));
+        if (Writer)
+            Writer->AddFormula(MakeBelongsTo(UnknownVar, Result.asNumeric()));
         return true;
     };
     if (a == 0)
@@ -175,12 +181,15 @@ bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
 
         TNumeric cb = (c / b).Simplify();
         if (b.Calculate() != 1) {
-            if (Writer) Writer->AddParagraph("Dividing left and right parts by coefficient at sine");
-            if (Writer) Writer->AddFormula(MakeEquality(MakeSin(UnknownVar), cb));
+            if (Writer)
+                Writer->AddParagraph("Dividing left and right parts by coefficient at sine");
+            if (Writer)
+                Writer->AddFormula(MakeEquality(MakeSin(UnknownVar), cb));
         };
         double cbval = cb.Calculate();
         if (fabs(cbval) > 1) {
-            if (Writer) Writer->AddParagraph("Sine should be not greater than 1 in absolute value, no solution");
+            if (Writer)
+                Writer->AddParagraph("Sine should be not greater than 1 in absolute value, no solution");
             Result.Intervals.push_back(EmptySet);
         } else {
             TNumeric X;
@@ -197,11 +206,14 @@ bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
             }
             TrigRoots.push_back(X);
 
-            if (Writer) Writer->AddParagraph("After simplifying: ");
+            if (Writer)
+                Writer->AddParagraph("After simplifying: ");
             X = X.Simplify().Unfactor();
-            if (Writer) Writer->AddFormula(MakeEquality(UnknownVar, X));
+            if (Writer)
+                Writer->AddFormula(MakeEquality(UnknownVar, X));
 
-            if (Writer) Writer->AddFormula(N);
+            if (Writer)
+                Writer->AddFormula(N);
         };
         //        Result.Intervals.push_back(); //todo: непонятно, что делать в этом случае, когда вместо интервала бесконечная
         //        серия интервалов с параметром n
@@ -217,12 +229,15 @@ bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
 
         TNumeric ca = (c / a).Simplify();
         if (a.Calculate() != 1) {
-            if (Writer) Writer->Add("Dividing left and right parts by coefficient at sine");
-            if (Writer) Writer->AddFormula(MakeEquality(MakeCos(UnknownVar), ca));
+            if (Writer)
+                Writer->Add("Dividing left and right parts by coefficient at sine");
+            if (Writer)
+                Writer->AddFormula(MakeEquality(MakeCos(UnknownVar), ca));
         };
         double caval = ca.Calculate();
         if (fabs(caval) > 1) {
-            if (Writer) Writer->AddParagraph("Cosine should be not greater than 1 in absolute value, no solution");
+            if (Writer)
+                Writer->AddParagraph("Cosine should be not greater than 1 in absolute value, no solution");
             Result.Intervals.push_back(EmptySet);
         } else {
             TNumeric X;
@@ -238,26 +253,33 @@ bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
                 X = MakePlusMinus(MakeArccos(ca)) + TNumeric(2) * TNumeric("\\pi") * CounterVar;
             }
             TrigRoots.push_back(X);
-            if (Writer) Writer->AddFormula(MakeEquality(UnknownVar, X));
+            if (Writer)
+                Writer->AddFormula(MakeEquality(UnknownVar, X));
 
-            if (Writer) Writer->AddParagraph("After simplifying: ");
+            if (Writer)
+                Writer->AddParagraph("After simplifying: ");
             X = X.Simplify().Unfactor();
-            if (Writer) Writer->AddFormula(MakeEquality(UnknownVar, X));
+            if (Writer)
+                Writer->AddFormula(MakeEquality(UnknownVar, X));
 
-            if (Writer) Writer->AddFormula(N);  //"n принадлежит Z"
+            if (Writer)
+                Writer->AddFormula(N);  //"n принадлежит Z"
         };
     } else {
         // a cos x + b sin x = c
         if (c == 0) {
             // a cos x + b sin x = 0
             // a != 0 (случай a == 0 разобран выше)
-            if (Writer) Writer->AddParagraph("Dividing equation by %n", MakeCos(UnknownVar));
-            if (Writer) Writer->AddFormula(MakeEquality(a + b * MakeTg(UnknownVar), TNumeric("0")));
+            if (Writer)
+                Writer->AddParagraph("Dividing equation by %n", MakeCos(UnknownVar));
+            if (Writer)
+                Writer->AddFormula(MakeEquality(a + b * MakeTg(UnknownVar), TNumeric("0")));
             // a + b tg x = 0
             // tg x = -a/b
             TNumeric AB = -a / b;
             AB = AB.Simplify();
-            if (Writer) Writer->AddParagraph("Now we obtain the equation %N", MakeEquality(MakeTg(UnknownVar), AB));
+            if (Writer)
+                Writer->AddParagraph("Now we obtain the equation %N", MakeEquality(MakeTg(UnknownVar), AB));
 
             CounterVar = TNumeric("k");
             TNumeric X = MakeArctg(AB) + NumPi * CounterVar;
@@ -280,7 +302,8 @@ bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
             a = (a / D);
             b = (b / D);
             c = (c / D);
-            if (Writer) Writer->AddFormula(MakeEquality(a * MakeCos(UnknownVar) + b * MakeSin(UnknownVar), c));
+            if (Writer)
+                Writer->AddFormula(MakeEquality(a * MakeCos(UnknownVar) + b * MakeSin(UnknownVar), c));
             a = a.Simplify();
             b = b.Simplify();
             c = c.Simplify();
@@ -316,7 +339,8 @@ bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
                 else
                     PhiVal = PhiVal + NumPi;
             }
-            if (Writer) Writer->AddFormula(MakeEquality(Psi, PhiVal));
+            if (Writer)
+                Writer->AddFormula(MakeEquality(Psi, PhiVal));
             if (Writer) {
                 Writer->BeginParagraph();
                 Writer->Add("Transforming to sine of sum: ");
@@ -326,12 +350,14 @@ bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
             // sin((*Phrases)[Phi+x) = cos((*Phrases)[Phi)*sin(x) + sin((*Phrases)[Phi)*cos(x)
             TLinearTrigEquality E(TNumeric("t"), TNumeric("n"));
             E.SetCoef(TNumeric("0"), TNumeric("1"), c);  // 0 cos x + 1 sin x = c
-            if (Writer) Writer->AddParagraph("Designating %n", MakeEquality(TNumeric("t"), UnknownVar + Psi));
+            if (Writer)
+                Writer->AddParagraph("Designating %n", MakeEquality(TNumeric("t"), UnknownVar + Psi));
             if (E.GetSolution(Writer))
             // в этом случае всегда решение будет и оно будет единственным
             {
                 if (E.TrigRoots.size() != 1) {
-                    if (Writer) Writer->WriteError("Exactly one solution was expected.");
+                    if (Writer)
+                        Writer->WriteError("Exactly one solution was expected.");
                     return false;
                 } else {
                     TNumeric X = E.TrigRoots[0] - PhiVal;
@@ -377,7 +403,8 @@ THomogeneousTrigEquality::THomogeneousTrigEquality(size_t MaxPower, string Unkno
 }
 
 void THomogeneousTrigEquality::BuildPhrases() {
-    if (MyTranslator.CheckDictionary("THomogeneousTrigEquality")) return;
+    if (MyTranslator.CheckDictionary("THomogeneousTrigEquality"))
+        return;
     MyTranslator.AddDictionary("THomogeneousTrigEquality");
     MyTranslator.AddEng("Degenerated case: 0 = 0, consequently %N");
     MyTranslator.AddRus("Вырожденный случай: 0 = 0. Следовательно %N");
@@ -478,7 +505,8 @@ bool THomogeneousTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
             TLinearTrigEquality CosX(UnknownVar, TNumeric("n"));  // cos x = 0
             CosX.SetCoef(TNumeric("1"), TNumeric("0"), TNumeric("0"));
             // AddLine(Lines, Ntabs+1, new TLine(new TText("Решаем "), new TNumeric(*CosX.Conditions)));
-            if (!CosX.GetSolution(Writer)) return false;
+            if (!CosX.GetSolution(Writer))
+                return false;
             TrigRoots.insert(TrigRoots.begin(), CosX.TrigRoots.begin(), CosX.TrigRoots.end());
             Result.Intervals = CosX.Result.Intervals;
 
@@ -517,10 +545,13 @@ bool THomogeneousTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
             } else {
                 THomogeneousTrigEquality HE(MaxPower - MaxFreeCosPower);
                 HE.SetLeftPartP(P1);
-                if (Writer) Writer->AddParagraph("One can obtain: %N", *HE.Conditions);
-                if (Writer) Writer->IncrementNestingLevel();
+                if (Writer)
+                    Writer->AddParagraph("One can obtain: %N", *HE.Conditions);
+                if (Writer)
+                    Writer->IncrementNestingLevel();
                 bool res = HE.GetSolution(Writer);
-                if (Writer) Writer->DecrementNestingLevel();
+                if (Writer)
+                    Writer->DecrementNestingLevel();
                 if (res) {
                     TrigRoots.insert(TrigRoots.begin(), HE.TrigRoots.begin(), HE.TrigRoots.end());
                     Result.Intervals = HE.Result.Intervals;
@@ -544,9 +575,11 @@ bool THomogeneousTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
             TPolynomialEquality Tang(P1);
             Tang.SetUnknownVar(MakeTg(UnknownVar));
             // AddLine(Lines, Ntabs+1, new TLine(new TText("Решаем "), new TNumeric(*Tang.Conditions)));
-            if (Writer) Writer->IncrementNestingLevel();
+            if (Writer)
+                Writer->IncrementNestingLevel();
             bool res = Tang.GetSolution(Writer);
-            if (Writer) Writer->DecrementNestingLevel();
+            if (Writer)
+                Writer->DecrementNestingLevel();
             if (res) {
                 for (size_t i = 0; i < Tang.Roots.size(); i++) {
                     TNumeric Tg = Tang.Roots[i];
@@ -572,21 +605,27 @@ bool THomogeneousTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
             I = I + Result.Intervals[i];
     };
 
-    if (Writer) Writer->BeginParagraph();
-    if (Writer) Writer->Add("Common solution: ");
+    if (Writer)
+        Writer->BeginParagraph();
+    if (Writer)
+        Writer->Add("Common solution: ");
     if (I.Intervals.size() == 1 && I.Intervals[0] == IntervalAllRealNumbers) {
-        if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, IntervalAllRealNumbers.asNumeric()));
+        if (Writer)
+            Writer->AddFormula(MakeBelongsTo(UnknownVar, IntervalAllRealNumbers.asNumeric()));
     } else {
         if (TrigRoots.size() == 0) {
-            if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
+            if (Writer)
+                Writer->AddFormula(MakeBelongsTo(UnknownVar, EmptySet));
         } else {
             TIntervalsSet I2;
             for (size_t i = 0; i < TrigRoots.size(); i++)
                 I2 = I2 + TInterval(TrigRoots[i]);
-            if (Writer) Writer->AddFormula(MakeBelongsTo(UnknownVar, I2.asNumeric()));
+            if (Writer)
+                Writer->AddFormula(MakeBelongsTo(UnknownVar, I2.asNumeric()));
         };
     };
-    if (Writer) Writer->EndParagraph();
+    if (Writer)
+        Writer->EndParagraph();
     return true;
 }
 

@@ -85,7 +85,8 @@ void DisperseSort(vector<vector<size_t>>& SubSetsVector) {
         Sorted = SubSetsVector[i];
         sort(Sorted.begin(), Sorted.end());
         for (size_t j = 1; j < Sorted.size(); j++)
-            if (Sorted[j - 1] == Sorted[j]) Pairs[i].Pairs++;
+            if (Sorted[j - 1] == Sorted[j])
+                Pairs[i].Pairs++;
     }
     sort(Pairs.begin(), Pairs.end(), PairsIndexCompare);
     vector<vector<size_t>> SubSetsVectorTemp = SubSetsVector;
@@ -129,7 +130,8 @@ bool TNumericMask::CheckTemplateCommunative(const TNumeric& Template,
             NewN.operation = OperatorProd;
             NewN.OperandsPushback(TNumeric("0"));
             for (size_t i = 0; i < Template.operands.size(); i++)
-                if (Template.operands[i]->DependsOn("x")) NewN.OperandsPushback(*Template.operands[i]);
+                if (Template.operands[i]->DependsOn("x"))
+                    NewN.OperandsPushback(*Template.operands[i]);
         } else {
             NewN.operation = Template.operation;
             NewN.OperandsPushback(AdditionalTerm);
@@ -163,8 +165,10 @@ bool TNumericMask::CheckTemplateCommunative(const TNumeric& Template,
             TNumeric SubNumeric;
             SubNumeric.operation = N.operation;
             for (size_t i = 0; i < SubSets.size(); i++)
-                if (SubSets[i] == j) SubNumeric.OperandsPushback(*N.operands[i]);
-            if (SubNumeric.operands.size() == 0) SubNumeric.OperandsPushback(AdditionalTerm);
+                if (SubSets[i] == j)
+                    SubNumeric.OperandsPushback(*N.operands[i]);
+            if (SubNumeric.operands.size() == 0)
+                SubNumeric.OperandsPushback(AdditionalTerm);
             if (SubNumeric.operands.size() ==
                 1)  // исключаем случай вида SumNumeric = prod(x) или sum(x) - произведение и сумма одного члена
             {
@@ -187,10 +191,12 @@ bool TNumericMask::CheckTemplateCommunative(const TNumeric& Template,
             }
         };
         if (AllSuccess) {
-            if (AcceptCoefs(Coefs, TempCoefs)) return true;
+            if (AcceptCoefs(Coefs, TempCoefs))
+                return true;
             // else return false;
         }
-        if (NextCount(SubSets, Template.operands.size() - 1) == false) break;
+        if (NextCount(SubSets, Template.operands.size() - 1) == false)
+            break;
     } while (true);
     return false;
 }
@@ -242,8 +248,10 @@ TNumeric TNumericMask::Expand(const TNumeric& N)
                 for (size_t j = 0; j < N2.operands[i]->operands.size(); j++) {
                     TNumeric Term = *N2.operands[i]->operands[j];
                     for (size_t k = 0; k < N2.operands.size(); k++) {
-                        if (k < i) Term = *N2.operands[k] * Term;
-                        if (k > i) Term = Term * (*N2.operands[k]);
+                        if (k < i)
+                            Term = *N2.operands[k] * Term;
+                        if (k > i)
+                            Term = Term * (*N2.operands[k]);
                     };
                     Res.OperandsPushback(Expand(Term));
                 };
@@ -388,24 +396,28 @@ bool TNumericMask::CheckTemplatePow(const TNumeric& Template, const TNumeric& NC
         TNumeric N = ToPow(NConst);
         if (N.operation == OperatorPow && Match(*Template.operands[0], *N.operands[0], TempCoefs) &&
             Match(*Template.operands[1], *N.operands[1], TempCoefs)) {
-            if (AcceptCoefs(Coefs, TempCoefs)) return true;
+            if (AcceptCoefs(Coefs, TempCoefs))
+                return true;
         }
         TempCoefs.clear();
         std::map<std::string, TNumeric> NewCoefs;
         if (N == TNumeric(1)) {
             if (Match(*Template.operands[1], TNumeric("0"), TempCoefs))
                 // случай: 1 попадает под шаблон f(x)^0
-                if (AcceptCoefs(Coefs, NewCoefs)) return true;
+                if (AcceptCoefs(Coefs, NewCoefs))
+                    return true;
             TempCoefs.clear();
             if (Match(*Template.operands[0], TNumeric("1"), TempCoefs))
                 // случай: 1 попадает под шаблон 1^f(x)
-                if (AcceptCoefs(Coefs, NewCoefs)) return true;
+                if (AcceptCoefs(Coefs, NewCoefs))
+                    return true;
         } else {
             // случай: f попадает под шаблон f^1
             TempCoefs.clear();
             if (Match(*Template.operands[0], NConst, TempCoefs))
                 if (Match(*Template.operands[1], TNumeric("1"), TempCoefs))
-                    if (AcceptCoefs(Coefs, TempCoefs)) return true;
+                    if (AcceptCoefs(Coefs, TempCoefs))
+                        return true;
 
             // случай: f*f*f = f^3
             if (NConst.operation == OperatorProd) {
@@ -459,7 +471,8 @@ bool TNumericMask::AcceptCoefs(std::map<std::string, TNumeric>& Coefs, std::map<
         if (j == Coefs.end()) {
             Coefs.insert(pair<string, TNumeric>(i->first, i->second));
         } else {
-            if (j->second != i->second) return false;
+            if (j->second != i->second)
+                return false;
         }
     }
     return true;
@@ -494,7 +507,8 @@ bool TNumericMask::Match(const TNumeric& Template, const TNumeric& N, std::map<s
             res = CheckTemplateMinus(Template, N, Coefs);
             break;
         case OperatorSin:
-            if (N.operation == Template.operation) res = Match(*Template.operands[0], *N.operands[0], Coefs);
+            if (N.operation == Template.operation)
+                res = Match(*Template.operands[0], *N.operands[0], Coefs);
             break;
         default:
             res = false;
@@ -519,13 +533,15 @@ vector<string> TNumericMask::FindCoefsNames(const TNumeric& Template) {
     vector<string> Res;
     if (Template.operation == OperatorConst) {
         if (Template.strval != "x" && Template.IsVariable())
-            if (find(Res.begin(), Res.end(), Template.strval) == Res.end()) Res.push_back(Template.strval);
+            if (find(Res.begin(), Res.end(), Template.strval) == Res.end())
+                Res.push_back(Template.strval);
 
     } else {
         for (size_t i = 0; i < Template.operands.size(); i++) {
             vector<string> Temp = FindCoefsNames(*Template.operands[i]);
             for (size_t j = 0; j < Temp.size(); j++)
-                if (find(Res.begin(), Res.end(), Temp[j]) == Res.end()) Res.push_back(Temp[j]);
+                if (find(Res.begin(), Res.end(), Temp[j]) == Res.end())
+                    Res.push_back(Temp[j]);
         }
     }
     return Res;

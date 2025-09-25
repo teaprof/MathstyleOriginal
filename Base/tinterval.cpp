@@ -39,10 +39,13 @@ void TInterval::Assign(const TInterval& I) {
 }
 
 bool TInterval::operator<(const TInterval& I) const {
-    if (Empty) return false;
-    if (Left.Calculate() < I.Left.Calculate()) return true;
+    if (Empty)
+        return false;
+    if (Left.Calculate() < I.Left.Calculate())
+        return true;
     if (Left.Calculate() == I.Left.Calculate())
-        if (IncludeLeft && !IncludeRight) return true;
+        if (IncludeLeft && !IncludeRight)
+            return true;
     return false;
 }
 
@@ -63,10 +66,14 @@ TNumeric TInterval::asNumeric() {
         Res = MakeInline(TNumeric("{"), TNumeric("\\empty"), TNumeric("}"));
     } else {
         if (Left != Right) {
-            if (IncludeLeft && IncludeRight) Res.operation = OperatorSegment;
-            if (!IncludeLeft && IncludeRight) Res.operation = OperatorIntervalSegment;
-            if (IncludeLeft && !IncludeRight) Res.operation = OperatorSegmentInterval;
-            if (!IncludeLeft && !IncludeRight) Res.operation = OperatorInterval;
+            if (IncludeLeft && IncludeRight)
+                Res.operation = OperatorSegment;
+            if (!IncludeLeft && IncludeRight)
+                Res.operation = OperatorIntervalSegment;
+            if (IncludeLeft && !IncludeRight)
+                Res.operation = OperatorSegmentInterval;
+            if (!IncludeLeft && !IncludeRight)
+                Res.operation = OperatorInterval;
 
             Res.OperandsPushback(Left);
             Res.OperandsPushback(Right);
@@ -82,7 +89,8 @@ TNumeric TInterval::asNumeric() {
 }
 
 bool TInterval::TestPoint(const TNumeric& P) const {
-    if (Empty) return false;
+    if (Empty)
+        return false;
     double p = P.Calculate();
     double l = Left.Calculate();
     double r = Right.Calculate();
@@ -106,7 +114,8 @@ TInterval TInterval::operator*(const TInterval& I) const {
         Res.Empty = true;
         return Res;
     }
-    if (I.Left.Calculate() > Right.Calculate() || I.Right.Calculate() < Left.Calculate()) Res.Empty = true;
+    if (I.Left.Calculate() > Right.Calculate() || I.Right.Calculate() < Left.Calculate())
+        Res.Empty = true;
     if (I.Left.Calculate() == Right.Calculate()) {
         if (I.IncludeLeft && IncludeRight) {
             Res.Left = Right;
@@ -156,27 +165,33 @@ TIntervalsSet operator-(const TInterval& I1, const TInterval& I2)
 // finds the substraction of I1 and I2
 
 {
-    if (I1.Empty) return TIntervalsSet(I1);
-    if (I2.Empty) return TIntervalsSet(I1);
-    if ((I1 * I2).Empty) return TIntervalsSet(I1);
+    if (I1.Empty)
+        return TIntervalsSet(I1);
+    if (I2.Empty)
+        return TIntervalsSet(I1);
+    if ((I1 * I2).Empty)
+        return TIntervalsSet(I1);
 
     // оба интервала не пустых, и пересекаются
     // 1. Случай, когда I2 целиком внутри I1
     if (I1.TestPoint(I2.Left) && I1.TestPoint(I2.Right)) {
         TInterval Res1(I1.Left, I2.Left, I1.IncludeLeft, !I2.IncludeLeft);
         if (Res1.Left.Calculate() == Res1.Right.Calculate())
-            if (Res1.IncludeLeft == false || Res1.IncludeRight == false) Res1.Empty = true;
+            if (Res1.IncludeLeft == false || Res1.IncludeRight == false)
+                Res1.Empty = true;
 
         TInterval Res2(I2.Right, I1.Right, !I2.IncludeRight, I1.IncludeRight);
         if (Res2.Left.Calculate() == Res2.Right.Calculate())
-            if (Res2.IncludeLeft == false || Res2.IncludeRight == false) Res2.Empty = true;
+            if (Res2.IncludeLeft == false || Res2.IncludeRight == false)
+                Res2.Empty = true;
 
         TIntervalsSet I = Res1 + Res2;
         return I;
     };
 
     // Случай, когда I1 целиком внутри I2
-    if (I2.TestPoint(I1.Left) && I2.TestPoint(I1.Right)) return TIntervalsSet();  // получается пустое множество
+    if (I2.TestPoint(I1.Left) && I2.TestPoint(I1.Right))
+        return TIntervalsSet();  // получается пустое множество
 
     // Оставшийся случай:
     // Случай, когда I1 и I2 пересекаются, и их симметрическая разность не пуста
@@ -189,9 +204,11 @@ TIntervalsSet operator-(const TInterval& I1, const TInterval& I2)
         Res.Left = I2.Right;
         Res.IncludeLeft = !I2.IncludeRight;
     }
-    if (Res.Left.Calculate() < Res.Right.Calculate()) Res.Empty = true;
+    if (Res.Left.Calculate() < Res.Right.Calculate())
+        Res.Empty = true;
     if (Res.Left.Calculate() == Res.Right.Calculate())
-        if (Res.IncludeLeft == false || Res.IncludeRight == false) Res.Empty = true;
+        if (Res.IncludeLeft == false || Res.IncludeRight == false)
+            Res.Empty = true;
     return TIntervalsSet(Res);
 }
 
@@ -245,7 +262,8 @@ void TIntervalsSet::Simplify() {
         else
             i++;
     // если ничего не осталось, то сразу завершаемся
-    if (Intervals.empty()) return;
+    if (Intervals.empty())
+        return;
 
     // сортируем по левому концу
     sort(Intervals.begin(), Intervals.end());
@@ -253,9 +271,11 @@ void TIntervalsSet::Simplify() {
     while (i < Intervals.size() - 1) {
         // проверяем, касается i-ый интервал i+1-ого
         bool Touches = false;
-        if (Intervals[i].Right.Calculate() > Intervals[i + 1].Left.Calculate()) Touches = true;
+        if (Intervals[i].Right.Calculate() > Intervals[i + 1].Left.Calculate())
+            Touches = true;
         if (Intervals[i].Right.Calculate() == Intervals[i + 1].Left.Calculate()) {
-            if (Intervals[i].IncludeRight == true || Intervals[i + 1].IncludeLeft == true) Touches = true;
+            if (Intervals[i].IncludeRight == true || Intervals[i + 1].IncludeLeft == true)
+                Touches = true;
         }
 
         if (Touches) {
@@ -319,7 +339,8 @@ TIntervalsSet TIntervalsSet::operator-(const TIntervalsSet& I) {
 
 bool TIntervalsSet::TestPoint(const TNumeric& P) const {
     for (size_t i = 0; i < Intervals.size(); i++)
-        if (Intervals[i].TestPoint(P)) return true;
+        if (Intervals[i].TestPoint(P))
+            return true;
     return false;
 }
 

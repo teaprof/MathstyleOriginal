@@ -1,8 +1,8 @@
 #include "polynom.h"
 
 #include <algorithm>
-#include <iostream>
 #include <cassert>
+#include <iostream>
 
 #include "algebra_operations.h"
 #include "arithmetic.h"
@@ -20,7 +20,7 @@ TPolynom::TPolynom(const std::vector<PNumeric>& Coef) {
 }
 TPolynom::TPolynom(std::vector<TNumeric>&& Coef) {
     this->Coef.assign(Coef.size(), nullptr);
-    for(size_t n = 0; n < Coef.size(); n++) {
+    for (size_t n = 0; n < Coef.size(); n++) {
         this->Coef[n] = TNumeric::create(std::move(Coef[n]));
     }
 }
@@ -80,9 +80,11 @@ void TPolynom::RemoveMajorZeros() {
 bool TPolynom::operator==(const TPolynom& P) const {
     size_t M1 = MajorPower();
     size_t M2 = P.MajorPower();
-    if (M1 != M2) return false;
+    if (M1 != M2)
+        return false;
     for (size_t i = 0; i <= M1; i++)
-        if (GetCoef(i)->Simplify().Calculate() != P.GetCoef(i)->Simplify().Calculate()) return false;
+        if (GetCoef(i)->Simplify().Calculate() != P.GetCoef(i)->Simplify().Calculate())
+            return false;
     return true;
 }
 
@@ -165,10 +167,12 @@ TPolynom TPolynom::operator^(size_t Power) {
 }
 
 TPolynom TPolynom::operator/(const TNumeric& P) {
-    if (P == 0) throw "TPolynom::operator/: Division by zerro, P = 0";
+    if (P == 0)
+        throw "TPolynom::operator/: Division by zerro, P = 0";
     size_t M = MajorPower();
     vector<PNumeric> Res;
-    Res.reserve(M + 1);;
+    Res.reserve(M + 1);
+    ;
     for (size_t power = 0; power <= M; power++)
         Res.push_back(TNumeric::create(std::move((*GetCoef(power) / P).Simplify())));
     return TPolynom(Res);
@@ -187,7 +191,8 @@ TPolynom TPolynom::operator%(const TPolynom& P) {
 }
 
 size_t TPolynom::MajorPower() const {
-    if (Coef.size() == 0) return 0;
+    if (Coef.size() == 0)
+        return 0;
     size_t M = Coef.size() - 1;
     while (M > 0 && Coef[M] == 0)
         M--;
@@ -227,8 +232,8 @@ TPolynom TPolynom::Div(const TPolynom& P, TPolynom* Remainder) const {
         /// \todo: maybe simply return empty Res?
         Res.push_back(TNumeric::create(0));
     }
-    for(auto& it : Res) {
-        if(it == nullptr) {
+    for (auto& it : Res) {
+        if (it == nullptr) {
             it = TNumeric::create(0);
         }
     }
@@ -352,7 +357,8 @@ TNumeric TPolynom::asNumeric(const TNumeric& UnknownVar) const {
             };
         }
     }
-    if (Zero) Res = TNumeric(0);
+    if (Zero)
+        Res = TNumeric(0);
     return Res;
 }
 
@@ -394,7 +400,8 @@ TNumeric TPolynom::GetSeriesNumeric(const TNumeric& UnknownVar) const {
             };
         }
     }
-    if (Zero) Res = TNumeric(0);
+    if (Zero)
+        Res = TNumeric(0);
     return Res;
 }
 
@@ -410,14 +417,15 @@ TPolynom TPolynom::Derivative() {
 }
 
 bool TPolynom::IsZero() const {
-    if (Coef.size() == 0) return true;
+    if (Coef.size() == 0)
+        return true;
     for (size_t i = 0; i < Coef.size(); i++)
-        if (Coef[i] != 0) return false;
+        if (Coef[i] != 0)
+            return false;
     return true;
 }
 
-TPolynom TPolynom::GetMultiplicity(const TPolynom& Divisor, size_t& Multiplicity) const
-{
+TPolynom TPolynom::GetMultiplicity(const TPolynom& Divisor, size_t& Multiplicity) const {
     TPolynom PRemaining(*this);
     Multiplicity = 0;  // кратность корня
     do {
@@ -434,8 +442,10 @@ TPolynom TPolynom::GetMultiplicity(const TPolynom& Divisor, size_t& Multiplicity
     return PRemaining;
 }
 
-TPolynom TPolynom::TestX1(const vector<int>& Nom, const vector<int>& Denom, vector<TPolynom>& Res, vector<size_t>& Multiplicities) const
-{
+TPolynom TPolynom::TestX1(const vector<int>& Nom,
+                          const vector<int>& Denom,
+                          vector<TPolynom>& Res,
+                          vector<size_t>& Multiplicities) const {
     TPolynom PRemaining(*this);
     for (size_t i = 0; i < Nom.size(); i++)        // перебираем делители свободного члена
         for (size_t j = 0; j < Denom.size(); j++)  // перебираем делители коэф при старшем члене
@@ -447,7 +457,7 @@ TPolynom TPolynom::TestX1(const vector<int>& Nom, const vector<int>& Denom, vect
                 if (D == 1) {
                     Test = TNumeric(sign * N);
                 } else {
-                    Test = TNumeric(sign*N)/TNumeric(D);
+                    Test = TNumeric(sign * N) / TNumeric(D);
                 };
                 // проверяем тестовый корень
                 if (PRemaining.Calculate(Test) == 0) {
@@ -464,13 +474,15 @@ TPolynom TPolynom::TestX1(const vector<int>& Nom, const vector<int>& Denom, vect
     return PRemaining;
 }
 
-TPolynom TPolynom::TestX2(const vector<int>& a, const vector<int>& b, const vector<int>& c, vector<TPolynom> &Res, vector<size_t> &Multiplicities) const
-{
-TPolynom PRemaining(*this);
-    for(size_t i = 0; i < a.size(); i++)
-        for(size_t j = 0; j < b.size(); j++)
-            for(size_t k = 0; k < c.size(); k++)
-            {
+TPolynom TPolynom::TestX2(const vector<int>& a,
+                          const vector<int>& b,
+                          const vector<int>& c,
+                          vector<TPolynom>& Res,
+                          vector<size_t>& Multiplicities) const {
+    TPolynom PRemaining(*this);
+    for (size_t i = 0; i < a.size(); i++)
+        for (size_t j = 0; j < b.size(); j++)
+            for (size_t k = 0; k < c.size(); k++) {
                 TPolynom Divisor;
                 Divisor.Coef.assign(3, TNumeric::create(1));
                 Divisor.Coef[0] = TNumeric::create(c[k]);
@@ -478,13 +490,12 @@ TPolynom PRemaining(*this);
                 Divisor.Coef[2] = TNumeric::create(a[i]);
                 size_t M;
                 PRemaining = GetMultiplicity(Divisor, M);
-                if(M > 0)
-                {
+                if (M > 0) {
                     Res.push_back(Divisor);
                     Multiplicities.push_back(M);
                 };
             };
-        return PRemaining;
+    return PRemaining;
 }
 
 TNumeric TPolynom::GetX0Candidate() {
@@ -674,23 +685,23 @@ bool PCancel(const TPolynom& P1, const TPolynom& P2, TPolynom* Res1, TPolynom* R
 }
 
 void TPolynom::SaveToFile(ofstream& f) {
-/*    uint16_t s = Coef.size();
-    f.write((char*)&s, sizeof(s));
-    for (size_t i = 0; i < Coef.size(); i++)
-        Coef[i]->WriteToFile(f);*/
+    /*    uint16_t s = Coef.size();
+        f.write((char*)&s, sizeof(s));
+        for (size_t i = 0; i < Coef.size(); i++)
+            Coef[i]->WriteToFile(f);*/
     assert(false);
 }
 
 void TPolynom::LoadFromFile(ifstream& f) {
-/*    uint16_t s;
-    f.read((char*)&s, sizeof(s));
-    Coef.clear();
-    for (size_t i = 0; i < s; i++) {
-        TNumeric N;
-        N.LoadFromFile(f);
-        Coef.push_back(N);
-    }*/
-   assert(false);
+    /*    uint16_t s;
+        f.read((char*)&s, sizeof(s));
+        Coef.clear();
+        for (size_t i = 0; i < s; i++) {
+            TNumeric N;
+            N.LoadFromFile(f);
+            Coef.push_back(N);
+        }*/
+    assert(false);
 }
 
 bool NextCombination(vector<size_t>& Combination, vector<size_t> MaxValues)
@@ -751,10 +762,12 @@ vector<TPolynom> TPolynom::FactorizeKroneker(vector<size_t>* ResMultiplicty) con
             for (size_t i = 0; i <= m; i++)
                 SelectedValues[i] = Y[i][SelectedCombination[i]];
             TPolynom P;
-            if (BuildIntegerPolynom(X, SelectedValues, P) == false) continue;
+            if (BuildIntegerPolynom(X, SelectedValues, P) == false)
+                continue;
             TPolynom Q, R;
             size_t MP = P.MajorPower();
-            if (MP == m && !(MP == 0 && (*P.Coef[0] == TNumeric("1") || *P.Coef[0] == TNumeric("-1"))))  // не делим на 1 или на -1
+            if (MP == m &&
+                !(MP == 0 && (*P.Coef[0] == TNumeric("1") || *P.Coef[0] == TNumeric("-1"))))  // не делим на 1 или на -1
             {
                 size_t Multiplicity = 0;
                 TPolynom Source = *this;
@@ -786,7 +799,8 @@ vector<TPolynom> TPolynom::FactorizeKroneker(vector<size_t>* ResMultiplicty) con
     // ничего не нашли, возвращаем себя
     vector<TPolynom> Res;
     Res.push_back(*this);
-    if (ResMultiplicty) ResMultiplicty->push_back(1);
+    if (ResMultiplicty)
+        ResMultiplicty->push_back(1);
 
     return Res;
 }
@@ -810,10 +824,10 @@ TRationalFunction::TRationalFunction(const TPolynom P, const TPolynom Q) {
     this->Q = Q;
 }
 
-TRationalFunction::TRationalFunction(const std::vector<PNumeric>& PCoef, const std::vector<PNumeric>& QCoef) : P(PCoef), Q(QCoef) {
-}
-TRationalFunction::TRationalFunction(std::vector<TNumeric>&& PCoef, std::vector<TNumeric>&& QCoef) : P(std::move(PCoef)), Q(std::move(QCoef)) { 
-}
+TRationalFunction::TRationalFunction(const std::vector<PNumeric>& PCoef, const std::vector<PNumeric>& QCoef) :
+    P(PCoef), Q(QCoef) {}
+TRationalFunction::TRationalFunction(std::vector<TNumeric>&& PCoef, std::vector<TNumeric>&& QCoef) :
+    P(std::move(PCoef)), Q(std::move(QCoef)) {}
 
 TRationalFunction::~TRationalFunction() {}
 

@@ -78,11 +78,12 @@ int GetOperatorPriority(Operation OpCode) {
 int CompareOperatorsPriority(Operation OpCode1, Operation OpCode2) {
     int prior1 = GetOperatorPriority(OpCode1);
     int prior2 = GetOperatorPriority(OpCode2);
-    if (prior1 < prior2) return -1;
-    if (prior1 == prior2) return 0;
+    if (prior1 < prior2)
+        return -1;
+    if (prior1 == prior2)
+        return 0;
     return 1;
 };
-
 
 TNumeric TNumeric::deepCopy() const {
     TNumeric res;
@@ -164,7 +165,8 @@ void TNumeric::MakeEqSystem(const TNumeric& N1, const TNumeric& N2) {
 };
 
 void TNumeric::CheckInitialized() const {
-    if (operation == OperatorConst && strval.empty()) throw "TNumeric::CheckInitialized: object is not initialized yet";
+    if (operation == OperatorConst && strval.empty())
+        throw "TNumeric::CheckInitialized: object is not initialized yet";
 }
 
 bool TNumeric::hasRole(int role) const {
@@ -196,7 +198,7 @@ bool TNumeric::isInteger(int* Int) const {
         double d;
         if (sscanf(Simplified.strval.c_str(), "%lf", &d) == 1) {
             if (d == static_cast<int>(d)) {
-                if (Int) 
+                if (Int)
                     *Int = static_cast<int>(d);
                 return true;
             };
@@ -211,10 +213,13 @@ bool TNumeric::isInteger() const {
 bool TNumeric::IsVariable() const {
     if (operation == OperatorConst) {
         // first letter should be non-nomeric and non-minus
-        if (strval.length() == 0) throw "TNumeric::IsVariable(): strval.length = 0";
+        if (strval.length() == 0)
+            throw "TNumeric::IsVariable(): strval.length = 0";
         char p = strval[0];
-        if (p >= '0' && p <= '9') return false;
-        if (p == '-') return false;
+        if (p >= '0' && p <= '9')
+            return false;
+        if (p == '-')
+            return false;
         return true;
     };
     if (operation == OperatorSubIndex) {
@@ -224,18 +229,24 @@ bool TNumeric::IsVariable() const {
 }
 
 bool TNumeric::IsEqual(const TNumeric& N) const {
-    if (operation != N.operation) return false;
-    if (operation == OperatorConst) return strval == N.strval;
-    if (operands.size() != N.operands.size()) return false;
+    if (operation != N.operation)
+        return false;
+    if (operation == OperatorConst)
+        return strval == N.strval;
+    if (operands.size() != N.operands.size())
+        return false;
     for (size_t i = 0; i < operands.size(); i++)
-        if (operands[i]->IsEqual(*N.operands[i]) == false) return false;
+        if (operands[i]->IsEqual(*N.operands[i]) == false)
+            return false;
     return true;
 }
 
 bool TNumeric::DependsOn(const char* variable) const {
-    if (operation == OperatorConst && strval == variable) return true;
+    if (operation == OperatorConst && strval == variable)
+        return true;
     for (size_t i = 0; i < operands.size(); i++)
-        if (operands[i]->DependsOn(variable)) return true;
+        if (operands[i]->DependsOn(variable))
+            return true;
     return false;
 }
 bool TNumeric::operator==(const TNumeric& N) const {
@@ -249,14 +260,16 @@ bool TNumeric::operator==(const TNumeric& N) const {
         if(Operands[i] != N.Operands[i]) return false;
     return true;*/
     if (operation == OperatorEqual) {
-        if (operands.size() != N.operands.size()) return false;
+        if (operands.size() != N.operands.size())
+            return false;
         for (size_t i = 0; i < operands.size(); i++)
-            if (operands[i] != N.operands[i]) return false;
+            if (operands[i] != N.operands[i])
+                return false;
         return true;
     } else {
         const TNumeric& Diff = *this - N;
         const TNumeric& simplified = Diff.Simplify();
-        if (simplified.operation == OperatorConst && simplified.strval == "0") 
+        if (simplified.operation == OperatorConst && simplified.strval == "0")
             return true;
         return false;
     };
@@ -456,7 +469,8 @@ TNumeric TNumeric::Derivative(const string VarName) const {
 
 bool TNumeric::CanCalculate() const {
     try {
-        if (isnan(Calculate())) return false;
+        if (isnan(Calculate()))
+            return false;
         return true;
     } catch (...) {
         return false;
@@ -470,17 +484,22 @@ double TNumeric::Calculate() const {
     Vals.assign(operands.size(), 0);
     for (size_t i = 0; i < operands.size(); i++) {
         Vals[i] = operands[i]->Calculate();
-        if (isnan(Vals[i])) return NaN;
+        if (isnan(Vals[i]))
+            return NaN;
     };
     switch (operation) {
         case OperatorConst:
             if (strval.length() != 0) {
-                if (strval == "-\\infty") return -INFINITY;
-                if (strval == "\\infty" || strval == "+\\infty") return INFINITY;
-                if (strval == "\\pi") return M_PI;
+                if (strval == "-\\infty")
+                    return -INFINITY;
+                if (strval == "\\infty" || strval == "+\\infty")
+                    return INFINITY;
+                if (strval == "\\pi")
+                    return M_PI;
                 try {
                     double d;
-                    if (sscanf(strval.c_str(), "%lf", &d) == 0) return NaN;
+                    if (sscanf(strval.c_str(), "%lf", &d) == 0)
+                        return NaN;
                     A = d;
                 } catch (...) {
                     return NaN;
@@ -526,7 +545,8 @@ double TNumeric::Calculate() const {
                 return NaN;
             break;
         case OperatorPow:
-            if (Vals[1] == 0) return 1;
+            if (Vals[1] == 0)
+                return 1;
             if (Vals[0] > 0)
                 return exp(Vals[1] * log(Vals[0]));
             else {
@@ -534,7 +554,8 @@ double TNumeric::Calculate() const {
                 {
                     // BInt нужно только для определения знака
                     int BInt = ceil(Vals[1]);
-                    if (BInt < 0) BInt = -BInt;
+                    if (BInt < 0)
+                        BInt = -BInt;
                     int sign;
                     if (BInt % 2 == 0)
                         sign = 1;
@@ -546,25 +567,31 @@ double TNumeric::Calculate() const {
             };
             break;
         case OperatorExp:
-            if (Vals[0] == 0) return 1;
+            if (Vals[0] == 0)
+                return 1;
             return exp(Vals[0]);
             break;
         case OperatorSh:
-            if (Vals[0] == 0) return 0;
+            if (Vals[0] == 0)
+                return 0;
             return sinh(Vals[0]);
             break;
         case OperatorCh:
-            if (Vals[0] == 0) return 1;
+            if (Vals[0] == 0)
+                return 1;
             return cosh(Vals[0]);
             break;
         case OperatorLog:
-            if (Vals[0] <= 0 || Vals[1] <= 0) return NaN;
+            if (Vals[0] <= 0 || Vals[1] <= 0)
+                return NaN;
             return log(Vals[0]) / log(Vals[1]);
         case OperatorLn:
-            if (Vals[0] <= 0) return NaN;
+            if (Vals[0] <= 0)
+                return NaN;
             return log(Vals[0]);
         case OperatorLg:
-            if (Vals[0] <= 0) return NaN;
+            if (Vals[0] <= 0)
+                return NaN;
             return log(Vals[0]) / log(10.0L);
         case OperatorSin:
             return sin(Vals[0]);
@@ -665,7 +692,8 @@ string TNumeric::CodeBasic() const {
             Str = '(';
             for (i = 0; i < operands.size(); i++) {
                 Str += operands[i]->CodeBasic();
-                if (i + 1 < operands.size()) Str += '+';
+                if (i + 1 < operands.size())
+                    Str += '+';
             };
             Str += ')';
             return Str;
@@ -674,7 +702,8 @@ string TNumeric::CodeBasic() const {
             Str = string("(") + operands[0]->CodeBasic() + "-";
             for (i = 1; i < operands.size(); i++) {
                 Str += operands[i]->CodeBasic();
-                if (i + 1 < operands.size()) Str += '-';
+                if (i + 1 < operands.size())
+                    Str += '-';
             };
             Str += ')';
             return Str;
@@ -683,7 +712,8 @@ string TNumeric::CodeBasic() const {
             Str = '(';
             for (i = 0; i < operands.size(); i++) {
                 Str += operands[i]->CodeBasic();
-                if (i + 1 < operands.size()) Str += '*';
+                if (i + 1 < operands.size())
+                    Str += '*';
             };
             Str += ')';
             return Str;
@@ -766,11 +796,13 @@ string DeleteExternalBrackets(string Str) {
     EndIndex = Str.length();
     while (*p) {
         if (*p == '(') {
-            if (BracketLevel == 0) StartIndex = p - Str.c_str() + 1;
+            if (BracketLevel == 0)
+                StartIndex = p - Str.c_str() + 1;
             BracketLevel++;
         };
         if (*p == ')') {
-            if (BracketLevel == 1) EndIndex = p - Str.c_str();
+            if (BracketLevel == 1)
+                EndIndex = p - Str.c_str();
             BracketLevel--;
         };
         if (*p != '(' && *p != ')' && *p != ' ')
@@ -789,20 +821,34 @@ string DeleteExternalBrackets(string Str) {
 };
 //==============================================================================
 Operation DecodeFunctionName(const std::string_view& str) {
-    if (str == "exp") return OperatorExp;
-    if (str == "sh") return OperatorSh;
-    if (str == "ch") return OperatorCh;
-    if (str == "log") return OperatorLog;
-    if (str == "ln") return OperatorLn;
-    if (str == "lg") return OperatorLg;
-    if (str == "sin") return OperatorSin;
-    if (str == "cos") return OperatorCos;
-    if (str == "tg") return OperatorTg;
-    if (str == "ctg") return OperatorCtg;
-    if (str == "asin") return OperatorSin;
-    if (str == "acos") return OperatorArccos;
-    if (str == "atg") return OperatorArctg;
-    if (str == "cos") return OperatorCos;
+    if (str == "exp")
+        return OperatorExp;
+    if (str == "sh")
+        return OperatorSh;
+    if (str == "ch")
+        return OperatorCh;
+    if (str == "log")
+        return OperatorLog;
+    if (str == "ln")
+        return OperatorLn;
+    if (str == "lg")
+        return OperatorLg;
+    if (str == "sin")
+        return OperatorSin;
+    if (str == "cos")
+        return OperatorCos;
+    if (str == "tg")
+        return OperatorTg;
+    if (str == "ctg")
+        return OperatorCtg;
+    if (str == "asin")
+        return OperatorSin;
+    if (str == "acos")
+        return OperatorArccos;
+    if (str == "atg")
+        return OperatorArctg;
+    if (str == "cos")
+        return OperatorCos;
     std::ostringstream errstr;
     errstr << "DecodeFunctionName: Unknown function name: " << string(str);
     throw errstr.str().c_str();
@@ -815,19 +861,26 @@ bool CheckFunctionTemplate(const char* str, TNumeric* Res)
     const char* leftbracket = 0;
     const char* rightbracket = 0;
     const char* p = str;
-    if (*p >= '0' && *p <= '9') return false;
+    if (*p >= '0' && *p <= '9')
+        return false;
     while (*p && *p != '(') {
         p++;
-        if (*p == 0) break;
-        if (*p == '+' || *p == '-' || *p == '/' || *p == '*' || *p == '^') return false;
+        if (*p == 0)
+            break;
+        if (*p == '+' || *p == '-' || *p == '/' || *p == '*' || *p == '^')
+            return false;
     };
-    if (*p == 0) return false;
+    if (*p == 0)
+        return false;
     leftbracket = p;
     int bracketlevel = 0;
     while (*p) {
-        if (*p == '(') bracketlevel++;
-        if (*p == ')') bracketlevel--;
-        if (*p == '(' && bracketlevel == 1) leftbracket = p;
+        if (*p == '(')
+            bracketlevel++;
+        if (*p == ')')
+            bracketlevel--;
+        if (*p == '(' && bracketlevel == 1)
+            leftbracket = p;
         if (*p == ')' && bracketlevel == 0) {
             rightbracket = p;
             if (*(p + 1) != 0)  // the last character in a string should be ')'
@@ -835,7 +888,8 @@ bool CheckFunctionTemplate(const char* str, TNumeric* Res)
         };
         p++;
     };
-    if (bracketlevel != 0) throw "CheckFunctionTemplate: unbalanced brackets";
+    if (bracketlevel != 0)
+        throw "CheckFunctionTemplate: unbalanced brackets";
     string FunctionName(str);
     FunctionName.erase(leftbracket - str);  // начиная от скобки '(' все удаляем
     // Выделяем аргументы
@@ -844,8 +898,10 @@ bool CheckFunctionTemplate(const char* str, TNumeric* Res)
     Res->operation = DecodeFunctionName(FunctionName.c_str());
     string Str(str);
     for (p = leftbracket + 1; p < rightbracket; p++) {
-        if (*p == '(') bracketlevel++;
-        if (*p == ')') bracketlevel--;
+        if (*p == '(')
+            bracketlevel++;
+        if (*p == ')')
+            bracketlevel--;
         if (*p == ',' && bracketlevel == 0) {
             TNumeric Op;
             string S = Str.substr(q - str, p - q);
@@ -875,16 +931,18 @@ void TNumeric::Assign(char* str) {
     Str = DeleteExternalBrackets(Str);
     while (1) {
         size_t pos = Str.find("**");
-        if (pos == string::npos) break;
+        if (pos == string::npos)
+            break;
         Str.replace(pos, 2, "^");
     };
     while (1) {
         size_t pos = Str.find(" ");
-        if (pos == string::npos) break;
+        if (pos == string::npos)
+            break;
         Str.replace(pos, 1, "");
     };
     TNumeric Res;
-    if (CheckFunctionTemplate(Str.c_str(), &Res)) { /// \todo: Res is empty here
+    if (CheckFunctionTemplate(Str.c_str(), &Res)) {  /// \todo: Res is empty here
         *this = Res;
         assert(false);
         return;
@@ -901,20 +959,26 @@ void TNumeric::Assign(char* str) {
     p = (char*)Str.c_str();
     while (*p) {
         int CurOpCode = -1;
-        if (*p == '(') CurBracketLevel++;
-        if (*p == ')') CurBracketLevel--;
+        if (*p == '(')
+            CurBracketLevel++;
+        if (*p == ')')
+            CurBracketLevel--;
 
-        if (*p == '+') CurOpCode = OperatorSum;
+        if (*p == '+')
+            CurOpCode = OperatorSum;
         if (*p == '-')
             if (i > 0 && *(p - 1) != '(')  // чтобы исключить случай унарного минуса, когда "-3" преобразуется в "(0)-(3)"="0-3"
                 CurOpCode = OperatorMinus;
-        if (*p == '/') CurOpCode = OperatorFrac;
-        if (*p == '^') CurOpCode = OperatorPow;
-        if (*p == '*') CurOpCode = OperatorProd;
+        if (*p == '/')
+            CurOpCode = OperatorFrac;
+        if (*p == '^')
+            CurOpCode = OperatorPow;
+        if (*p == '*')
+            CurOpCode = OperatorProd;
 
         // случай 2^2+2
         int CurOpPrior;
-        if (CurOpCode != -1) 
+        if (CurOpCode != -1)
             CurOpPrior = GetOperatorPriority(static_cast<Operation>(CurOpCode));
 
         if (CurOpCode != -1)
@@ -980,7 +1044,7 @@ void TNumeric::Assign(char* str) {
     };
     SimplifyPresentation();
 }
-TNumeric TNumeric::SimplifyPresentation() const{
+TNumeric TNumeric::SimplifyPresentation() const {
     TNumeric res(*this);
     for (size_t i = 0; i < operands.size(); i++)
         res.operands[i] = TNumeric::create(std::move(operands[i]->SimplifyPresentation()));
@@ -1057,7 +1121,7 @@ TNumeric TNumeric::EliminateUnimplementedFunctions(size_t& StartID, map<string, 
     }
     if (NeedToEliminate) {
         // проверяем, вдруг эта функция уже есть и как-то обозначена
-        auto It = vars_to_functions.begin();        
+        auto It = vars_to_functions.begin();
         while (It != vars_to_functions.end()) {
             if (It->second.IsEqual(*this))
             // нашли, используем уже существующее обозначение
@@ -1077,7 +1141,7 @@ TNumeric TNumeric::EliminateUnimplementedFunctions(size_t& StartID, map<string, 
 
             char Buf[128];
             sprintf(Buf, "a%d", (int)StartID++);
-            res.operation = OperatorConst;            
+            res.operation = OperatorConst;
             res.strval = Buf;
             NewItem.first = Buf;
             vars_to_functions.insert(NewItem);
@@ -1085,7 +1149,8 @@ TNumeric TNumeric::EliminateUnimplementedFunctions(size_t& StartID, map<string, 
     }
     // упрощаем аргументы
     for (size_t i = 0; i < operands.size(); i++)
-        res.operands[i] = TNumeric::create(std::move(res.operands[i]->EliminateUnimplementedFunctions(StartID, vars_to_functions)));
+        res.operands[i] =
+            TNumeric::create(std::move(res.operands[i]->EliminateUnimplementedFunctions(StartID, vars_to_functions)));
     return res;
 }
 
@@ -1099,8 +1164,7 @@ TNumeric TNumeric::RestoreUnimplementedFunctions(const std::map<string, TNumeric
             else {
                 res = it->second;
             }
-        }; 
-        break;
+        }; break;
         default: {
             for (size_t i = 0; i < operands.size(); i++)
                 res.operands[i] = TNumeric::create(std::move(res.operands[i]->RestoreUnimplementedFunctions(V)));
@@ -1110,7 +1174,8 @@ TNumeric TNumeric::RestoreUnimplementedFunctions(const std::map<string, TNumeric
 }
 
 bool TNumeric::asRational(int& Numerator, int& Denominator) const {
-    if (CanCalculate() == false) return false;
+    if (CanCalculate() == false)
+        return false;
     if (operation == OperatorConst) {
         if (isInteger(&Numerator)) {
             Denominator = 1;
@@ -1134,7 +1199,7 @@ TNumeric TNumeric::SimplifyTrig() const {
         case OperatorCtg:
             OperatorOk = true;
     };
-    if (!OperatorOk) 
+    if (!OperatorOk)
         return *this;
 
     TNumeric Res(*this);
@@ -1191,7 +1256,7 @@ TNumeric TNumeric::SimplifyInverseTrig() const {
         case OperatorArctg:
             OperatorOk = true;
     };
-    if (!OperatorOk) 
+    if (!OperatorOk)
         return *this;
 
     TNumeric Res(*this);
@@ -1284,7 +1349,8 @@ TNumeric TNumeric::SimplifyInverseTrig() const {
 }
 
 TNumeric TNumeric::SimplifyLog() const {
-    if (operation != OperatorLog) return *this;
+    if (operation != OperatorLog)
+        return *this;
     TNumeric A = operands[0]->Simplify();
     TNumeric B = operands[1]->Simplify();
     if (A.CanCalculate() && B.CanCalculate()) {
@@ -1294,34 +1360,47 @@ TNumeric TNumeric::SimplifyLog() const {
         if (a < 0 || b < 0 || b == 1) {
             return MakeLog(A, B);
         };
-        if (a == b) return TNumeric(1);
-        if (a == 1) return TNumeric(0);
+        if (a == b)
+            return TNumeric(1);
+        if (a == 1)
+            return TNumeric(0);
         int AN, AD, BN, BD;
         Res.operation = OperatorLog;
         int N, D;  // коэффициент перед логарифмом
         if (A.asRational(AN, AD)) {
             int AN1, AD1;
-            if (AN * AD < 0) throw "TNumeric::SimplifyLog: AN*AD<0";
-            if (AN < 0) AN = -AN;
-            if (AD < 0) AD = -AD;
+            if (AN * AD < 0)
+                throw "TNumeric::SimplifyLog: AN*AD<0";
+            if (AN < 0)
+                AN = -AN;
+            if (AD < 0)
+                AD = -AD;
             CheckCommonPower(AN, AD, N, AN1, AD1);
-            if (N > 1) A = (TNumeric(AN1) / TNumeric(AD1)).Simplify();
+            if (N > 1)
+                A = (TNumeric(AN1) / TNumeric(AD1)).Simplify();
         } else
             N = 1;
         if (B.asRational(BN, BD)) {
             int BN1, BD1;
-            if (BN * BD < 0) throw "TNumeric::SimplifyLog: AN*AD<0";
-            if (BN < 0) BN = -BN;
-            if (BD < 0) BD = -BD;
+            if (BN * BD < 0)
+                throw "TNumeric::SimplifyLog: AN*AD<0";
+            if (BN < 0)
+                BN = -BN;
+            if (BD < 0)
+                BD = -BD;
             CheckCommonPower(BN, BD, D, BN1, BD1);
-            if (D > 1) B = (TNumeric(BN1) / TNumeric(BD1)).Simplify();
+            if (D > 1)
+                B = (TNumeric(BN1) / TNumeric(BD1)).Simplify();
         } else
             D = 1;
         Res.OperandsPushback(A);
         Res.OperandsPushback(B);
-        if (N == 1 && D != 1) Res = MakeFrac(Res, TNumeric(D));
-        if (N != 1 && D == 1) Res = MakeProd(TNumeric(N), std::move(Res));
-        if (N != 1 && D != 1) Res = MakeProd(MakeFrac(TNumeric(N), TNumeric(D)), std::move(Res));
+        if (N == 1 && D != 1)
+            Res = MakeFrac(Res, TNumeric(D));
+        if (N != 1 && D == 1)
+            Res = MakeProd(TNumeric(N), std::move(Res));
+        if (N != 1 && D != 1)
+            Res = MakeProd(MakeFrac(TNumeric(N), TNumeric(D)), std::move(Res));
         return Res;
     };
     return *this;
@@ -1352,7 +1431,7 @@ TNumeric TNumeric::SimplifyFunctions() const {
                 break;*/
         case OperatorLn:
         case OperatorLg:
-            if (*operands[0] == TNumeric(1)) 
+            if (*operands[0] == TNumeric(1))
                 res = TNumeric(0);
             break;
     }
@@ -1377,12 +1456,12 @@ TNumeric TNumeric::MathoCmd(const string& Cmd) const {
     static const std::string VarName = "vartosimplify";
     SourceCode = VarName + " = " + SourceCode;
     std::string ResCode;
-    ResCode = math_process(SourceCode.c_str());    
+    ResCode = math_process(SourceCode.c_str());
     ResCode = math_process(Cmd.c_str());
     math_clear_all();
     // удаляем "vartosimplify = "
     size_t pos = ResCode.find(VarName + " = ");
-    if (pos == string::npos) 
+    if (pos == string::npos)
         throw "TNumeric::Simplify: Unknown answer format from math library. Can't simplify";
     ResCode = ResCode.substr(pos + VarName.length() + 3);
 #ifdef __DEBUG__
@@ -1397,13 +1476,13 @@ TNumeric TNumeric::MathoCmd(const string& Cmd) const {
 TNumeric TNumeric::Simplify() const {
     /// \todo: if *this is not changed, do not create new object and return this
     TNumeric Res(*this);
-    if (operation == OperatorConst) 
+    if (operation == OperatorConst)
         return Res;
     Res = Res.SimplifyFunctions();
     if (operation == OperatorEqual) {
         const TNumeric& A = operands[0]->MathoCmd("simplify");
         const TNumeric& B = operands[1]->MathoCmd("simplify");
-        return MakeEquality(A,B);
+        return MakeEquality(A, B);
     };
     Res = Res.MathoCmd("simplify");
     return Res;
@@ -1529,10 +1608,14 @@ TNumeric MakeBelongsTo(const TNumeric& N1, const TNumeric& N2) {
 
 TNumeric MakeInterval(const TNumeric& X1, const TNumeric& X2, bool includeleft, bool includeright) {
     TNumeric Res;
-    if (includeleft && includeright) Res.operation = OperatorSegment;
-    if (!includeleft && includeright) Res.operation = OperatorIntervalSegment;
-    if (includeleft && !includeright) Res.operation = OperatorSegmentInterval;
-    if (!includeleft && !includeright) Res.operation = OperatorInterval;
+    if (includeleft && includeright)
+        Res.operation = OperatorSegment;
+    if (!includeleft && includeright)
+        Res.operation = OperatorIntervalSegment;
+    if (includeleft && !includeright)
+        Res.operation = OperatorSegmentInterval;
+    if (!includeleft && !includeright)
+        Res.operation = OperatorInterval;
     Res.OperandsPushback(X1);
     Res.OperandsPushback(X2);
     return Res;
@@ -1636,7 +1719,7 @@ TNumeric MakeIntegral(const TNumeric& N, const string& dx) {
 
 std::shared_ptr<const TNumeric> FindParent(std::shared_ptr<const TNumeric> Root, std::shared_ptr<const TNumeric> Child) {
     // Обходим рекурсивно Root, чтобы найти родителя WhatToDelete
-    if (Root == Child) 
+    if (Root == Child)
         return nullptr;  // can't be parent for itself
     for (size_t i = 0; i < Root->operands.size(); i++)
         if (Root->operands[i] == Child) {

@@ -19,9 +19,9 @@
 #include <QTreeWidgetItem>
 #include <QUrl>
 
+#include <memory>
 #include <ttasktypeselector.h>
 #include <vector>
-#include <memory>
 
 #include "Base/THTMLWriter.h"
 #include "Base/arithmetic.h"
@@ -137,7 +137,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     InitProblemsSolved();
 
-    if (!FreeDebugVersion) ui->actionTest_fonts->setVisible(false);
+    if (!FreeDebugVersion)
+        ui->actionTest_fonts->setVisible(false);
 }
 
 MainWindow::~MainWindow() {
@@ -244,73 +245,73 @@ void MainWindow::CreateBook() {
     CreateTreeItem(Item2, PolynomialEquality8);
 
     Item2 = CreateNode(Parent, tr("Rational"));
-    //CreateTreeItem(Item2, RationalSumEquality1);
-    //CreateTreeItem(Item2, RationalSumEquality2);
+    // CreateTreeItem(Item2, RationalSumEquality1);
+    // CreateTreeItem(Item2, RationalSumEquality2);
     Item2 = CreateNode(Parent, tr("Others"));
-    //CreateTreeItem(Item2, PowerEquality2);
+    // CreateTreeItem(Item2, PowerEquality2);
     QTreeWidgetItem* Item3 = CreateNode(Item2, tr("Trigonometric"));
-    //CreateTreeItem(Item3, LinearTrigEquality);
+    // CreateTreeItem(Item3, LinearTrigEquality);
     Item2 = CreateNode(Parent, tr("Homogeneous trigonometric"));
-    //CreateTreeItem(Item2, HomogeneousTrigEquality2);
-    //CreateTreeItem(Item2, HomogeneousTrigEquality3);
-    //CreateTreeItem(Item2, HomogeneousTrigEquality4);
+    // CreateTreeItem(Item2, HomogeneousTrigEquality2);
+    // CreateTreeItem(Item2, HomogeneousTrigEquality3);
+    // CreateTreeItem(Item2, HomogeneousTrigEquality4);
 
     // Системы уравнений
     // KeywordToTabsMap.insert(QString::fromUtf8("СЛАУ"), SLAUTab);
     Parent = ui->treeWidget_8;  // родительский узел
     Item2 = CreateNode(Parent, tr("Linear square"));
-    //CreateTreeItem(Item2, SystemOfEquations22);
-    //CreateTreeItem(Item2, SystemOfEquations33);
-    //CreateTreeItem(Item2, SystemOfEquations44);
-    //CreateTreeItem(Item2, SystemOfEquations55);
+    // CreateTreeItem(Item2, SystemOfEquations22);
+    // CreateTreeItem(Item2, SystemOfEquations33);
+    // CreateTreeItem(Item2, SystemOfEquations44);
+    // CreateTreeItem(Item2, SystemOfEquations55);
     CustomSystems = 0;
 
     // Неравенства
     Parent = ui->treeWidget_4;  // родительский узел
     // KeywordToTabsMap.insert(QString::fromUtf8("Неравенства"), ui->InequalitiesTab);
     Item2 = CreateNode(Parent, tr("Single"));
-    //CreateTreeItem(Item2, LinearInequality);
-    //CreateTreeItem(Item2, SquareInequality);
-    //CreateTreeItem(Item2, PolynomialInequality8);
+    // CreateTreeItem(Item2, LinearInequality);
+    // CreateTreeItem(Item2, SquareInequality);
+    // CreateTreeItem(Item2, PolynomialInequality8);
 
     Item2 = CreateNode(Parent, tr("Systems"));
-    //CreateTreeItem(Item2, SystemOfLinearInequalities);
-    //CreateTreeItem(Item2, SystemOfSquareInequalities);
+    // CreateTreeItem(Item2, SystemOfLinearInequalities);
+    // CreateTreeItem(Item2, SystemOfSquareInequalities);
 
     Item2 = CreateNode(Parent, tr("Sets"));
-    //CreateTreeItem(Item2, SetOfLinearInequalities);
-    //CreateTreeItem(Item2, SetOfSquareInequalities);
+    // CreateTreeItem(Item2, SetOfLinearInequalities);
+    // CreateTreeItem(Item2, SetOfSquareInequalities);
 
     // Системы и совокупности
     Parent = ui->treeWidget_6;  // родительский узел
 
     Item2 = CreateNode(Parent, tr("Systems"));
     // KeywordToTabsMap.insert(QString::fromUtf8("Неравенства"), ui->SystemsTab);
-    //CreateTreeItem(Item2, SystemOfLinearInequalities);
-    //CreateTreeItem(Item2, SystemOfSquareInequalities);
+    // CreateTreeItem(Item2, SystemOfLinearInequalities);
+    // CreateTreeItem(Item2, SystemOfSquareInequalities);
 
     Item2 = CreateNode(Parent, tr("Sets"));
-    //CreateTreeItem(Item2, SetOfLinearInequalities);
-    //CreateTreeItem(Item2, SetOfSquareInequalities);
+    // CreateTreeItem(Item2, SetOfLinearInequalities);
+    // CreateTreeItem(Item2, SetOfSquareInequalities);
 
     // Производные, Интегралы, Ряды
     Parent = ui->treeWidget_5;  // родительский узел
     Item2 = CreateNode(Parent, tr("Derivatives"));
-    //CreateTreeItem(Item2, PolynomDerivative4);
-    //CreateTreeItem(Item2, RationalFunctionDerivative44);
-    //CreateTreeItem(Item2, PolynomDerivative);
-    //CreateTreeItem(Item2, RationalFunctionDerivative);
-    //CreateTreeItem(Item2, DerivativeProblem);
+    // CreateTreeItem(Item2, PolynomDerivative4);
+    // CreateTreeItem(Item2, RationalFunctionDerivative44);
+    // CreateTreeItem(Item2, PolynomDerivative);
+    // CreateTreeItem(Item2, RationalFunctionDerivative);
+    // CreateTreeItem(Item2, DerivativeProblem);
 
     Item2 = CreateNode(Parent, tr("Integrals"));
-    //CreateTreeItem(Item2, PolynomIntegralProblem);
-    //CreateTreeItem(Item2, RationalIntegralProblem22);
-    //CreateTreeItem(Item2, RationalIntegralProblem45);
-    //CreateTreeItem(Item2, RationalIntegralProblem66);
+    // CreateTreeItem(Item2, PolynomIntegralProblem);
+    // CreateTreeItem(Item2, RationalIntegralProblem22);
+    // CreateTreeItem(Item2, RationalIntegralProblem45);
+    // CreateTreeItem(Item2, RationalIntegralProblem66);
 
     Item2 = CreateNode(Parent, tr("Maclaurin polynomial"));
-    //CreateTreeItem(Item2, MaclaurinSeriesProblem3);
-    //CreateTreeItem(Item2, MaclaurinSeriesProblem5);
+    // CreateTreeItem(Item2, MaclaurinSeriesProblem3);
+    // CreateTreeItem(Item2, MaclaurinSeriesProblem5);
 }
 
 void MainWindow::CreateKeywords(vector<std::shared_ptr<TProblem>> Problems) {
@@ -346,7 +347,8 @@ vector<std::shared_ptr<TProblem>> MainWindow::GetProblemsByKeywords() {
                 AllKeywordsFound = false;
                 break;
             }
-        if (AllKeywordsFound) Res.push_back(Problems[i]);
+        if (AllKeywordsFound)
+            Res.push_back(Problems[i]);
     };
     return Res;
 }
@@ -559,7 +561,8 @@ void MainWindow::on_treeWidget_8_itemPressed(QTreeWidgetItem* item, int column) 
 
 void MainWindow::FileOpen() {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open..."), "", QString::fromUtf8(("MathStyle Files (*.mst)")));
-    if (fileName.isEmpty()) return;
+    if (fileName.isEmpty())
+        return;
     ifstream f(fileName.toUtf8().data(), ios::in);
     if (!f) {
         QErrorMessage EM;
@@ -597,9 +600,11 @@ void MainWindow::FileOpen() {
 }
 
 void MainWindow::FileSave() {
-    if (Problem == 0 || Problem->Conditions == 0) return;
+    if (Problem == 0 || Problem->Conditions == 0)
+        return;
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save as..."), "", QString::fromUtf8(("MathStyle Files (*.mst)")));
-    if (fileName.isEmpty()) return;
+    if (fileName.isEmpty())
+        return;
     ofstream f(fileName.toUtf8().data(), ios::out | ios::trunc);
     if (!f) {
         QErrorMessage EM;
@@ -749,8 +754,10 @@ void switchTranslator(QTranslator& translator, const QString& filename) {
     qAppl->removeTranslator(&translator);
 
     // load the new translator
-    if (translator.load(filename)) qAppl->installTranslator(&translator);
-    if (translator.load(filename, ApplicationDirPath)) qAppl->installTranslator(&translator);
+    if (translator.load(filename))
+        qAppl->installTranslator(&translator);
+    if (translator.load(filename, ApplicationDirPath))
+        qAppl->installTranslator(&translator);
 }
 
 void MainWindow::loadLanguage(const QString& rLanguage) {
@@ -825,7 +832,8 @@ void MainWindow::on_pushButton_8_clicked()
     if (Problem && CurrentItem) {
         DeleteProblem(SelectedProblem);
         Problem = 0;
-        if (CurrentItem != 0) delete CurrentItem;
+        if (CurrentItem != 0)
+            delete CurrentItem;
         SelectProblemByWidget(0);
     }
 }

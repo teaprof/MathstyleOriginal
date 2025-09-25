@@ -121,7 +121,8 @@ void TOptionsWindow::on_pushButton_7_clicked() {
 }
 
 void TOptionsWindow::SetLanguage(int Language) {
-    if (Options == 0) return;
+    if (Options == 0)
+        return;
     Options->Language = Language;
     // Phrases->SetLanguage(Language);
     MyTranslator.Language = Language;
@@ -130,7 +131,8 @@ void TOptionsWindow::SetLanguage(int Language) {
 
 void TOptionsWindow::on_comboBox_currentIndexChanged(int index) {
     int Language = LangEn;
-    if (index >= 0) Language = ui->comboBox->itemData(index).toInt();
+    if (index >= 0)
+        Language = ui->comboBox->itemData(index).toInt();
     SetLanguage(Language);
 }
 
@@ -175,10 +177,14 @@ void TOptions::Load() {
     if (S.contains("FormulaFont")) {
         FormulaFont.fromString(S.value("FormulaFont").toString());
     };
-    if (S.contains("TextColor")) LoadColor(S, "TextColor", TextColor);
-    if (S.contains("FormulaColor")) LoadColor(S, "FormulaColor", FormulaColor);
-    if (S.contains("EditableColor")) LoadColor(S, "EditableColor", EditableColor);
-    if (S.contains("BackgroundColor")) LoadColor(S, "BackgroundColor", BackgroundColor);
+    if (S.contains("TextColor"))
+        LoadColor(S, "TextColor", TextColor);
+    if (S.contains("FormulaColor"))
+        LoadColor(S, "FormulaColor", FormulaColor);
+    if (S.contains("EditableColor"))
+        LoadColor(S, "EditableColor", EditableColor);
+    if (S.contains("BackgroundColor"))
+        LoadColor(S, "BackgroundColor", BackgroundColor);
     if (S.contains("language")) {
         Language = S.value("language", QVariant(LangEn)).toInt();
     }

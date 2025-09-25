@@ -8,9 +8,12 @@ using namespace std;
 // #define __DEBUG__
 
 int GetNOD(int a, int b) {
-    if (a == 0 && b == 0) return 1;
-    if (a == 0) return abs(b);
-    if (b == 0) return abs(a);
+    if (a == 0 && b == 0)
+        return 1;
+    if (a == 0)
+        return abs(b);
+    if (b == 0)
+        return abs(a);
     vector<int> amults = IntFactorize(a);
     vector<int> bmults = IntFactorize(b);
     int res = 1;
@@ -45,7 +48,8 @@ vector<int> IntFactorize(int N)
         } else
             i++;
     };
-    if (AbsN != 1 || Res.empty()) Res.push_back(AbsN);
+    if (AbsN != 1 || Res.empty())
+        Res.push_back(AbsN);
     return Res;
 }
 
@@ -60,9 +64,11 @@ vector<int> GetAllProds(vector<int> Divizors)
         // вычисляем очередное произведение
         int Prod = 1;
         for (size_t i = 0; i < Divizors.size(); i++)
-            if (Included[i]) Prod *= Divizors[i];
+            if (Included[i])
+                Prod *= Divizors[i];
         // если его еще не было, то добавляем
-        if (find(Res.begin(), Res.end(), Prod) == Res.end()) Res.push_back(Prod);
+        if (find(Res.begin(), Res.end(), Prod) == Res.end())
+            Res.push_back(Prod);
         // переходим к следующей комбинации
         size_t i = 0;
         do {
@@ -74,7 +80,8 @@ vector<int> GetAllProds(vector<int> Divizors)
                 i++;
             };
         } while (i < Included.size());
-        if (i == Included.size()) Last = true;
+        if (i == Included.size())
+            Last = true;
     }
     return Res;
 }
@@ -82,14 +89,18 @@ vector<int> GetAllProds(vector<int> Divizors)
 int GetNOK(int a, int b)
 // находим наименьшее общее кратное
 {
-    if (a == 0 && b == 0) return 1;
-    if (a == 0) return abs(b);
-    if (b == 0) return abs(a);
+    if (a == 0 && b == 0)
+        return 1;
+    if (a == 0)
+        return abs(b);
+    if (b == 0)
+        return abs(a);
     vector<int> Fa = IntFactorize(a);
     vector<int> Fb = IntFactorize(b);
     for (size_t i = 0; i < Fa.size(); i++) {
         vector<int>::iterator it = find(Fb.begin(), Fb.end(), Fa[i]);
-        if (it != Fb.end()) Fb.erase(it);
+        if (it != Fb.end())
+            Fb.erase(it);
     }
     int res = a;
     for (size_t i = 0; i < Fb.size(); i++)
@@ -98,9 +109,12 @@ int GetNOK(int a, int b)
 }
 
 void Factorize(int N, vector<int>& P, vector<int>& Mult) {
-    if (N < 0) N = -N;
-    if (N == 0) return;
-    if (N == 1) return;
+    if (N < 0)
+        N = -N;
+    if (N == 0)
+        return;
+    if (N == 1)
+        return;
     int Q = 2;
     while (Q < N) {
         int M = 0;
@@ -163,8 +177,8 @@ int CheckCommonPower(int A, int B, int& Power, int& A1, int& B1)
     return Power;
 }
 
-int GetNOD(const vector<int>& V) {    
-    if (V.size() == 0) 
+int GetNOD(const vector<int>& V) {
+    if (V.size() == 0)
         return 1;
     if (V.size() == 1)
         return V[0];
@@ -177,7 +191,8 @@ int GetNOD(const vector<int>& V) {
 int GetNOK(vector<int> V) {
     int NOK = 1;
     int Divisor = 2;
-    if (V.size() == 0) return 1;
+    if (V.size() == 0)
+        return 1;
     for (size_t i = 0; i < V.size(); i++)
         V[i] = abs(V[i]);
     do {
@@ -196,7 +211,8 @@ int GetNOK(vector<int> V) {
             NOK *= Divisor;  // возможно, число Divisor еще раз является делителем
         else
             Divisor++;  // число Divisor делителем больше не является
-        if (AllOnes) break;
+        if (AllOnes)
+            break;
     } while (true);
     return NOK;
 }
@@ -204,8 +220,10 @@ int GetNOK(vector<int> V) {
 bool Gauss(size_t left, size_t up, vector<vector<TNumeric>>& Coefs, vector<TNumeric>& RightPart)
 // проходит гауссом от (left, up) до нижнего правого угла
 {
-    if (up >= Coefs.size()) return true;       // достигли низа
-    if (left >= Coefs[0].size()) return true;  // достигли права
+    if (up >= Coefs.size())
+        return true;  // достигли низа
+    if (left >= Coefs[0].size())
+        return true;  // достигли права
 
     size_t NonZero = up;  // номер уравнения с ненулевым коэффициентом при переменной номер left
     TNumeric Zero("0");
@@ -229,7 +247,8 @@ bool Gauss(size_t left, size_t up, vector<vector<TNumeric>>& Coefs, vector<TNume
 bool SolveLinearSystem(vector<vector<TNumeric>> Coefs, vector<TNumeric> RightPart, vector<TNumeric>& Res, bool OnlyInteger)
 // Решаем систему методом Гаусса
 {
-    if (Gauss(0, 0, Coefs, RightPart) == false) return false;
+    if (Gauss(0, 0, Coefs, RightPart) == false)
+        return false;
 
 #ifdef __DEBUG__
     for (size_t i = 0; i < Coefs.size(); i++) {
@@ -242,13 +261,15 @@ bool SolveLinearSystem(vector<vector<TNumeric>> Coefs, vector<TNumeric> RightPar
     Res.assign(Coefs.size(), TNumeric("0"));
     for (size_t i = 0; i < Coefs.size(); i++) {
         size_t row = Coefs.size() - 1 - i;
-        if (Coefs[row][row] == TNumeric("0")) return false;
+        if (Coefs[row][row] == TNumeric("0"))
+            return false;
         Res[row] = RightPart[row];
         for (size_t j = row + 1; j < Coefs.size(); j++)
             Res[row] = Res[row] - Coefs[row][j] * Res[j];
         Res[row] = (Res[row] / Coefs[row][row]).Simplify();
         if (OnlyInteger) {
-            if (Res[row].isInteger(0) == false) return false;
+            if (Res[row].isInteger(0) == false)
+                return false;
         }
     }
     return true;

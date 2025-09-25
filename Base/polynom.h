@@ -9,8 +9,7 @@ class TPolynom
 {
     void Assign(const TPolynom& P);
     /// удаляет старшие нулевые коэффициенты
-    void RemoveMajorZeros(); \
-    /// находит максимальный общий множитель у всех коэффициентов
+    void RemoveMajorZeros();  /// находит максимальный общий множитель у всех коэффициентов
     TNumeric GetX0Candidate();
     size_t GetX2Candidates(vector<int>& a, vector<int>& b, vector<int>& c);
 
@@ -19,18 +18,23 @@ class TPolynom
     TPolynom GetMultiplicity(const TPolynom& Divisor, size_t& Multiplicity) const;
 
     /// из множества X находит такие X, которые являются корнями многочлена
-    /// записывает в Res одночлены x - x0, кратность корней - в Multiplicities, и возвращает многочлен, полученный делением исходного
-    /// на найденные (x-x0) с учётом их кратности
-    TPolynom TestX1(const vector<int>& Num, const vector<int>& Denom, vector<TPolynom>& Res, vector<size_t>& Multiplicities) const;
+    /// записывает в Res одночлены x - x0, кратность корней - в Multiplicities, и возвращает многочлен, полученный делением
+    /// исходного на найденные (x-x0) с учётом их кратности
+    TPolynom
+        TestX1(const vector<int>& Num, const vector<int>& Denom, vector<TPolynom>& Res, vector<size_t>& Multiplicities) const;
 
     /// ищет делители вида ax^2+bx+c
-    TPolynom TestX2(const vector<int>& a, const vector<int>& b, const vector<int>& c, vector<TPolynom>& Res, vector<size_t>& Multiplicities) const;
+    TPolynom TestX2(const vector<int>& a,
+                    const vector<int>& b,
+                    const vector<int>& c,
+                    vector<TPolynom>& Res,
+                    vector<size_t>& Multiplicities) const;
 
   public:
     /// Coef[0] + Coef[1]*x + Coef[2]*x^2 + ... + Coef[n]*x^n
     /// если Coef.size() == 0, то полином тождественно равен нулю
     /// Вместо Coef[i] и Coef.size() лучше всего использовать GetCoef(i) и MajorPower()
-    std::vector<PNumeric> Coef; 
+    std::vector<PNumeric> Coef;
 
     PNumeric& GetCoef(size_t Power);
     PNumeric GetCoef(size_t Power) const;
@@ -45,8 +49,8 @@ class TPolynom
     virtual ~TPolynom();
 
     /// the following function generate TNumeric representation of this polynom
-    TNumeric asNumeric() const;                                  // x^k + x^(k-1) + ... + x^0
-    TNumeric asNumeric(const TNumeric& UnknownVar) const;        // x^k + x^(k-1) + ... + x^0
+    TNumeric asNumeric() const;                                   // x^k + x^(k-1) + ... + x^0
+    TNumeric asNumeric(const TNumeric& UnknownVar) const;         // x^k + x^(k-1) + ... + x^0
     TNumeric GetSeriesNumeric(const TNumeric& UnknownVar) const;  // x^0 + x^1 + x^2 +...
 
     bool operator==(const TPolynom& P) const;
@@ -84,24 +88,16 @@ class TPolynom
 };
 
 /// сокращает многочлены на общие множители; возвращает истину, если хоть что-то удалось сократить
-bool PCancel(const TPolynom& P1,
-             const TPolynom& P2,
-             TPolynom* Res1,
-             TPolynom* Res2); 
+bool PCancel(const TPolynom& P1, const TPolynom& P2, TPolynom* Res1, TPolynom* Res2);
 
 /// строит полином с целыми коэффициентами, проходящий через точки (X(i), Y(i))
-bool BuildIntegerPolynom(const vector<TNumeric>& X,
-                         const vector<TNumeric>& Y,
-                         TPolynom& P); 
+bool BuildIntegerPolynom(const vector<TNumeric>& X, const vector<TNumeric>& Y, TPolynom& P);
 
 /// строит полином с целыми коэффициентами, проходящий через точки (X(i), Y(i))
-bool BuildIntegerPolynom(const vector<int>& X,
-                         const vector<int>& Y,
-                         TPolynom& P); 
+bool BuildIntegerPolynom(const vector<int>& X, const vector<int>& Y, TPolynom& P);
 
 /// функция вида P(x)/Q(x)
-class TRationalFunction
-{
+class TRationalFunction {
     // void Assign(const TRationalFunction& R);
   public:
     TPolynom P, Q;
@@ -137,12 +133,12 @@ class TRationalFunction
 
     TNumeric Calculate(const TNumeric& X);
     TRationalFunction Derivative();
-    
+
     // представляет рац функцию в форме Pn(x) + P'm(x)/Rk(x), m<k (O - "о" большое)s
     TNumeric GetMainPartAndO();
 
     // сократить числитель и знаменатель на общие множители
-    void reduce(); 
+    void reduce();
 };
 
 // vector<TNumeric> PolyDiv(vector<TNumeric> Numerator, vector<TNumeric> Denominator, vector<TNumeric> *Reminder);

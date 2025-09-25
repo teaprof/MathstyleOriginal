@@ -10,7 +10,8 @@ using namespace std;
 
 TSystemOfEquations::TSystemOfEquations(size_t VarsCount, size_t EqCount) : TProblem() {
     this->EqCount = EqCount;
-    if (VarsCount > 10) throw "TSystemOfEquations:: VarsCount > 10";
+    if (VarsCount > 10)
+        throw "TSystemOfEquations:: VarsCount > 10";
     for (size_t i = 0; i < VarsCount; i++) {
         PNumeric V = TNumeric::create();
         char v[10];
@@ -66,7 +67,8 @@ TSystemOfEquations::TSystemOfEquations(const TSystemOfEquations& E) : TProblem(E
 }
 
 void TSystemOfEquations::BuildPhrases() {
-    if (MyTranslator.CheckDictionary(GetClassName())) return;
+    if (MyTranslator.CheckDictionary(GetClassName()))
+        return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Can not read coefficients");
     MyTranslator.AddRus("Не могу прочитать коэффициенты");
@@ -241,7 +243,8 @@ void TSystemOfEquations::LoadFromFile(ifstream& f) {
 
 void TSystemOfEquations::Assign(const TSystemOfEquations& E) {
     this->Variables = E.Variables;
-    if (Conditions == 0) Conditions = std::make_shared<TNumeric>();
+    if (Conditions == 0)
+        Conditions = std::make_shared<TNumeric>();
     *Conditions = *E.Conditions;
     this->Coefs = E.Coefs;
     this->RightSide = E.RightSide;
@@ -315,16 +318,19 @@ bool Express(TNumeric Equation, TNumeric Var, TNumeric* Res) {
 #ifdef __DEBUG__
     cout << "Ok = " << Ok << "; ErrorStr = " << ErrorStr << "; answer = " << str1 << endl;
 #endif
-    if (Ok == false) return false;
+    if (Ok == false)
+        return false;
     string str2 = math_process(Cmd2.c_str(), &Ok, &ErrorStr);
 #ifdef __DEBUG__
     cout << "Ok = " << Ok << "; ErrorStr = " << ErrorStr << "; answer = " << str2 << endl;
 #endif
-    if (Ok == false) return false;
+    if (Ok == false)
+        return false;
     math_clear_all();
     // Если до сюда дошли, то в str2 должна быть строка вида x = y
     // Находим всё, что после знака =
-    if (str2.find("=") == string::npos) return false;
+    if (str2.find("=") == string::npos)
+        return false;
     str2 = str2.substr(str2.find("=") + 1, string::npos);
     Res->Assign(str2.c_str());
     Res->RestoreUnimplementedFunctions(Map);
@@ -447,8 +453,10 @@ void TSystemOfEquations::RemoveEquation(size_t EqNumber) {
 
 bool TSystemOfEquations::CheckAlwaysTrue(int EqNumber) {
     for (size_t m = 0; m < VarsCount(); m++)
-        if (Coefs[EqNumber][m] != TNumeric("0")) return false;
-    if (RightSide[EqNumber] != TNumeric("0")) return false;
+        if (Coefs[EqNumber][m] != TNumeric("0"))
+            return false;
+    if (RightSide[EqNumber] != TNumeric("0"))
+        return false;
     return true;
 }
 
@@ -460,7 +468,8 @@ bool TSystemOfEquations::CheckAlwaysFalse(int EqNumber) {
             LeftZero = false;
             break;
         }
-    if (RightSide[EqNumber] != TNumeric("0")) RightZero = false;
+    if (RightSide[EqNumber] != TNumeric("0"))
+        RightZero = false;
     if (!LeftZero)
         // в левой части не все коэффициенты равны нулю
         return false;
@@ -470,11 +479,13 @@ bool TSystemOfEquations::CheckAlwaysFalse(int EqNumber) {
 bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) {
     ExcludeSimilarEquations();
     if (ReadData() == false)
-        if (Writer) Writer->WriteError("Can not read coefficients");
+        if (Writer)
+            Writer->WriteError("Can not read coefficients");
 
     for (size_t n = 0; n < EqCount; n++) {
         if (CheckAlwaysFalse(n)) {
-            if (Writer) Writer->AddParagraph("Equation above is always false.", n + 1);
+            if (Writer)
+                Writer->AddParagraph("Equation above is always false.", n + 1);
             SolutionExists = false;
             return true;
         }
@@ -488,7 +499,8 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
                 PrintedForExcluding = true;
                 // if(Writer)Writer->WriteRectangleElement(Conditions); // todo: why Conditions is rectangle element?
             }
-            if (Writer) Writer->AddParagraph("Equation above is always true", n + 1);
+            if (Writer)
+                Writer->AddParagraph("Equation above is always true", n + 1);
             EquationsToExclude.push_back(n);
         };
     }
@@ -507,7 +519,8 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
         for (size_t i = 0; i < VarsCount(); i++) {
             *C.operands[1] = TNumeric(i + 1);
             Answer[i] = C;
-            if (Writer) Writer->AddFormula(MakeEquality(TNumeric(Variables[i]), Answer[i]));
+            if (Writer)
+                Writer->AddFormula(MakeEquality(TNumeric(Variables[i]), Answer[i]));
         };
         SolutionExists = true;
         return true;
@@ -596,7 +609,8 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
             }
         };
         if (Excluded == false) {
-            if (Writer) Writer->WriteError("Can not understand what can be done with first equation.");
+            if (Writer)
+                Writer->WriteError("Can not understand what can be done with first equation.");
             return false;
         } else
             return true;
@@ -641,7 +655,8 @@ void TSystemOfEquations::BeginAddEquations() {
 void TSystemOfEquations::EndAddEquations() {}
 
 bool TSystemOfEquations::AddEquation(const TNumeric& N) {
-    if (N.operation != OperatorEqual) return false;
+    if (N.operation != OperatorEqual)
+        return false;
     TNumeric Eq = *N.operands[0] - *N.operands[1];  // все переносим в левую часть
     vector<TNumeric> Coefs;
     vector<int> IDs;
@@ -661,7 +676,8 @@ bool TSystemOfEquations::AddEquation(const TNumeric& N) {
         TNumeric Eq1 = Eq;
         Eq1 = Eq1.Substitute(Variables[i].strval, TNumeric("1"));
         for (size_t j = 0; j < Variables.size(); j++) {
-            if (j != i) Eq1 = Eq1.Substitute(Variables[j].strval, TNumeric("0"));
+            if (j != i)
+                Eq1 = Eq1.Substitute(Variables[j].strval, TNumeric("0"));
         };
         Eq1 = Eq1 - FreeTerm;
         Eq1 = Eq1.Simplify();

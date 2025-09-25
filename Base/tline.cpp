@@ -93,9 +93,12 @@ int TPaintCanvas::TextDepth(string Text) {
 void TPaintCanvas::TightTextWHD(string Text, int* W, int* H, int* D) {
     QFontMetrics Metrics(Font);
     QRect R = Metrics.tightBoundingRect(QString::fromUtf8(Text.c_str()));
-    if (W) *W = abs(R.right());
-    if (H) *H = abs(R.top());
-    if (D) *D = abs(R.bottom());
+    if (W)
+        *W = abs(R.right());
+    if (H)
+        *H = abs(R.top());
+    if (D)
+        *D = abs(R.bottom());
 }
 
 int TPaintCanvas::TightTextWidth(string Text) {
@@ -144,7 +147,8 @@ int TPaintCanvas::SetTextHPlusD(string Text, int H, int D) {
             else
                 Min = Mid;
         };
-        if (L == H + D) break;
+        if (L == H + D)
+            break;
     }
     return H - NewH;
 }
@@ -305,7 +309,8 @@ int W, H, D;
 void TRectangleElement::Draw(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth) const {
     if (MaxWidth != -1) {
         MaxWidth -= PaddingLeft;
-        if (MaxWidth < 0) MaxWidth = -1;
+        if (MaxWidth < 0)
+            MaxWidth = -1;
     }
     X += PaddingLeft;
     DrawAtBaseLeft(Canvas, X, Y, MaxWidth);
@@ -367,11 +372,14 @@ Metrics TLine::GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWid
     Metrics res;
     for (size_t i = 0; i < size(); i++) {
         int MaxWidth2 = MaxWidth;
-        if (MaxWidth2 != -1) MaxWidth2 -= res.Width;
+        if (MaxWidth2 != -1)
+            MaxWidth2 -= res.Width;
         auto [W, H, D] = at(i)->GetTextRectangle(Canvas, MaxWidth2);
         res.Width += W;
-        if (res.Height < H) res.Height = H;
-        if (res.Depth < D) res.Depth = D;
+        if (res.Height < H)
+            res.Height = H;
+        if (res.Depth < D)
+            res.Depth = D;
     };
     res.Width += PaddingLeft;
     return res;
@@ -381,7 +389,8 @@ void TLine::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, i
     for (size_t i = 0; i < size(); i++) {
         auto [W, H, D] = at(i)->GetTextRectangle(Canvas, -1);
         int MaxWidth2 = MaxWidth;
-        if (MaxWidth2 != -1) MaxWidth2 -= X;
+        if (MaxWidth2 != -1)
+            MaxWidth2 -= X;
         at(i)->Draw(Canvas, X, Y, MaxWidth2);
         X += W;
     };
@@ -425,7 +434,8 @@ void TLines::GetXYSize(std::shared_ptr<TPaintCanvas> Canvas, int& XSize, int& YS
         auto [W, H, D] = at(i)->GetTextRectangle(Canvas, MaxWidth);
         YSize += H + D;
         YSize += InterlineDistance;
-        if (XSize < W) XSize = W;
+        if (XSize < W)
+            XSize = W;
     };
     XSize += PaddingLeft;
 }
@@ -501,7 +511,8 @@ Metrics TText::GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWid
             size_t split_pos = 0;
             for (size_t i = 0; i < EstimatedStr.length(); i++)
                 if (EstimatedStr[i] == ' ' || i == EstimatedStr.length() - 1) {
-                    if (Canvas->TextWidth(EstimatedStr.substr(0, i)) < MaxWidth || split_pos == 0) split_pos = i;
+                    if (Canvas->TextWidth(EstimatedStr.substr(0, i)) < MaxWidth || split_pos == 0)
+                        split_pos = i;
                 }
             string substr;
             if (split_pos == 0 || split_pos == EstimatedStr.length() - 1) {
@@ -514,7 +525,8 @@ Metrics TText::GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWid
             int H1, D1;
             H1 = Canvas->TextHeight(substr);
             D1 = Canvas->TextHeight(substr);
-            if (Canvas->TextWidth(substr) > Width) res.Width = Canvas->TextWidth(substr);
+            if (Canvas->TextWidth(substr) > Width)
+                res.Width = Canvas->TextWidth(substr);
             H += H1 + D1;
         };
         res.Height = H / 2;
@@ -540,7 +552,8 @@ void TText::DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, i
             size_t split_pos = 0;
             for (size_t i = 0; i < EstimatedStr.length(); i++)
                 if (EstimatedStr[i] == ' ' || i == EstimatedStr.length() - 1) {
-                    if (Canvas->TextWidth(EstimatedStr.substr(0, i)) < MaxWidth || split_pos == 0) split_pos = i;
+                    if (Canvas->TextWidth(EstimatedStr.substr(0, i)) < MaxWidth || split_pos == 0)
+                        split_pos = i;
                 }
             string substr;
             if (split_pos == 0 || split_pos == EstimatedStr.length() - 1) {

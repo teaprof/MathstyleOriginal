@@ -30,14 +30,19 @@ THTMLWriter::~THTMLWriter() {}
 
 bool THTMLWriter::BuildCSS(string filename) {
     ofstream f(filename.c_str(), ios::out | ios::trunc);
-    if (!f) return false;
+    if (!f)
+        return false;
     QString FontName = TextFont.family();
     QString Size;
-    if (TextFont.pixelSize() >= 0) Size = QString::number(TextFont.pixelSize()) + "px";
-    if (TextFont.pointSize() >= 0) Size = QString::number(TextFont.pointSize()) + "pt";
+    if (TextFont.pixelSize() >= 0)
+        Size = QString::number(TextFont.pixelSize()) + "px";
+    if (TextFont.pointSize() >= 0)
+        Size = QString::number(TextFont.pointSize()) + "pt";
     QString InterlineSpacing;
-    if (TextFont.pixelSize() >= 0) InterlineSpacing = QString::number(2.2 * TextFont.pixelSize()) + "px";
-    if (TextFont.pointSize() >= 0) InterlineSpacing = QString::number(2.2 * TextFont.pointSize()) + "pt";
+    if (TextFont.pixelSize() >= 0)
+        InterlineSpacing = QString::number(2.2 * TextFont.pixelSize()) + "px";
+    if (TextFont.pointSize() >= 0)
+        InterlineSpacing = QString::number(2.2 * TextFont.pointSize()) + "pt";
     QString Font = QString("font: normal ") + Size + "/" + InterlineSpacing + " " + FontName;
     string font = Font.toLocal8Bit().data();
     QString Color = QString("color: ") + TextColor.name();
@@ -59,9 +64,11 @@ bool THTMLWriter::BeginWrite(const char* filename) {
     Path = F.absoluteDir().path().toLocal8Bit().data();
     this->filename = F.fileName().toLocal8Bit().data();
     QDir Dir(F.absoluteDir());
-    if (Dir.exists() == false) Dir.mkpath(Dir.absolutePath());
+    if (Dir.exists() == false)
+        Dir.mkpath(Dir.absolutePath());
     QString CSSFileName = Dir.absolutePath() + "/style.css";
-    if (BuildCSS(CSSFileName.toLocal8Bit().data()) == false) return false;
+    if (BuildCSS(CSSFileName.toLocal8Bit().data()) == false)
+        return false;
 
     fout.clear();
     fout.open(filename, ios::out | ios::trunc);
@@ -148,12 +155,14 @@ void THTMLWriter::AddParagraph(std::string str, const vector<const void*>& P) {
     size_t count = 0;
     BeginParagraph();
     for (size_t curindex = 0; curindex < len; curindex++) {
-        if (str[curindex] == '\\') curindex++;
+        if (str[curindex] == '\\')
+            curindex++;
         if (str[curindex] == '%') {
             string SubStr = str.substr(startindex, curindex - startindex);
             fout << SubStr << endl;
             curindex++;
-            if (curindex >= len) break;
+            if (curindex >= len)
+                break;
             char code = str[curindex];
             if (P.size() <= count) {
                 cerr << "THTMLWriter::AddParagraph(string, vector): P.size() <= count, check format string, str = " << str
@@ -407,16 +416,19 @@ void THTMLWriter::PushTranslator(TMyTranslator* T) {
 }
 
 void THTMLWriter::PopTranslator() {
-    if (Translators.size() > 0) Translators.pop_back();
+    if (Translators.size() > 0)
+        Translators.pop_back();
 }
 string THTMLWriter::Translate(string Str) {
-    if (Translators.size() == 0) return Str;
+    if (Translators.size() == 0)
+        return Str;
     size_t i = Translators.size();
     string res;
     do {
         i--;
         res = Translators[i]->tr(Str);
-        if (Translators[i]->Status) return res;
+        if (Translators[i]->Status)
+            return res;
     } while (i > 0);
     return Str;
 }

@@ -18,7 +18,7 @@ class TSystemOfEquations : public TProblem {
     bool SolutionExists;         // истина, если решение существует
     vector<PNumeric> Variables;  // обозначения переменных
     vector<vector<int>> role;  // EqCount x (VarsCount+1) role[i][j] - идентификатор коэффициента в i-ом уравнении при j-ой
-                             // переменной; role[i][VarsCount+1] - идентификатор свободного члена
+                               // переменной; role[i][VarsCount+1] - идентификатор свободного члена
 
     TSystemOfEquations(size_t VarsCount = 3, size_t EqCount = 3);
     TSystemOfEquations(const TSystemOfEquations& E);
@@ -34,8 +34,8 @@ class TSystemOfEquations : public TProblem {
     virtual string GetShortTask();
     bool GetSystemSolution(
         std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    virtual bool
+        GetSolution(std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
 
     virtual string GetClassName() {
         return "TSystemOfEquations";

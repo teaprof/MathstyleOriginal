@@ -18,7 +18,8 @@ using namespace std;
 QFormulaArea::QFormulaArea(QWidget* parent) : QWidget(parent) {
     Formula = 0;
     setMouseTracking(true);
-    if (parent) parent->setEnabled(true);  // wtf?
+    if (parent)
+        parent->setEnabled(true);  // wtf?
     setEnabled(true);
 
     TextFont = QFont("Courier", 10);
@@ -62,16 +63,19 @@ void QFormulaArea::paintEvent(QPaintEvent* event) {
         EditableFormula->setCanvas(Canvas);
         auto [Width, Height, Depth] = EditableFormula->PrettyGetTextRectangle(Formula, false, false);
         int GeomWidth = Width + RightPadding;
-        if (GeomWidth < minimumWidth()) GeomWidth = minimumWidth();
+        if (GeomWidth < minimumWidth())
+            GeomWidth = minimumWidth();
         int GeomHeight = Height + Depth + br.bottom() + 20;
-        if (GeomHeight < minimumHeight()) GeomHeight = minimumHeight();
+        if (GeomHeight < minimumHeight())
+            GeomHeight = minimumHeight();
 
         painter.setFont(QFont("Sans", 14));
         painter.setPen(QPen(Qt::black));
         painter.drawText(QRect(X, Y, GeomWidth - 20, GeomHeight - 20), Qt::AlignJustify | Qt::TextWordWrap,
                          QString::fromUtf8(Task.c_str()), &br);
         GeomHeight = Height + Depth + br.bottom() + 20;
-        if (GeomHeight < minimumHeight()) GeomHeight = minimumHeight();
+        if (GeomHeight < minimumHeight())
+            GeomHeight = minimumHeight();
 
         if (GeomWidth != CurWidth || GeomHeight != CurHeight) {
             /*QRect R = Widget->geometry();
@@ -174,7 +178,8 @@ void QFormulaArea::SetUndoRedoEnabled() {
 }
 
 void QFormulaArea::Save() {
-    if (Formula == 0) return;
+    if (Formula == 0)
+        return;
     while (curSaved_idx + 1 < Saved.size() && Saved.size() > 0)
         Saved.erase(Saved.end() - 1);
     Saved.push_back(*Formula);
@@ -186,7 +191,8 @@ void QFormulaArea::Save() {
 }
 
 void QFormulaArea::Undo() {
-    if (Formula == 0) return;
+    if (Formula == 0)
+        return;
     DebugPrintBuffer();
     if (curSaved_idx == 0)
         // достигли последнего сохраненного элемента
@@ -199,7 +205,8 @@ void QFormulaArea::Undo() {
 }
 
 void QFormulaArea::Redo() {
-    if (Formula == 0) return;
+    if (Formula == 0)
+        return;
     DebugPrintBuffer();
     if (curSaved_idx == Saved.size() - 1)
     // нельзя сделать Redo
@@ -734,8 +741,8 @@ QFormulaEditor::~QFormulaEditor() {
     delete BSimplify;*/
 }
 
-QToolButton* QFormulaEditor::RegisterButton(
-    const char* Img, QString ToolTip, QWidget* Parent, int Col, int Row, const char* Slot) {
+QToolButton*
+    QFormulaEditor::RegisterButton(const char* Img, QString ToolTip, QWidget* Parent, int Col, int Row, const char* Slot) {
     QIcon* Icon = new QIcon(Img);
     QToolButton* B = new QToolButton(Parent);
     SetPos(B, Col, Row);

@@ -16,10 +16,14 @@ TNumeric TRandomFunction::RandomFunction(int Flags, int Level, std::mt19937& rng
         Operators.push_back(OperatorArccos);
         Operators.push_back(OperatorArctg);
     };
-    if (Flags & AllowLnFunction) Operators.push_back(OperatorLn);
-    if (Flags & AllowExpFunction) Operators.push_back(OperatorExp);
-    if (Flags & AllowFracFunction) Operators.push_back(OperatorFrac);
-    if (Flags & AllowSum) Operators.push_back(OperatorSum);
+    if (Flags & AllowLnFunction)
+        Operators.push_back(OperatorLn);
+    if (Flags & AllowExpFunction)
+        Operators.push_back(OperatorExp);
+    if (Flags & AllowFracFunction)
+        Operators.push_back(OperatorFrac);
+    if (Flags & AllowSum)
+        Operators.push_back(OperatorSum);
     if (Operators.size() == 0) {
         return TNumeric("x");  // Only const is allowed
     }

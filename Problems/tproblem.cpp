@@ -30,7 +30,8 @@ TProblem& TProblem::operator=(const TProblem& other) {
 }
 
 void TProblem::BuildPhrases() {
-    if (MyTranslator.CheckDictionary("TProblem")) return;
+    if (MyTranslator.CheckDictionary("TProblem"))
+        return;
     MyTranslator.AddDictionary("TProblem");
     MyTranslator.AddEng("Solution");
     MyTranslator.AddRus("Решение");
@@ -93,7 +94,8 @@ TSimplifyProblem::TSimplifyProblem() : TProblem() {
 }
 
 void TSimplifyProblem::BuildPhrases() {
-    if (MyTranslator.CheckDictionary("TSimplifyProblem")) return;
+    if (MyTranslator.CheckDictionary("TSimplifyProblem"))
+        return;
     MyTranslator.AddDictionary("TSimplifyProblem");
     MyTranslator.AddEng("Answer: %N");
     MyTranslator.AddRus("Ответ: %N");
@@ -119,7 +121,8 @@ std::vector<std::shared_ptr<TNumeric>> TSimplifyProblem::getEditables() {
 
 bool TSimplifyProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TNumeric XSimplified = Conditions->Simplify();
-    if (Writer) Writer->AddParagraph("Answer: %N", XSimplified);
+    if (Writer)
+        Writer->AddParagraph("Answer: %N", XSimplified);
     return true;
 }
 

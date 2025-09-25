@@ -80,8 +80,8 @@ class TSimplifyProblem : public TProblem {
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    virtual bool
+        GetSolution(std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
     virtual std::vector<std::shared_ptr<TNumeric>> getEditables();
 
     virtual string GetClassName() {

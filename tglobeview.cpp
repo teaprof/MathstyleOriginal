@@ -62,7 +62,8 @@ void TGlobeView::paintEvent(QPaintEvent* event) {
     QPainter Painter(this);
     Painter.setBrush(QBrush(Qt::darkGreen));
     QSize Size = this->size();
-    if (Size.width() == 0 || Size.height() == 0) return;
+    if (Size.width() == 0 || Size.height() == 0)
+        return;
     QRect Rect(0, 0, Size.width() - 1, Size.height() - 1);
     Painter.drawRect(Rect);
 
@@ -78,7 +79,8 @@ void TGlobeView::paintEvent(QPaintEvent* event) {
         Coords[i].gx = Center.x() + Coords[i].x * Rect.width() / 2;
         Coords[i].gy = Center.y() + Coords[i].y * Rect.height() / 2;
         Coords[i].FontHeight = (Coords[i].z * 4.0L + 12.0L);
-        if (Coords[i].FontHeight <= 0) Coords[i].FontHeight = 1;
+        if (Coords[i].FontHeight <= 0)
+            Coords[i].FontHeight = 1;
 
         QFont F = Painter.font();
         F.setPixelSize(Coords[i].FontHeight);
@@ -119,7 +121,8 @@ void TGlobeView::mousePressEvent(QMouseEvent* event) {
     old_mouse_x = event->position().x();
     old_mouse_y = event->position().y();
     int Index = GetItemUnderMouse();
-    if (Index < Words.size()) emit Picked(Words[Index]);
+    if (Index < Words.size())
+        emit Picked(Words[Index]);
 }
 
 int TGlobeView::GetItemUnderMouse() {

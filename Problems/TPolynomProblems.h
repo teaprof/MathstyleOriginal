@@ -34,7 +34,6 @@ class TPolynomConditions : public TProblem {
         return {};
     }
 
-
     // Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут
     // отброшены
     virtual void SetLeftPartP(const TPolynom& P, bool AllCoef = true);
@@ -60,43 +59,47 @@ class TPolynomConditions : public TProblem {
 };
 
 class TPolynomialEquality : public TPolynomConditions, public TEquality {
-    bool CheckRationalAndGetNOK(
-        std::shared_ptr<THTMLWriter> Writer,
-        const TPolynom& P,
-        int& NOK);  // проверяет, чтобы все коэффициенты в многочлене были рациональными и вычисляет НОК знаменателей
-    bool GetIntCoefs(std::shared_ptr<THTMLWriter> Writer,
-                     int NOK,
-                     const TPolynom& P,
-                     vector<int>& IntCoefs);  // умножает все коэффициенты многочлена на NOK, после чего они должны стать целыми,
-                                              // и записывает их в IntCoefs
-    int TakeOutCommonMultiplicator(std::shared_ptr<THTMLWriter> Writer, vector<int>& Coefs);  // выносит общий множитель
-    bool TakeOutXk(std::shared_ptr<THTMLWriter> Writer, vector<int>& Coefs);  // выносит общий множитель вида x^k
-    bool SearchRationalRoots(std::shared_ptr<THTMLWriter> Writer,
-                             vector<int>& Coefs,
-                             TPolynom& PRemaining);  // ищет корни среди рациональных корней
-    // PRemaining - оставшийся многочлен после выноса рациональных корней
+    /// проверяет, чтобы все коэффициенты в многочлене были рациональными и вычисляет НОК знаменателей
+    bool CheckRationalAndGetNOK(std::shared_ptr<THTMLWriter> Writer, const TPolynom& P, int& NOK);
+    /// умножает все коэффициенты многочлена на NOK, после чего они должны стать целыми, и записывает их в IntCoefs
+    bool GetIntCoefs(std::shared_ptr<THTMLWriter> Writer, int NOK, const TPolynom& P, vector<int>& IntCoefs);
+    /// выносит общий множитель
+    int factorOutCommonMultiplicator(std::shared_ptr<THTMLWriter> Writer, vector<int>& Coefs);
+    /// выносит общий множитель вида x^k
+    bool factorOutXk(std::shared_ptr<THTMLWriter> Writer, vector<int>& Coefs);
+    /// ищет корни среди рациональных корней
+    /// PRemaining - оставшийся многочлен после выноса рациональных корней
+    bool SearchRationalRoots(std::shared_ptr<THTMLWriter> Writer, vector<int>& Coefs, TPolynom& PRemaining);
 
-    bool AnalyzePRemaining(std::shared_ptr<THTMLWriter> Writer,
-                           const TPolynom& PRemaining);  // пытается что-то еще сделать с оставшимся многочленом
+    /// пытается что-то еще сделать с оставшимся многочленом
+    bool AnalyzePRemaining(std::shared_ptr<THTMLWriter> Writer, const TPolynom& PRemaining);
 
   public:
     // Эти данные относятся к решению, их в файл можно не сохранять
-    bool AllRootsFound;  // истина, если найдены все корни
-    bool Degenerate;  // истина, если многочлен вырожденный (0x^n+0x^(n-1)+...+0x+a = b). В этом случае решений или нет (a!=b),
-                      // или решение - любое число.
-    // Эти поля имеют смысл только если Degenerate == false
+    /// истина, если найдены все корни
+    bool AllRootsFound;
+    /// истина, если многочлен вырожденный (0x^n+0x^(n-1)+...+0x+a = b). В этом случае решений или нет (a!=b), или решение - любое
+    /// число.
+    bool Degenerate;
+    // Эти поля имеют смысл только если Degenerate == false:
     TNumeric LinearMultiplier;
-    vector<TNumeric> Roots;  // корни (соответствуют множителям в разложении многочлена вида x-x_0
-    vector<size_t> RootsMultiplicity;  // кратность корней
-    vector<TPolynom>
-        SquareMods;  // квадратичные остатки (содержащие пару комплексных сопряженных корней) (множители вида ax^2+bx+c)
-    vector<size_t> SquareModsMultiplicity;  // кратность
+    // корни (соответствуют множителям в разложении многочлена вида x-x_0
+    vector<TNumeric> Roots;
+    // кратность корней
+    vector<size_t> RootsMultiplicity;
 
-    vector<TPolynom> Multiplicators;  // множители, на которые разложился многочлен (todo: в порядке возрастания их степени);
-                                      // кратность записывается в MMultiplicity
-    vector<size_t> MMultiplicity;     // кратность множителей
+    // квадратичные остатки (содержащие пару комплексных сопряженных корней) (множители вида ax^2+bx+c)
+    vector<TPolynom> SquareMods;
+    // кратность
+    vector<size_t> SquareModsMultiplicity;
 
-    void SortRoots();  // сортирует Roots совместно с RootsMultiplicity
+    // множители, на которые разложился многочлен (todo: в порядке возрастания их степени); кратность записывается в MMultiplicity
+    vector<TPolynom> Multiplicators;
+    // кратность множителей
+    std::vector<size_t> MMultiplicity;
+
+    // сортирует Roots совместно с RootsMultiplicity
+    void SortRoots();
 
     TPolynomialEquality(size_t MaxPower = 6);
     TPolynomialEquality(const TPolynom& P, bool AllCoef = true);
@@ -137,8 +140,8 @@ class TLinearEquality :
     virtual void SetLeftPartP(const TPolynom& P, bool unused_flag = false);
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    /// возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
     virtual void BuildPhrases();
 
     virtual string GetClassName() {
@@ -155,7 +158,8 @@ class TSquareEquality :
 {
   public:
     TSquareEquality();
-    TSquareEquality(TPolynom P);  // полином должен быть квадратным, иначе будет исключение
+    /// полином должен быть квадратным, иначе будет исключение
+    TSquareEquality(TPolynom P);
     ~TSquareEquality();
     virtual void SetLeftPartP(const TPolynom& P, bool unused_flag = false);
     virtual string GetTask();
@@ -177,8 +181,10 @@ class TSquareEquality :
 
 class TPolynomialInequality : public TPolynomConditions, public TInequality {
   public:
-    bool Less;    // Depends on conditions: true, if ax^2 + bx + c < 0; false if ax^2 + bx + c > 0
-    bool Strict;  // true if inequality is strict
+    // Depends on conditions: true, if ax^2 + bx + c < 0; false if ax^2 + bx + c > 0
+    bool Less;
+    /// true if inequality is strict
+    bool Strict;
     bool SetType(bool Less, bool Strict);
 
     TPolynomialInequality(size_t MaxPower = 6, bool Less = true, bool Strict = true);
@@ -188,8 +194,8 @@ class TPolynomialInequality : public TPolynomConditions, public TInequality {
     virtual string GetShortTask();
     virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
 
-    virtual std::vector<std::shared_ptr<TNumeric>> GetTypes(
-        std::shared_ptr<const TNumeric> N);  // выдаёт все возможные типы задачи
+    virtual std::vector<std::shared_ptr<TNumeric>>
+        GetTypes(std::shared_ptr<const TNumeric> N);  // выдаёт все возможные типы задачи
     virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type);
 
     virtual string GetClassName() {
@@ -209,10 +215,8 @@ class TLinearInequality : public TPolynomialInequality {
 
   public:
     TLinearInequality(bool Less = true, bool Strict = true);
-    TLinearInequality(
-        const TLinearInequality* L,
-        bool Less = true,
-        bool Strict = true);  // коэффициенты будут такие же, как в L, а знак неравенства будет определятся флагами Less и Strict
+    /// коэффициенты будут такие же, как в L, а знак неравенства будет определятся флагами Less и Strict
+    TLinearInequality(const TLinearInequality* L, bool Less = true, bool Strict = true);
     ~TLinearInequality();
     virtual string GetTask();
     virtual string GetShortTask();
@@ -230,10 +234,8 @@ class TSquareInequality : public TPolynomialInequality {
   public:
     TSquareInequality(bool Less = true, bool Strict = true);
     ~TSquareInequality();
-    TSquareInequality(
-        const TSquareInequality* L,
-        bool Less = true,
-        bool Strict = true);  // коэффициенты будут такие же, как в L, а знак неравенства будет определятся флагами Less и Strict
+    /// коэффициенты будут такие же, как в L, а знак неравенства будет определятся флагами Less и Strict
+    TSquareInequality(const TSquareInequality* L, bool Less = true, bool Strict = true);
     virtual string GetTask();
     virtual string GetShortTask();
     bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
@@ -259,19 +261,11 @@ class TSetOfInequalities : public TProblem, public TInequality {
     virtual string GetTask();
     virtual string GetShortTask();
     virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);
-    virtual vector<std::shared_ptr<TNumeric>> GetTypes(
-        std::shared_ptr<const TNumeric> N);  // выдаёт все возможные типы задачи, когда кликается по объекту N
+    /// выдаёт все возможные типы задачи, когда кликается по объекту N
+    virtual vector<std::shared_ptr<TNumeric>> GetTypes(std::shared_ptr<const TNumeric> N);
     virtual void SetType(std::shared_ptr<TNumeric> N, size_t Type);
-    virtual void SaveToFile(ofstream& f) {
-        this->Conditions->SaveToFile(f);
-        /*        FirstInequality.SaveToFile(f);
-                SecondInequality.SaveToFile(f);*/
-    }
-    virtual void LoadFromFile(ifstream& f) {
-        this->Conditions->LoadFromFile(f);
-        /*        FirstInequality.LoadFromFile(f);
-                SecondInequality.LoadFromFile(f);*/
-    }
+    virtual void SaveToFile(ofstream& f);
+    virtual void LoadFromFile(ifstream& f);
     virtual void BuildPhrases();
     virtual string GetClassName() {
         return ClassName;
@@ -299,183 +293,7 @@ class TSystemOfInequalities : public TSetOfInequalities<TInequalityClass, ClassN
     };
     virtual void BuildPhrases();
     virtual vector<string> GetKeyWords();
-
-    //    void Randomize(std::mt19937& rng);
 };
-
-template<class TInequalityClass, const char* ClassName>
-TSetOfInequalities<TInequalityClass, ClassName>::TSetOfInequalities() {
-    this->Conditions = std::make_shared<TNumeric>();
-    this->Conditions->operation = OperatorEqSet;
-    this->Conditions->OperandsPushback(*(FirstInequality.Conditions));
-    this->Conditions->OperandsPushback(*(SecondInequality.Conditions));
-    // this->Solution = 0;
-    CanRandomize = true;
-    BuildPhrases();
-}
-
-template<class TInequalityClass, const char* ClassName>
-TSetOfInequalities<TInequalityClass, ClassName>::~TSetOfInequalities() {}
-
-template<class TInequalityClass, const char* ClassName>
-string TSetOfInequalities<TInequalityClass, ClassName>::GetTask() {
-    return MyTranslator.tr("Solve set of inequalities");
-}
-
-template<class TInequalityClass, const char* ClassName>
-string TSetOfInequalities<TInequalityClass, ClassName>::GetShortTask() {
-    return MyTranslator.tr("set of inequalities");
-}
-
-template<class TInequalityClass, const char* ClassName>
-void TSetOfInequalities<TInequalityClass, ClassName>::BuildPhrases() {
-    if (MyTranslator.CheckDictionary("TSetOfInequalities")) return;
-    MyTranslator.AddDictionary("TSetOfInequalities");
-    MyTranslator.AddEng("Solving first inequality");
-    MyTranslator.AddRus("Решаем первое неравенство");
-    MyTranslator.AddEng("Solving second inequality");
-    MyTranslator.AddRus("Решаем второе неравенство");
-    MyTranslator.AddEng("Common solution:");
-    MyTranslator.AddRus("Общее решение");
-
-    MyTranslator.AddEng("Solve set of inequalities");
-    MyTranslator.AddRus("Решить совокупность неравенств");
-    MyTranslator.AddEng("set of inequalities");
-    MyTranslator.AddRus("совокупность неравенств");
-}
-
-template<class TInequalityClass, const char* ClassName>
-vector<string> TSetOfInequalities<TInequalityClass, ClassName>::GetKeyWords() {
-    if (MyTranslator.CheckDictionary("TSetOfInequalitiesKeywords") == false) {
-        MyTranslator.AddDictionary("TSetOfInequalitiesKeywords");
-        MyTranslator.AddEng("set");
-        MyTranslator.AddRus("совокупность");
-        MyTranslator.AddEng("inequality");
-        MyTranslator.AddRus("неравенство");
-    }
-    vector<string> Res;
-    Res.push_back(MyTranslator.tr("set"));
-    Res.push_back(MyTranslator.tr("inequality"));
-    return Res;
-}
-
-template<class TInequalityClass, const char* ClassName>
-bool TSetOfInequalities<TInequalityClass, ClassName>::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
-    FirstInequality.Conditions = std::make_shared<TNumeric>(*(this->Conditions->operands[0]));
-    if (Writer) Writer->AddParagraph("Solving first inequality");
-    if (Writer) Writer->IncrementNestingLevel();
-    bool res1 = this->FirstInequality.GetSolution(Writer);
-    if (Writer) Writer->DecrementNestingLevel();
-    if (res1 == false) return false;
-
-    SecondInequality.Conditions = std::make_shared<TNumeric>(*(this->Conditions->operands[1]));
-    if (Writer) Writer->AddParagraph("Solving second inequality");
-    if (Writer) Writer->IncrementNestingLevel();
-    bool res2 = this->SecondInequality.GetSolution(Writer);
-    if (Writer) Writer->DecrementNestingLevel();
-    if (res2 == false) return false;
-
-    if (Writer) Writer->AddParagraph("Common solution:");
-    TIntervalsSet Res;
-    Res = this->FirstInequality.Result + this->SecondInequality.Result;
-    if (Writer) Writer->AddFormula(MakeBelongsTo(TNumeric("x"), Res.asNumeric()));
-
-    TInequality::Result = Res;
-    return true;
-}
-
-template<class TInequalityClass, const char* ClassName>
-vector<std::shared_ptr<TNumeric>> TSetOfInequalities<TInequalityClass, ClassName>::GetTypes(std::shared_ptr<const TNumeric> N) {
-    vector<std::shared_ptr<TNumeric>> Res;
-    if (*N == *this->Conditions->operands[0]) {
-        FirstInequality.Conditions = std::make_shared<TNumeric>(*N);
-        Res = FirstInequality.GetTypes(FirstInequality.Conditions);
-    };
-    if (*N == *this->Conditions->operands[1]) {
-        SecondInequality.Conditions = std::make_shared<TNumeric>(*N);
-        Res = SecondInequality.GetTypes(SecondInequality.Conditions);
-    }
-    return Res;
-}
-
-template<class TInequalityClass, const char* ClassName>
-void TSetOfInequalities<TInequalityClass, ClassName>::SetType(std::shared_ptr<TNumeric> N, size_t Type) {
-    if (*N == *Conditions->operands[0]) {
-        FirstInequality.SetType(FirstInequality.Conditions, Type);
-        Conditions->operands[0] = std::make_shared<TNumeric>(*FirstInequality.Conditions);
-    };
-    if (*N == *this->Conditions->operands[1]) {
-        SecondInequality.SetType(SecondInequality.Conditions, Type);
-        Conditions->operands[1] = std::make_shared<TNumeric>(*SecondInequality.Conditions);
-    }
-}
-
-template<class TInequalityClass, const char* ClassName>
-void TSetOfInequalities<TInequalityClass, ClassName>::Randomize(std::mt19937& rng) {
-    if (FirstInequality.CanRandomize) FirstInequality.Randomize(rng);
-    if (SecondInequality.CanRandomize) SecondInequality.Randomize(rng);
-    this->Conditions->operation = OperatorEqSet;
-    this->Conditions->OperandsClear();
-    this->Conditions->OperandsPushback(*(FirstInequality.Conditions));
-    this->Conditions->OperandsPushback(*(SecondInequality.Conditions));
-}
-
-template<class TInequalityClass, const char* ClassName>
-TSystemOfInequalities<TInequalityClass, ClassName>::TSystemOfInequalities() : TSetOfInequalities<TInequalityClass, ClassName>() {
-    this->Conditions->operation = OperatorEqSystem;
-    BuildPhrases();
-};
-
-template<class TInequalityClass, const char* ClassName>
-bool TSystemOfInequalities<TInequalityClass, ClassName>::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
-    this->FirstInequality.Conditions = std::make_shared<TNumeric>(*(this->Conditions->operands[0]));
-    if (Writer) Writer->AddParagraph("Solving first inequality");
-    if (Writer) Writer->IncrementNestingLevel();
-    bool res1 = this->FirstInequality.GetSolution(Writer);
-    if (Writer) Writer->DecrementNestingLevel();
-    if (res1 == false) return false;
-
-    this->SecondInequality.Conditions = std::make_shared<TNumeric>(*(this->Conditions->operands[1]));
-    if (Writer) Writer->AddParagraph("Solving second inequality");
-    if (Writer) Writer->IncrementNestingLevel();
-    bool res2 = this->SecondInequality.GetSolution(Writer);
-    if (Writer) Writer->DecrementNestingLevel();
-    if (res2 == false) return false;
-
-    if (Writer) Writer->AddParagraph("Common solution:");
-    TIntervalsSet Res;
-    Res = this->FirstInequality.Result * this->SecondInequality.Result;
-    if (Writer) Writer->AddFormula(MakeBelongsTo(TNumeric("x"), Res.asNumeric()));
-
-    ((TInequality*)this)->Result = Res;
-    return true;
-}
-
-template<class TInequalityClass, const char* ClassName>
-void TSystemOfInequalities<TInequalityClass, ClassName>::BuildPhrases() {
-    if (MyTranslator.CheckDictionary("TSystemOfInequalities")) return;
-    MyTranslator.AddDictionary("TSystemOfInequalities");
-
-    MyTranslator.AddEng("Solve system of inequalities");
-    MyTranslator.AddRus("Решить систему неравенств");
-    MyTranslator.AddEng("system of inequalities");
-    MyTranslator.AddRus("система неравенств");
-}
-
-template<class TInequalityClass, const char* ClassName>
-vector<string> TSystemOfInequalities<TInequalityClass, ClassName>::GetKeyWords() {
-    if (MyTranslator.CheckDictionary("TSystemOfInequalitiesKeywords") == false) {
-        MyTranslator.AddDictionary("TSystemOfInequalitiesKeywords");
-        MyTranslator.AddEng("system");
-        MyTranslator.AddRus("система");
-        MyTranslator.AddEng("inequality");
-        MyTranslator.AddRus("неравенство");
-    }
-    vector<string> Res;
-    Res.push_back(MyTranslator.tr("system"));
-    Res.push_back(MyTranslator.tr("inequality"));
-    return Res;
-}
 
 extern const char TSetOfLinearInequalitiesStr[];
 extern const char TSystemOfLinearInequalitiesStr[];
@@ -512,7 +330,7 @@ class TRationalFunctionConditions : public TProblem {
         return MaxPowerDenominator + MaxPowerNumerator + 2;
     };
     bool HaveRightPart;  // истина, если необходимо добавлять в Conditions правую часть
-    // void Assign(const TRationalFunctionConditions& R);
+                         // void Assign(const TRationalFunctionConditions& R);
   public:
     TNumeric UnknownVar;  // обозначение неизвестной переменной
     Operation operation;

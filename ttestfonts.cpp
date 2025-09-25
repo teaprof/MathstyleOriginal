@@ -74,7 +74,8 @@ void TTestFonts::NumericOnCanvas(std::shared_ptr<TPaintCanvas> Canvas) {
 }
 
 void TTestFonts::DrawScene() {
-    if (ui->graphicsView->scene()) ui->graphicsView->scene()->clear();
+    if (ui->graphicsView->scene())
+        ui->graphicsView->scene()->clear();
     QGraphicsScene* Scene = new QGraphicsScene(ui->graphicsView);
     auto Canvas = std::make_shared<TPaintCanvas>(Scene);
 
@@ -91,7 +92,8 @@ void TTestFonts::DrawScene() {
     ui->graphicsView->setScene(Scene);
 }
 void TTestFonts::DrawScene_2() {
-    if (ui->graphicsView_2->scene()) ui->graphicsView_2->scene()->clear();
+    if (ui->graphicsView_2->scene())
+        ui->graphicsView_2->scene()->clear();
     QGraphicsScene* Scene = new QGraphicsScene(ui->graphicsView_2);
     auto Canvas = std::make_shared<TPaintCanvas>(Scene);
 

@@ -29,13 +29,15 @@ TPowerProblemConditions::TPowerProblemConditions(size_t MaxPower) {
 TPowerProblemConditions::~TPowerProblemConditions() {}
 std::shared_ptr<TNumeric> TPowerProblemConditions::GetLeftBase() {
     PNumeric N = Conditions->GetByRole(LeftBaseID);
-    if (N != nullptr) return N;
+    if (N != nullptr)
+        return N;
     return nullptr;
 }
 
 std::shared_ptr<TNumeric> TPowerProblemConditions::GetRightBase() {
     auto N = Conditions->GetByRole(RightBaseID);
-    if (N != nullptr) return N;
+    if (N != nullptr)
+        return N;
     return nullptr;
 }
 
@@ -127,7 +129,8 @@ TPowerEquality::TPowerEquality(size_t MaxPower) : TPowerProblemConditions(MaxPow
 TPowerEquality::~TPowerEquality() {}
 
 void TPowerEquality::BuildPhrases() {
-    if (MyTranslator.CheckDictionary(GetClassName())) return;
+    if (MyTranslator.CheckDictionary(GetClassName()))
+        return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Base of power function should be positive.");
     MyTranslator.AddRus("Основание степенной функции должно быть положительным");
@@ -170,16 +173,20 @@ bool TPowerEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TNumeric A = *GetLeftBase();
     TNumeric B = *GetRightBase();
     if (A.Calculate() < 0 || B.Calculate() < 0) {
-        if (Writer) Writer->WriteError("Base of power function should be positive.");
+        if (Writer)
+            Writer->WriteError("Base of power function should be positive.");
         return false;
     }
-    if (Writer) Writer->AddParagraph("Finding logarithm of left and right parts.");
-    if (Writer) Writer->AddFormula(MakeEquality(MakeProd(L.asNumeric(), MakeLn(A)), MakeProd(R.asNumeric(), MakeLn(B))));
+    if (Writer)
+        Writer->AddParagraph("Finding logarithm of left and right parts.");
+    if (Writer)
+        Writer->AddFormula(MakeEquality(MakeProd(L.asNumeric(), MakeLn(A)), MakeProd(R.asNumeric(), MakeLn(B))));
     if (A.Calculate() == 1) {
         if (B.Calculate() == 1) {
             // Случай L*0 = R*0, решение - любое число
             Result.Intervals.push_back(IntervalAllRealNumbers);
-            if (Writer) Writer->AddFormula(MakeBelongsTo(TNumeric("x"), NumericAllReal));
+            if (Writer)
+                Writer->AddFormula(MakeBelongsTo(TNumeric("x"), NumericAllReal));
         } else {
             // Случай L*0 = R*lnB
             TPolynomialEquality PE(R, false);
@@ -205,7 +212,8 @@ bool TPowerEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
             CoefSimplified = TNumeric(1);
             CoefSimplified = Coef;
             TPolynom PP(L - R * CoefSimplified);
-            if (Writer) Writer->AddFormula(MakeEquality(PP.asNumeric(), TNumeric(0)));
+            if (Writer)
+                Writer->AddFormula(MakeEquality(PP.asNumeric(), TNumeric(0)));
             TPolynomialEquality PE(PP);
             if (PE.GetSolution(Writer)) {
                 Result = PE.Result;
