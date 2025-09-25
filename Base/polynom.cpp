@@ -232,6 +232,12 @@ TPolynom TPolynom::Div(const TPolynom& P, TPolynom* Remainder) const {
         /// \todo: maybe simply return empty Res?
         Res.push_back(TNumeric::create(0));
     }
+    if(Remainder)
+    {        
+        *Remainder = TPolynom(Numerator);
+        // all these coefs are zeros
+        Remainder->Coef.erase(Remainder->Coef.begin()+MajorPowerNumerator + 1, Remainder->Coef.end());
+    };
     for (auto& it : Res) {
         if (it == nullptr) {
             it = TNumeric::create(0);

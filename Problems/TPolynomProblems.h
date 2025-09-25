@@ -12,37 +12,41 @@ extern TInterval IntervalAllRealNumbers;
 extern TNumeric NumPhi;
 
 class TPolynomConditions : public TProblem {
-    int RightPartID;     // вычисляется как MaxPower+1
-    bool HaveRightPart;  // истина, если необходимо добавлять в Conditions правую часть
+    /// истина, если необходимо добавлять в Conditions правую часть
+    bool HaveRightPart; /// \todo: remove?
   public:
-    TNumeric UnknownVar;  // обозначение неизвестной переменной
+    static constexpr int RightPartID = 100000;
+    static constexpr int RolePowerBegin = 0;
+
+    /// обозначение неизвестной переменной
+    TNumeric UnknownVar;      
     size_t MaxPower;
     TPolynomConditions(size_t MaxPower = 8, bool HaveRightPart = true, Operation operation = OperatorEqual);
-    // Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут
-    // отброшены
+    // Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MaxPower будут отброшены
     TPolynomConditions(const TPolynom& P, bool HaveRightPart = true, Operation operation = OperatorEqual, bool AllCoef = true);
     ~TPolynomConditions();
 
-    vector<TNumeric> GetCoef() const;
-    TPolynom GetP() const;  // rename to getPolynom
-    PNumeric GetCoefP(size_t power);
-    const PNumeric GetCoef(size_t power) const;
-    PNumeric GetRightPartP();
+    std::vector<std::shared_ptr<const TNumeric>> GetCoef() const;
+    std::vector<std::shared_ptr<TNumeric>> GetCoef();
+    TPolynom asPolynom() const;
+    std::shared_ptr<TNumeric>& GetCoefP(size_t power);
+    std::shared_ptr<const TNumeric> GetCoefP(size_t power) const;
+    std::shared_ptr<TNumeric>& GetRightPartP();
     TNumeric GetRightPart() const;
 
     std::vector<std::shared_ptr<TNumeric>> getEditables() {
         return {};
     }
 
-    // Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут
-    // отброшены
+    // Обновляет this->conditions. Если AllCoef = true, то будут учитываться все коэфициенты,
+    // если false - то нулевые коэфициенты старше MaxPower будут отброшены.
     virtual void SetLeftPartP(const TPolynom& P, bool AllCoef = true);
-    // sets left part to ax+b
+    // ets left part to ax+b and update this->conditions
     virtual void SetLeftPart(const TNumeric& a, const TNumeric& b);
-    // sets left part to ax^2+bx+c
+    // set left part to ax^2+bx+c and update this->conditions
     virtual void SetLeftPart(const TNumeric& a, const TNumeric& b, const TNumeric& c);
     // устанавливает максимальную степень многочлена MaxPower
-    virtual void SetMaxPower(size_t MaxPower, Operation operation);
+    virtual void SetMaxPower(size_t MaxPower, Operation comparison_operation);
 
     void SetRightPart(const TNumeric& N);
 
@@ -53,7 +57,7 @@ class TPolynomConditions : public TProblem {
     virtual void LoadFromFile(ifstream& f);
 
     // возвращает UnknownVar^power
-    TNumeric GetVarPower(size_t power);
+    TNumeric GetVarPower(size_t power);    
 
     void Randomize(std::mt19937& rng);
 };
@@ -82,9 +86,9 @@ class TPolynomialEquality : public TPolynomConditions, public TEquality {
     /// число.
     bool Degenerate;
     // Эти поля имеют смысл только если Degenerate == false:
-    TNumeric LinearMultiplier;
+    PNumeric LinearMultiplier;
     // корни (соответствуют множителям в разложении многочлена вида x-x_0
-    vector<TNumeric> Roots;
+    vector<PNumeric> Roots;
     // кратность корней
     vector<size_t> RootsMultiplicity;
 
@@ -331,6 +335,8 @@ class TRationalFunctionConditions : public TProblem {
     };
     bool HaveRightPart;  // истина, если необходимо добавлять в Conditions правую часть
                          // void Assign(const TRationalFunctionConditions& R);
+
+    TNumeric GetVarPower(size_t power);
   public:
     TNumeric UnknownVar;  // обозначение неизвестной переменной
     Operation operation;
@@ -343,22 +349,21 @@ class TRationalFunctionConditions : public TProblem {
 
     // void operation=(const TRationalFunctionConditions& R);
 
-    TNumeric* GetNumerator();
-    TNumeric* GetDenominator();
+    PNumeric GetNumerator();
+    PNumeric GetDenominator();
 
     TPolynom GetNumeratorP();
     TPolynom GetDenominatorP();
 
     TNumeric& GetRightPartP();
     TNumeric GetRightPart() const;
-    void SetRightPart(const TNumeric& R);
+    void SetRightPart(std::shared_ptr<TNumeric> R);
 
-    void SetNumerator(const TPolynom& P,
-                      bool AllCoef = true);  // Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые
-                                             // коэфициенты старше MajorPower будут отброшены
-    void SetDenominator(const TPolynom& P,
-                        bool AllCoef = true);  // Если AllCoef = true, то будут учитываться все коэфициенты, если false - то
-                                               // нулевые коэфициенты старше MajorPower будут отброшены
+    /// Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
+    void SetNumerator(const TPolynom& P, bool AllCoef = true);  
+    
+    // Если AllCoef = true, то будут учитываться все коэфициенты, если false - то нулевые коэфициенты старше MajorPower будут отброшены
+    void SetDenominator(const TPolynom& P, bool AllCoef = true);  
 
     size_t GetNumeratorCoefID(size_t power);
     size_t GetDenominatorCoefID(size_t power);

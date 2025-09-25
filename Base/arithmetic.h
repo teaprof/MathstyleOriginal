@@ -114,7 +114,7 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
     Operation operation;
     /// операнды
     vector<std::shared_ptr<const TNumeric>> operands;
-    std::shared_ptr<TNumeric> at(size_t index) {
+    std::shared_ptr<TNumeric> at(size_t index) const {
         return std::const_pointer_cast<TNumeric>(operands[index]);
     }
 
@@ -197,6 +197,7 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
 
     bool hasRole(int role) const;
     std::shared_ptr<const TNumeric> GetByRole(int role) const;
+    std::shared_ptr<TNumeric>& GetByRole(int role);
     TNumeric replaceByRole(int role, TNumeric&& N);
 
     TNumeric Simplify() const;

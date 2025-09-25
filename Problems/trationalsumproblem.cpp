@@ -106,7 +106,7 @@ vector<TNumeric> TRationalSumConditions::GetPCoef(size_t N) {
 vector<TNumeric> TRationalSumConditions::GetQCoef(size_t N) {
     return GetCoefs(GetQStartIndex(N));
 }
-TPolynom TRationalSumConditions::GetP(size_t N) {
+TPolynom TRationalSumConditions::asNumeric(size_t N) {
     return TPolynom(GetPCoef(N));
 }
 
@@ -181,10 +181,10 @@ string TRationalSumEquality::GetShortTask() {
 }
 
 bool TRationalSumEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
-    TPolynom P1 = GetP(0);
-    TPolynom P2 = GetP(1);
-    TPolynom P3 = GetP(2);
-    TPolynom P4 = GetP(3);
+    TPolynom P1 = asNumeric(0);
+    TPolynom P2 = asNumeric(1);
+    TPolynom P3 = asNumeric(2);
+    TPolynom P4 = asNumeric(3);
 
     TPolynom Q1 = GetQ(0);
     TPolynom Q2 = GetQ(1);

@@ -182,7 +182,8 @@ bool TNumeric::hasRole(int role) const {
 
 std::shared_ptr<const TNumeric> TNumeric::GetByRole(int role) const {
     if (role == this->role) {
-        return shared_from_this();  // todo: enable shared from this
+        /// todo: can fail if this object is on stack
+        return shared_from_this();
     }
     for (size_t i = 0; i < operands.size(); i++) {
         if (operands[i]->hasRole(role)) {
@@ -190,6 +191,20 @@ std::shared_ptr<const TNumeric> TNumeric::GetByRole(int role) const {
         }
     };
     return nullptr;
+}
+
+std::shared_ptr<TNumeric>& TNumeric::GetByRole(int role) {
+    if (role == this->role) {
+        assert(false);
+        exit(-1);
+    }
+    for (size_t i = 0; i < operands.size(); i++) {
+        if (operands[i]->hasRole(role)) {
+            return std::const_pointer_cast<TNumeric>(operands[i])->GetByRole(role);
+        }
+    };
+    assert(false);
+    exit(-1);
 }
 
 bool TNumeric::isInteger(int* Int) const {

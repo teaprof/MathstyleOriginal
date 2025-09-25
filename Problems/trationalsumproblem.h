@@ -24,7 +24,7 @@ class TRationalSumConditions : public TProblem {
 
     vector<TNumeric> GetPCoef(size_t N);  // возвращает числитель N-ой дроби (P_N)
     vector<TNumeric> GetQCoef(size_t N);  // возвращает знаменатель N-ой дроби (P_N)
-    TPolynom GetP(size_t N);              // возвращает числитель N-ой дроби
+    TPolynom asNumeric(size_t N);              // возвращает числитель N-ой дроби
     TPolynom GetQ(size_t N);              // возвращает знаменатель N-ой дроби
 
     void Randomize(std::mt19937& rng);
