@@ -104,7 +104,7 @@ std::vector<std::shared_ptr<const TNumeric>> TPolynomConditions::GetCoef() const
     std::vector<std::shared_ptr<const TNumeric>> Coef2;
     Coef2.assign(MaxPower + 1, nullptr);
     for (size_t i = 0; i <= MaxPower; i++) {
-        Coef2[i] = Conditions->GetByRole(RolePowerBegin + i);
+        Coef2[i] = Conditions->GetByRoleConst(RolePowerBegin + i);
     }
     return Coef2;
 }
@@ -114,7 +114,7 @@ std::vector<std::shared_ptr<TNumeric>> TPolynomConditions::GetCoef() {
     std::vector<std::shared_ptr<TNumeric>> Coef2;
     Coef2.assign(MaxPower + 1, nullptr);
     for (size_t i = 0; i <= MaxPower; i++) {
-        Coef2[i] = Conditions->GetByRole(RolePowerBegin + i);
+        Coef2[i] = Conditions->GetByRole(RolePowerBegin + i, Conditions);
     }
     return Coef2;
 }
@@ -190,27 +190,27 @@ void TPolynomConditions::SetLeftPart(const TNumeric& a, const TNumeric& b, const
 
 std::shared_ptr<TNumeric>& TPolynomConditions::GetCoefP(size_t power) {
     if (power <= MaxPower) {
-        return Conditions->GetByRole(RolePowerBegin + power);
+        return Conditions->GetByRole(RolePowerBegin + power, Conditions);
     };
     throw "TPolynomConditions::GetCoef(size_t power): power > MaxPower";
 }
 
 std::shared_ptr<const TNumeric> TPolynomConditions::GetCoefP(size_t power) const {
     if (power <= MaxPower) {
-        return Conditions->GetByRole(RolePowerBegin + power);
+        return Conditions->GetByRoleConst(RolePowerBegin + power);
     };
     throw "TPolynomConditions::GetCoef(size_t power): power > MaxPower";
 }
 std::shared_ptr<TNumeric>& TPolynomConditions::GetRightPartP() {
-    return Conditions->GetByRole(RightPartID);
+    return Conditions->GetByRole(RightPartID, Conditions);
 }
 
 TNumeric TPolynomConditions::GetRightPart() const {
-    return *(Conditions->GetByRole(RightPartID));
+    return *(Conditions->GetByRoleConst(RightPartID));
 }
 
 void TPolynomConditions::SetRightPart(const TNumeric& N) {
-    PNumeric R = Conditions->GetByRole(RightPartID);
+    std::shared_ptr<TNumeric>& R = Conditions->GetByRole(RightPartID, Conditions);
     if (R) {
         *R = N;
         R->role = RightPartID;
@@ -2341,19 +2341,19 @@ bool TRationalFunctionDerivative::GetSolution(std::shared_ptr<THTMLWriter> Write
     TRationalFunction R;
     R.P.Coef.assign(MaxPowerNumerator + 1, nullptr);
     for (size_t i = 0; i <= MaxPowerNumerator; i++) {
-        PNumeric v = Conditions->GetByRole(TPolynomConditions::RolePowerBegin + i);
+        auto v = Conditions->GetByRoleConst(TPolynomConditions::RolePowerBegin + i);
         if (!v)
             return false;
         else
-            R.P.Coef[i] = v;
+            *R.P.Coef[i] = std::move(*v);
     }
     R.Q.Coef.assign(MaxPowerDenominator + 1, nullptr);
     for (size_t i = 0; i <= MaxPowerDenominator; i++) {
-        PNumeric v = Conditions->GetByRole(TPolynomConditions::RolePowerBegin + i + MaxPowerNumerator + 1);
+        auto v = Conditions->GetByRoleConst(TPolynomConditions::RolePowerBegin + i + MaxPowerNumerator + 1);
         if (!v)
             return false;
         else
-            R.Q.Coef[i] = v;
+            *R.Q.Coef[i] = std::move(*v);
     }
     if (Writer) {
         TRationalFunction D = R.Derivative();
@@ -2487,7 +2487,7 @@ TRationalFunctionConditions::~TRationalFunctionConditions() {}
 
 void TRationalFunctionConditions::SetRightPart(std::shared_ptr<TNumeric> R) {
     if (HaveRightPart) {
-        auto& RP = Conditions->GetByRole(RightPartID());
+        auto& RP = Conditions->GetByRole(RightPartID(), Conditions);
         RP = R;
         RP->role = RightPartID();
     } else {
@@ -2495,18 +2495,18 @@ void TRationalFunctionConditions::SetRightPart(std::shared_ptr<TNumeric> R) {
 }
 
 TNumeric& TRationalFunctionConditions::GetRightPartP() {
-    return *Conditions->GetByRole(RightPartID());
+    return *Conditions->GetByRole(RightPartID(), Conditions);
 }
 
 TNumeric TRationalFunctionConditions::GetRightPart() const {
-    return *Conditions->GetByRole(RightPartID());
+    return *Conditions->GetByRoleConst(RightPartID());
 }
 
 TPolynom TRationalFunctionConditions::GetNumeratorP() {
     vector<TNumeric> Coefs;
     Coefs.assign(MaxPowerNumerator + 1, TNumeric("0"));
     for (size_t i = 0; i <= MaxPowerNumerator; i++)
-        Coefs[i] = *Conditions->GetByRole(GetNumeratorCoefID(i));
+        Coefs[i] = *Conditions->GetByRoleConst(GetNumeratorCoefID(i));
     return TPolynom(std::move(Coefs));
 }
 
@@ -2514,7 +2514,7 @@ TPolynom TRationalFunctionConditions::GetDenominatorP() {
     vector<TNumeric> Coefs;
     Coefs.assign(MaxPowerDenominator + 1, TNumeric("0"));
     for (size_t i = 0; i <= MaxPowerDenominator; i++)
-        Coefs[i] = *Conditions->GetByRole(GetDenominatorCoefID(i));
+        Coefs[i] = *Conditions->GetByRole(GetDenominatorCoefID(i), Conditions);
     return TPolynom(std::move(Coefs));
 }
 
@@ -2621,3 +2621,11 @@ void TRationalFunctionConditions::Randomize(std::mt19937& rng) {
         Denominator.Coef[i] = TNumeric::create(dist(rng));
     SetDenominator(Denominator);
 }
+
+
+template class TSetOfInequalities<TLinearInequality, TSetOfLinearInequalitiesStr>;
+template class TSystemOfInequalities<TLinearInequality, TSystemOfLinearInequalitiesStr>;
+template class TSystemOfInequalities<TSquareInequality, TSystemOfSquareInequalitiesStr>;
+template class TSetOfInequalities<TSquareInequality, TSetOfSquareInequalitiesStr>;
+template class TSetOfInequalities<TLinearInequality, TSystemOfLinearInequalitiesStr>;
+template class TSetOfInequalities<TSquareInequality, TSystemOfSquareInequalitiesStr>;

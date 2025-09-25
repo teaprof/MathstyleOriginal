@@ -107,15 +107,15 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
 
   public:
     /// идентификатор, по которому можно получить указатель на объект TNumeric
-    int role;
+    int role{-1};
     /// представление в виде строки (доступно только если operation == Operator::Const) /// \todo: проверить
     string strval;
     /// код операции
     Operation operation;
     /// операнды
-    vector<std::shared_ptr<const TNumeric>> operands;
-    std::shared_ptr<TNumeric> at(size_t index) const {
-        return std::const_pointer_cast<TNumeric>(operands[index]);
+    vector<std::shared_ptr<TNumeric>> operands;
+    std::shared_ptr<TNumeric>& at(size_t index) {
+        return operands[index];
     }
 
     void OperandsPushback(const TNumeric& Val);
@@ -133,7 +133,7 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
 
     explicit TNumeric(double value);
     explicit TNumeric(int value);
-    explicit TNumeric(std::string value);
+    explicit TNumeric(const std::string& value);
 
     TNumeric deepCopy() const;
     std::shared_ptr<TNumeric> deepCopyPtr() const;
@@ -185,7 +185,7 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
     /// Создает систему из двух уравнений: N1 & N2
     void MakeEqSystem(const TNumeric& N1, const TNumeric& N2);
 
-    void Assign(const char* str);
+    void AssignV(const char* str);
     void Assign(char* str);
 
     string CodeBasic() const;
@@ -196,8 +196,8 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
     TNumeric Substitute(const string& var, const TNumeric& Val) const;
 
     bool hasRole(int role) const;
-    std::shared_ptr<const TNumeric> GetByRole(int role) const;
-    std::shared_ptr<TNumeric>& GetByRole(int role);
+    std::shared_ptr<const TNumeric> GetByRoleConst(int role) const;
+    std::shared_ptr<TNumeric>& GetByRole(int role, std::shared_ptr<TNumeric>& self);
     TNumeric replaceByRole(int role, TNumeric&& N);
 
     TNumeric Simplify() const;

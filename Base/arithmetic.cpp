@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <math.h>
@@ -108,25 +109,25 @@ std::shared_ptr<TNumeric> TNumeric::deepCopyPtr() const {
 TNumeric::TNumeric(double value) {
     if (value == 0) {
         strval = "0";
-    } else {
-        operation = OperatorConst;
+    } else {        
         char p[256];
         sprintf(p, "%g", value);  /// \todo: in this case the value should be stored in the internal variable of type double
         strval = p;
     };
+    operation = OperatorConst;
 };
 TNumeric::TNumeric(int value) {
     if (value == 0) {
         strval = "0";
-    } else {
-        operation = OperatorConst;
+    } else {        
         char p[256];
         sprintf(p, "%d", value);
         strval = p;
     };
+    operation = OperatorConst;
 }
 
-TNumeric::TNumeric(string value) {
+TNumeric::TNumeric(const string& value) {
     if (value == "-inf")
         strval = "-\\infty";
     else if (value == "inf")
@@ -135,6 +136,10 @@ TNumeric::TNumeric(string value) {
         strval = "+\\infty";
     else
         strval = value;
+    operation = OperatorConst;
+}
+
+TNumeric::~TNumeric() {
 }
 
 void TNumeric::OperandsPushback(const TNumeric& Val) {
@@ -180,31 +185,29 @@ bool TNumeric::hasRole(int role) const {
     return false;
 }
 
-std::shared_ptr<const TNumeric> TNumeric::GetByRole(int role) const {
+std::shared_ptr<const TNumeric> TNumeric::GetByRoleConst(int role) const {
     if (role == this->role) {
         /// todo: can fail if this object is on stack
         return shared_from_this();
     }
     for (size_t i = 0; i < operands.size(); i++) {
         if (operands[i]->hasRole(role)) {
-            return operands[i]->GetByRole(role);
+            return operands[i]->GetByRoleConst(role);
         }
     };
     return nullptr;
 }
 
-std::shared_ptr<TNumeric>& TNumeric::GetByRole(int role) {
-    if (role == this->role) {
-        assert(false);
-        exit(-1);
+std::shared_ptr<TNumeric>& TNumeric::GetByRole(int role, std::shared_ptr<TNumeric>& self) {
+    if (role == this->role) {        
+        return self; // instead of shared_from_this();
     }
     for (size_t i = 0; i < operands.size(); i++) {
-        if (operands[i]->hasRole(role)) {
-            return std::const_pointer_cast<TNumeric>(operands[i])->GetByRole(role);
+        if (operands[i]->hasRole(role)) {            
+            return self->GetByRole(role, operands[i]);
         }
     };
-    assert(false);
-    exit(-1);
+    return self; // instead of shared_from_this();
 }
 
 bool TNumeric::isInteger(int* Int) const {
@@ -920,25 +923,26 @@ bool CheckFunctionTemplate(const char* str, TNumeric* Res)
         if (*p == ',' && bracketlevel == 0) {
             TNumeric Op;
             string S = Str.substr(q - str, p - q);
-            Op.Assign(S.c_str());
+            Op.AssignV(S.c_str());
             q = p + 1;
             Res->OperandsPushback(Op);
         }
     };
     TNumeric Op;
     string S = Str.substr(q - str, p - q);
-    Op.Assign(S.c_str());
+    Op.AssignV(S.c_str());
     Res->OperandsPushback(Op);
     return true;
 }
 
-void TNumeric::Assign(const char* str) {
+void TNumeric::AssignV(const char* str) {
     char* p;
     size_t len = strlen(str);
     p = new char[len + 1];
     strcpy(p, str);
     Assign(p);
-    delete[] p;
+    this->operation = Operation::OperatorConst;
+    delete [] p;
 };
 
 void TNumeric::Assign(char* str) {

@@ -16,7 +16,7 @@ class TPolynomConditions : public TProblem {
     bool HaveRightPart; /// \todo: remove?
   public:
     static constexpr int RightPartID = 100000;
-    static constexpr int RolePowerBegin = 0;
+    static constexpr int RolePowerBegin = 100;
 
     /// обозначение неизвестной переменной
     TNumeric UnknownVar;      

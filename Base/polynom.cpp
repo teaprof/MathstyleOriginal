@@ -31,7 +31,7 @@ TPolynom::TPolynom(const std::vector<int>& Coef) {
 }
 
 TPolynom::TPolynom(const TNumeric& a) {
-    Coef.push_back(TNumeric::create(TNumeric::create(a)));
+    Coef.push_back(TNumeric::create(a));
 }
 
 TPolynom::TPolynom(const TNumeric& a, const TNumeric& b) {

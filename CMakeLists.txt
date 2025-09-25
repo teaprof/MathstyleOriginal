@@ -21,10 +21,11 @@ qt_add_executable(Schoolar WIN32 MACOSX_BUNDLE
     Base/TNumericMask.cpp Base/TNumericMask.h
     Base/arithmetic.cpp Base/arithmetic.h
     Base/polynom.cpp Base/polynom.h
-    Base/symbols.cpp Base/symbols.h
+    Base/symbols.cpp Base/symbols.h    
     #Base/taxes.cpp Base/taxes.h
     Base/tinterval.cpp Base/tinterval.h
     Base/tline.cpp Base/tline.h
+    Base/formulaplotter.cpp Base/formulaplotter.h
     Base/tphrases.cpp Base/tphrases.h
     #Problems/GraphicsProblems.cpp Problems/GraphicsProblems.h
     Problems/ObjectsFactory.cpp Problems/ObjectsFactory.h
@@ -214,3 +215,6 @@ install(TARGETS Schoolar
 # Consider using qt_generate_deploy_app_script() for app deployment if
 # the project can use Qt 6.3. In that case rerun qmake2cmake with
 # --min-qt-version=6.3.
+
+find_package(Threads REQUIRED)
+link_libraries(Threads::Threads)

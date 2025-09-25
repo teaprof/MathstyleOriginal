@@ -102,7 +102,9 @@ class TFormulaPlotter {
 
     // Если Simplify == true, то функции рисуют формулу в хорошем виде, проводя некоторые преобразования. Иначе без преобразований
     // шрифт надо выбирать вручную, вызвав заранее     Canvas->Font = Canvas->FormulaFont;
+    Metrics PrettyGetTextRectangle(std::shared_ptr<const TNumeric> N, bool NeedBrackets, bool Simplify) const;
     Metrics PrettyGetTextRectangle(std::shared_ptr<TNumeric> N, bool NeedBrackets, bool Simplify) const;
+    Metrics PrettyDrawAtBaseLeft(std::shared_ptr<const TNumeric> N, int X, int Y, bool NeedBrackets, bool Simplify) const;
     Metrics PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, bool NeedBrackets, bool Simplify) const;
 
     // функции рисуют формулу после некоторых преобразований, упрощающих её вид

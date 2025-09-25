@@ -6,6 +6,10 @@
 
 TFormulaPlotter::TFormulaPlotter(std::shared_ptr<TPaintCanvas> Canvas) : canvas_(Canvas) {}
 
+Metrics TFormulaPlotter::PrettyGetTextRectangle(std::shared_ptr<const TNumeric> N, bool NeedBrackets, bool Simplify) const {
+    return PrettyGetTextRectangle(std::const_pointer_cast<TNumeric>(N), NeedBrackets, Simplify);
+}
+
 Metrics TFormulaPlotter::PrettyGetTextRectangle(std::shared_ptr<TNumeric> N, bool NeedBrackets, bool Simplify) const {
     string AStr;
     Metrics res;
@@ -132,10 +136,13 @@ void TFormulaPlotter::DrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, 
     PrettyDrawAtBaseLeft(N, X, Y, false, false);
 }
 
+Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<const TNumeric> N, int X, int Y, bool NeedBrackets, bool Simplify) const {
+    return PrettyDrawAtBaseLeft(std::const_pointer_cast<TNumeric>(N), X, Y, NeedBrackets, Simplify);
+}
+
 Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, bool NeedBrackets, bool Simplify) const
 // Y = baseline
 {
-    std::cout << __LINE__ << std::endl;
     const Metrics metrics = PrettyGetTextRectangle(N, NeedBrackets, Simplify);
     QColor color = getFontColor(N);
     canvas_->Pen.setColor(color);
@@ -538,7 +545,7 @@ Metrics
     Metrics res;
     for (size_t i = 0; i < N->operands.size(); i++) {
         bool NeedBrackets = false;
-        if (TNumeric::CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
             NeedBrackets = true;
         Metrics metrics = PrettyGetTextRectangle(N->operands[i], NeedBrackets, Simplify);
         res.Width += metrics.Width;
@@ -562,7 +569,7 @@ void TFormulaPlotter::StrDraw(
     };
     for (size_t i = 0; i < N->operands.size(); i++) {
         bool NeedBrackets = false;
-        if (TNumeric::CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
             NeedBrackets = true;
         Metrics metrics1 = PrettyGetTextRectangle(N->operands[i], NeedBrackets, Simplify);
         PrettyDrawAtBaseLeft(N->operands[i], X, Y, NeedBrackets, Simplify);
@@ -719,7 +726,7 @@ Metrics TFormulaPlotter::SumGetTextRectangle(std::shared_ptr<TNumeric> N, bool W
         if (find(Exclude.begin(), Exclude.end(), i) != Exclude.end())
             continue;
         bool NeedBrackets = false;
-        if (TNumeric::CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             NeedBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
@@ -734,7 +741,7 @@ Metrics TFormulaPlotter::SumGetTextRectangle(std::shared_ptr<TNumeric> N, bool W
                         if (Temp.operands[i]->operands[j]->strval.length() > 0 &&
                             Temp.operands[i]->operands[j]->strval[0] == '-') {
                             TakenMinuses.push_back(j);
-                            Temp.operands[i]->operands[j]->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
+                            Temp.operands[i]->at(j)->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
                             MinusesCount++;
                         }
                     }
@@ -743,7 +750,7 @@ Metrics TFormulaPlotter::SumGetTextRectangle(std::shared_ptr<TNumeric> N, bool W
             if (Temp.operands[i]->operation == OperatorConst)
                 if (Temp.operands[i]->strval.length() > 0 && Temp.operands[i]->strval[0] == '-') {
                     MinusesCount++;
-                    Temp.operands[i]->strval.erase(Temp.operands[i]->strval.begin());
+                    Temp.at(i)->strval.erase(Temp.operands[i]->strval.begin());
                 }
         }
         // рисуем знак
@@ -756,7 +763,7 @@ Metrics TFormulaPlotter::SumGetTextRectangle(std::shared_ptr<TNumeric> N, bool W
             res.Width += canvas_->TextWidth(StrMinus);
         }
 
-        if (TNumeric::CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             NeedBrackets = true;
         Metrics metrics;
         if (Simplify)
@@ -773,11 +780,11 @@ Metrics TFormulaPlotter::SumGetTextRectangle(std::shared_ptr<TNumeric> N, bool W
             // возвращаем минус обратно
             if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
                 for (size_t j = 0; j < TakenMinuses.size(); j++)
-                    Temp.operands[i]->operands[TakenMinuses[j]]->strval =
+                    Temp.operands[i]->at(TakenMinuses[j])->strval =
                         string("-") + Temp.operands[i]->operands[TakenMinuses[j]]->strval;
             }
             if (Temp.operands[i]->operation == OperatorConst && MinusesCount % 2 == 1) {
-                Temp.operands[i]->strval = string("-") + Temp.operands[i]->strval;
+                Temp.at(i)->strval = string("-") + Temp.operands[i]->strval;
             }
         };
         res.Width += metrics.Width;
@@ -839,7 +846,7 @@ void TFormulaPlotter::SumDraw(
         if (find(Exclude.begin(), Exclude.end(), i) != Exclude.end())
             continue;
         bool NeedBrackets = false;
-        if (TNumeric::CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             NeedBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
@@ -854,7 +861,7 @@ void TFormulaPlotter::SumDraw(
                         if (Temp.operands[i]->operands[j]->strval.length() > 0 &&
                             Temp.operands[i]->operands[j]->strval[0] == '-') {
                             TakenMinuses.push_back(j);
-                            Temp.operands[i]->operands[j]->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
+                            Temp.operands[i]->at(j)->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
                             MinusesCount++;
                         }
                     }
@@ -863,7 +870,7 @@ void TFormulaPlotter::SumDraw(
             if (Temp.operands[i]->operation == OperatorConst)
                 if (Temp.operands[i]->strval.length() > 0 && Temp.operands[i]->strval[0] == '-') {
                     MinusesCount++;
-                    Temp.operands[i]->strval.erase(Temp.operands[i]->strval.begin());
+                    Temp.at(i)->strval.erase(Temp.operands[i]->strval.begin());
                 }
         }
         // рисуем знак
@@ -879,7 +886,7 @@ void TFormulaPlotter::SumDraw(
             X = X + canvas_->TextWidth(StrMinus);
         }
 
-        if (TNumeric::CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             NeedBrackets = true;
         Metrics metrics1;
         if (Simplify)
@@ -898,11 +905,11 @@ void TFormulaPlotter::SumDraw(
             // возвращаем минус обратно
             if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
                 for (size_t j = 0; j < TakenMinuses.size(); j++)
-                    Temp.operands[i]->operands[TakenMinuses[j]]->strval =
+                    Temp.operands[i]->at(TakenMinuses[j])->strval =
                         string("-") + Temp.operands[i]->operands[TakenMinuses[j]]->strval;
             }
             if (Temp.operands[i]->operation == OperatorConst && MinusesCount % 2 == 1) {
-                Temp.operands[i]->strval = string("-") + Temp.operands[i]->strval;
+                Temp.at(i)->strval = string("-") + Temp.operands[i]->strval;
             }
         };
 
@@ -924,7 +931,7 @@ Metrics TFormulaPlotter::MinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool
     string StrMinus = UniCode2UTF8String(MyMinusSign);
     for (size_t i = 0; i < Temp.operands.size(); i++) {
         bool NeedBrackets = false;
-        if (TNumeric::CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             NeedBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
@@ -938,7 +945,7 @@ Metrics TFormulaPlotter::MinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool
                         if (Temp.operands[i]->operands[j]->strval.length() > 0 &&
                             Temp.operands[i]->operands[j]->strval[0] == '-') {
                             TakenMinuses.push_back(j);
-                            Temp.operands[i]->operands[j]->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
+                            Temp.operands[i]->at(j)->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
                             MinusesCount++;
                         }
                     }
@@ -947,7 +954,7 @@ Metrics TFormulaPlotter::MinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool
             if (Temp.operands[i]->operation == OperatorConst)
                 if (Temp.operands[i]->strval.length() > 0 && Temp.operands[i]->strval[0] == '-') {
                     MinusesCount++;
-                    Temp.operands[i]->strval.erase(Temp.operands[i]->strval.begin());
+                    Temp.at(i)->strval.erase(Temp.operands[i]->strval.begin());
                 }
         }
         // рисуем знак
@@ -979,11 +986,11 @@ Metrics TFormulaPlotter::MinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool
             // возвращаем минус обратно
             if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
                 for (size_t j = 0; j < TakenMinuses.size(); j++)
-                    Temp.operands[i]->operands[TakenMinuses[j]]->strval =
+                    Temp.operands[i]->at(TakenMinuses[j])->strval =
                         string("-") + Temp.operands[i]->operands[TakenMinuses[j]]->strval;
             }
             if (Temp.operands[i]->operation == OperatorConst && (MinusesCount % 2 == 1)) {
-                Temp.operands[i]->strval = string("-") + Temp.operands[i]->strval;
+                Temp.at(i)->strval = string("-") + Temp.operands[i]->strval;
             }
         };
         res.Width += metrics.Width;
@@ -1012,7 +1019,7 @@ void TFormulaPlotter::MinusDraw(
     string StrMinus = UniCode2UTF8String(MyMinusSign);
     for (size_t i = 0; i < Temp.operands.size(); i++) {
         bool NeedBrackets = false;
-        if (TNumeric::CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             NeedBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
@@ -1027,7 +1034,7 @@ void TFormulaPlotter::MinusDraw(
                         if (Temp.operands[i]->operands[j]->strval.length() > 0 &&
                             Temp.operands[i]->operands[j]->strval[0] == '-') {
                             TakenMinuses.push_back(j);
-                            Temp.operands[i]->operands[j]->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
+                            Temp.operands[i]->at(j)->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
                             MinusesCount++;
                         }
                     }
@@ -1036,7 +1043,7 @@ void TFormulaPlotter::MinusDraw(
             if (Temp.operands[i]->operation == OperatorConst)
                 if (Temp.operands[i]->strval.length() > 0 && Temp.operands[i]->strval[0] == '-') {
                     MinusesCount++;
-                    Temp.operands[i]->strval.erase(Temp.operands[i]->strval.begin());
+                    Temp.at(i)->strval.erase(Temp.operands[i]->strval.begin());
                 }
         }
         // рисуем знак
@@ -1075,11 +1082,11 @@ void TFormulaPlotter::MinusDraw(
             // возвращаем минус обратно
             if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
                 for (size_t j = 0; j < TakenMinuses.size(); j++)
-                    Temp.operands[i]->operands[TakenMinuses[j]]->strval =
+                    Temp.operands[i]->at(TakenMinuses[j])->strval =
                         string("-") + Temp.operands[i]->operands[TakenMinuses[j]]->strval;
             }
             if (Temp.operands[i]->operation == OperatorConst && (MinusesCount % 2 == 1)) {
-                Temp.operands[i]->strval = string("-") + Temp.operands[i]->strval;
+                Temp.at(i)->strval = string("-") + Temp.operands[i]->strval;
             }
         };
         X = X + metrics1.Width;
@@ -1150,7 +1157,7 @@ Metrics TFormulaPlotter::ProdGetTextRectangle(std::shared_ptr<TNumeric> N, bool 
         if (Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end())
             continue;
         bool NeedBrackets = false;
-        if (TNumeric::CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
             NeedBrackets = true;
         Metrics metrics = PrettyGetTextRectangle(N->operands[i], NeedBrackets, Simplify);
         res.Width += metrics.Width;
@@ -1188,7 +1195,7 @@ void TFormulaPlotter::ProdDraw(
         if (Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end())
             continue;
         bool NeedBrackets = false;
-        if (TNumeric::CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
+        if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
             NeedBrackets = true;
         Metrics metrics = PrettyGetTextRectangle(N->operands[i], NeedBrackets, Simplify);
         PrettyDrawAtBaseLeft(N->operands[i], X, Y, NeedBrackets, Simplify);
@@ -1515,7 +1522,7 @@ void TFormulaPlotter::EqSetDraw(
 Metrics TFormulaPlotter::IntegralGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
     Metrics res;
     bool Brackets = false;
-    if (TNumeric::GetOperatorPriority(N->operands[0]->operation) < TNumeric::GetOperatorPriority(OperatorIntegral))
+    if (GetOperatorPriority(N->operands[0]->operation) < GetOperatorPriority(OperatorIntegral))
         Brackets = true;
 
     auto [W1, H1, D1] = PrettyGetTextRectangle(N->operands[0], Brackets, Simplify);
@@ -1544,7 +1551,7 @@ void TFormulaPlotter::IntegralDraw(
     };
 
     bool Brackets = false;
-    if (TNumeric::GetOperatorPriority(N->operands[0]->operation) < TNumeric::GetOperatorPriority(OperatorIntegral))
+    if (GetOperatorPriority(N->operands[0]->operation) < GetOperatorPriority(OperatorIntegral))
         Brackets = true;
     Metrics metrics1 = PrettyGetTextRectangle(N->operands[0], Brackets, Simplify);
     Metrics metrics2 = PrettyGetTextRectangle(N->operands[1], false, Simplify);
