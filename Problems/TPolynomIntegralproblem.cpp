@@ -14,7 +14,8 @@ TPolynomIntegralProblem::TPolynomIntegralProblem() : TPolynomConditions(8, true,
 }
 
 void TPolynomIntegralProblem::BuildPhrases() {
-    if (MyTranslator.CheckDictionary(GetClassName())) return;
+    if (MyTranslator.CheckDictionary(GetClassName()))
+        return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("After simplifying %N");
     MyTranslator.AddRus("После упрощения %N");
@@ -69,10 +70,12 @@ bool TPolynomIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     // заполняем ответ
     NewCoefs[0] = TNumeric("C");
     TPolynom P(NewCoefs);
-    if (Writer) Writer->AddFormula(P.asNumeric(TNumeric("x")));
+    if (Writer)
+        Writer->AddFormula(P.asNumeric(TNumeric("x")));
     for (size_t power = 0; power <= P.MajorPower(); power++)
         P.Coef[power] = P.Coef[power].Simplify();
-    if (Writer) Writer->AddParagraph("After simplifying %N", P.asNumeric(TNumeric("x")));
+    if (Writer)
+        Writer->AddParagraph("After simplifying %N", P.asNumeric(TNumeric("x")));
     Result = P;
     Result.Coef[0] = TNumeric("0");  // константу убиваем, она подразумевается в Result (чтобы не плодить констант)
     return true;
@@ -82,8 +85,7 @@ void TRationalIntegralProblem::Assign(const TRationalIntegralProblem& S) {
     TRationalFunctionConditions::operator=(*(TRationalFunctionConditions*)&S);
 }
 
-TRationalIntegralProblem::TRationalIntegralProblem(size_t MaxPowerNominator, size_t MaxPowerDenominator) :
-    TRationalFunctionConditions(OperatorIntegral, true, MaxPowerNominator, MaxPowerDenominator) {
+TRationalIntegralProblem::TRationalIntegralProblem(size_t MaxPowerNominator, size_t MaxPowerDenominator) : TRationalFunctionConditions(OperatorIntegral, true, MaxPowerNominator, MaxPowerDenominator) {
     SetRightPart(TNumeric("x"));
     if (MaxPowerNominator == 4 && MaxPowerDenominator == 5) {
         vector<TNumeric> N;
@@ -127,13 +129,13 @@ TRationalIntegralProblem::TRationalIntegralProblem(size_t MaxPowerNominator, siz
     BuildPhrases();
 }
 
-TRationalIntegralProblem::TRationalIntegralProblem(const TRationalIntegralProblem& S) :
-    TRationalFunctionConditions(*(TRationalFunctionConditions*)&S) {}
+TRationalIntegralProblem::TRationalIntegralProblem(const TRationalIntegralProblem& S) : TRationalFunctionConditions(*(TRationalFunctionConditions*)&S) {}
 
 TRationalIntegralProblem::~TRationalIntegralProblem() {}
 
 void TRationalIntegralProblem::BuildPhrases() {
-    if (MyTranslator.CheckDictionary(GetClassName())) return;
+    if (MyTranslator.CheckDictionary(GetClassName()))
+        return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Find indefinite integral of rational function.");
     MyTranslator.AddRus("Найти неопределённый интеграл от рациональной функции");
@@ -195,22 +197,24 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
     TPolynom Denominator = this->GetDenominatorP();
     MainPart = this->GetNominatorP().Div(Denominator, &Nominator);
     if (Writer)
-        Writer->AddFormula(MakeEquality(
-            MakeFrac(GetNominatorP().asNumeric(UnknownVar), GetDenominatorP().asNumeric(UnknownVar)),
-            MainPart.asNumeric(UnknownVar) + MakeFrac(Nominator.asNumeric(UnknownVar), Denominator.asNumeric(UnknownVar))));
+        Writer->AddFormula(MakeEquality(MakeFrac(GetNominatorP().asNumeric(UnknownVar), GetDenominatorP().asNumeric(UnknownVar)),
+                                        MainPart.asNumeric(UnknownVar) + MakeFrac(Nominator.asNumeric(UnknownVar), Denominator.asNumeric(UnknownVar))));
     //*********************РАЗЛАГАЕМ ЗНАМЕНАТЕЛЬ НА ЭЛЕМЕНТАРНЫЕ ДРОБИ И СОСТАВЛЯЕМ СУММУ ПРАВИЛЬНЫХ ДРОБЕЙ С НЕИЗВЕСТНЫМИ
     // КОЭФФИЦИЕНТАМИ
     TPolynomialEquality Q;
     Q.SetLeftPartP(Denominator);
-    if (Writer) Writer->AddParagraph("Finding roots of denominator");
-    if (Q.GetSolution(Writer) == false) return false;
-    if (Q.AllRootsFound == false) return false;
+    if (Writer)
+        Writer->AddParagraph("Finding roots of denominator");
+    if (Q.GetSolution(Writer) == false)
+        return false;
+    if (Q.AllRootsFound == false)
+        return false;
 
     size_t VarCount = 0;
     vector<TRationalFunction> ElementarFractions;  // элементарные дроби
     vector<TNumeric> ElementarFractionsNum;        // элементарные дроби
-    vector<size_t> RootNum;  // какой по номеру корень стоит в знаменателе элементарной дроби (Q.SquareMods[i] имеет номер
-                             // Q.Roots.size() + i)
+    vector<size_t> RootNum;       // какой по номеру корень стоит в знаменателе элементарной дроби (Q.SquareMods[i] имеет номер
+                                  // Q.Roots.size() + i)
     vector<size_t> Multiplicity;  // в какой степени стоит корень
 
     for (size_t i = 0; i < Q.Roots.size(); i++)
@@ -266,8 +270,7 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
     for (size_t i = 0; i < ElementarFractions.size(); i++)
         BigSum = BigSum + ElementarFractions[i].asNumeric();
     if (Writer)
-        Writer->AddParagraph("Findings coefficients %n from %N", TNumeric("a_i"),
-                             MakeEquality(Nominator.asNumeric(UnknownVar) / Denominator.asNumeric(UnknownVar), BigSum));
+        Writer->AddParagraph("Findings coefficients %n from %N", TNumeric("a_i"), MakeEquality(Nominator.asNumeric(UnknownVar) / Denominator.asNumeric(UnknownVar), BigSum));
 
     // Приводим подобные члены
     TPolynom BigNominator;
@@ -279,12 +282,14 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
         MultiplicatorNum.operation = OperatorProd;
         for (size_t j = 0; j < Q.Roots.size(); j++) {
             size_t power = Q.RootsMultiplicity[j];
-            if (j == RootNum[i]) power -= Multiplicity[i];
+            if (j == RootNum[i])
+                power -= Multiplicity[i];
 
             TPolynom DenominatorPowerOne(TNumeric("1"), TNumeric("-1") * Q.Roots[j]);
             TPolynom Denominator = DenominatorPowerOne ^ power;
             TNumeric DenominatorNum = (UnknownVar - Q.Roots[j]);
-            if (power > 1) DenominatorNum = DenominatorNum ^ TNumeric(power);
+            if (power > 1)
+                DenominatorNum = DenominatorNum ^ TNumeric(power);
             if (power > 0) {
                 MultiplicatorNum.OperandsPushback(DenominatorNum);
                 Multiplicator = Multiplicator * Denominator;
@@ -292,12 +297,14 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
         }
         for (size_t j = 0; j < Q.SquareMods.size(); j++) {
             size_t power = Q.SquareModsMultiplicity[j];
-            if (j + Q.Roots.size() == RootNum[i]) power -= Multiplicity[i];
+            if (j + Q.Roots.size() == RootNum[i])
+                power -= Multiplicity[i];
 
             TPolynom DenominatorPowerOne(Q.SquareMods[j]);
             TPolynom Denominator = DenominatorPowerOne ^ power;
             TNumeric DenominatorNum = Q.SquareMods[j].asNumeric(UnknownVar);
-            if (power > 1) DenominatorNum = DenominatorNum ^ TNumeric(power);
+            if (power > 1)
+                DenominatorNum = DenominatorNum ^ TNumeric(power);
             if (power > 0) {
                 MultiplicatorNum.OperandsPushback(DenominatorNum);
                 Multiplicator = Multiplicator * Denominator;
@@ -315,9 +322,7 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
         BigNominatorNum = BigNominatorNum.Operands[0];*/
 
     if (Writer)
-        Writer->AddParagraph(
-            "After casting to common denominator %N",
-            MakeEquality(Nominator.asNumeric(UnknownVar) / Denominator.asNumeric(UnknownVar), BigNominatorNum));
+        Writer->AddParagraph("After casting to common denominator %N", MakeEquality(Nominator.asNumeric(UnknownVar) / Denominator.asNumeric(UnknownVar), BigNominatorNum));
 
     //******************** СОСТАВЛЯЕМ И РЕШАЕМ СИСТЕМУ УРАВНЕНИЙ ***************************************************
     TSystemOfEquations S;
@@ -329,7 +334,8 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
     };
     S.BeginAddEquations();
     TPolynom Eq = BigNominator - Nominator / Q.LinearMultiplier;  // многочлен по x
-    if (Writer) Writer->AddParagraph("Common nominator is %N", MakeEquality(Eq.asNumeric(UnknownVar), TNumeric("0")));
+    if (Writer)
+        Writer->AddParagraph("Common nominator is %N", MakeEquality(Eq.asNumeric(UnknownVar), TNumeric("0")));
     for (size_t power = 0; power <= Eq.MajorPower(); power++) {
         // уравнение для x^power
         TNumeric LeftPart = Eq.Coef[power];
@@ -339,12 +345,16 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
     }
     S.EndAddEquations();
 
-    if (Writer) Writer->AddParagraph("Solving system of linear equations: %N", *S.Conditions);
+    if (Writer)
+        Writer->AddParagraph("Solving system of linear equations: %N", *S.Conditions);
 
     // решаем систему
-    if (Writer) Writer->IncrementNestingLevel();
-    if (S.GetSolution(Writer) == false) return false;
-    if (Writer) Writer->DecrementNestingLevel();
+    if (Writer)
+        Writer->IncrementNestingLevel();
+    if (S.GetSolution(Writer) == false)
+        return false;
+    if (Writer)
+        Writer->DecrementNestingLevel();
 
     //*************************** ВЫПИСЫВАЕМ РАЗЛОЖЕНИЕ НА ЭЛЕМЕНТАРНЫЕ ДРОБИ
     for (size_t i = 0; i < S.Variables.size(); i++)
@@ -356,10 +366,7 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
     for (size_t j = 0; j < ElementarFractions.size(); j++)
         BigNominatorNum.OperandsPushback(ElementarFractionsNum[j]);
     if (Writer)
-        Writer->AddParagraph(
-            "The source function can be represented as %N",
-            MakeEquality(MakeFrac(GetNominatorP().asNumeric(UnknownVar), GetDenominatorP().asNumeric(UnknownVar)),
-                         BigNominatorNum));
+        Writer->AddParagraph("The source function can be represented as %N", MakeEquality(MakeFrac(GetNominatorP().asNumeric(UnknownVar), GetDenominatorP().asNumeric(UnknownVar)), BigNominatorNum));
 
     TNumeric Result;
     Result.operation = OperatorSum;
@@ -367,7 +374,8 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
         if (ElementarFractionsNum[i] != TNumeric("0")) {
             TElementarFractionIntegralProblem EFI;
             EFI.SetConditions(ElementarFractionsNum[i], UnknownVar.strval);
-            if (EFI.GetSolution(Writer) == false) return false;
+            if (EFI.GetSolution(Writer) == false)
+                return false;
             Result.OperandsPushback(EFI.Result);
         };
 #ifdef __DEBUG__
@@ -380,11 +388,13 @@ bool TRationalIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
     TPolynomIntegralProblem PIP;
     PIP.SetLeftPartP(MainPart);
     // if(Writer)Writer->IncrementNestingLevel();
-    if (PIP.GetSolution(0) == false) return false;  // интегрирование полинома не выводим
+    if (PIP.GetSolution(0) == false)
+        return false;  // интегрирование полинома не выводим
     // if(Writer)Writer->DecrementNestingLevel();
     Result.OperandsPushback(PIP.Result.asNumeric(UnknownVar));
     Result.OperandsPushback(TNumeric("C"));
-    if (Writer) Writer->AddParagraph("General solution: %N", Result);
+    if (Writer)
+        Writer->AddParagraph("General solution: %N", Result);
     return true;
 }
 
@@ -459,7 +469,8 @@ TRationalIntegralProblem2::TRationalIntegralProblem2(const TRationalIntegralProb
 TRationalIntegralProblem2::~TRationalIntegralProblem2() {}
 
 void TRationalIntegralProblem2::BuildPhrases() {
-    if (MyTranslator.CheckDictionary(GetClassName())) return;
+    if (MyTranslator.CheckDictionary(GetClassName()))
+        return;
 }
 
 vector<string> TRationalIntegralProblem2::GetKeyWords() {
@@ -491,7 +502,8 @@ string TRationalIntegralProblem2::GetShortTask() {
 bool TRationalIntegralProblem2::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TNumeric Result;
     Result = *Conditions;
-    if (Writer) Writer->AddParagraph("General solution: %N", Result);
+    if (Writer)
+        Writer->AddParagraph("General solution: %N", Result);
     return true;
 }
 
@@ -536,7 +548,8 @@ bool TIntegralProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     P.SetConditions(*Conditions, "x");
     if (P.GetSolution(Writer)) {
         Result = P.Result;
-        if (Writer) Writer->AddParagraph("General solution: %N", Result);
+        if (Writer)
+            Writer->AddParagraph("General solution: %N", Result);
         return true;
     }
     return false;
@@ -561,7 +574,8 @@ TElementarFractionIntegralProblem::TElementarFractionIntegralProblem() {
 }
 
 void TElementarFractionIntegralProblem::BuildPhrases() {
-    if (MyTranslator.CheckDictionary(GetClassName())) return;
+    if (MyTranslator.CheckDictionary(GetClassName()))
+        return;
     MyTranslator.AddDictionary(GetClassName());
 
     MyTranslator.AddEng("After simplifying: %N");
@@ -583,7 +597,8 @@ bool TElementarFractionIntegralProblem::Integrate1(std::shared_ptr<THTMLWriter> 
         TNumeric a = MaskAlg.Coefs["a"];
         TNumeric b = MaskAlg.Coefs["b"];
         TNumeric c = MaskAlg.Coefs["c"];
-        if (c.strval == "") MaskAlg.Match(Mask, N);
+        if (c.strval == "")
+            MaskAlg.Match(Mask, N);
         Res = (a / b).Simplify() * MakeLn(MakeAbs(b * TNumeric(Var) + c));
         return true;
     }
@@ -607,17 +622,13 @@ bool TElementarFractionIntegralProblem::Integrate2(std::shared_ptr<THTMLWriter> 
         if (k == TNumeric(1)) {
             Res = (a / b).Simplify() * MakeLn((b * TNumeric(Var) + c).Simplify());
         } else {
-            Res = ((a / b) * (TNumeric(1) / (-k + TNumeric("1")))).Simplify() *
-                  (((b * TNumeric(Var) + c) ^ (-k + TNumeric("1"))).Simplify());
+            Res = ((a / b) * (TNumeric(1) / (-k + TNumeric("1")))).Simplify() * (((b * TNumeric(Var) + c) ^ (-k + TNumeric("1"))).Simplify());
         };
         return true;
     }
     return false;
 }
-bool TElementarFractionIntegralProblem::Integrate3(std::shared_ptr<THTMLWriter> Writer,
-                                                   const TNumeric& N,
-                                                   string Var,
-                                                   TNumeric& Res) {
+bool TElementarFractionIntegralProblem::Integrate3(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var, TNumeric& Res) {
     TNumericMask MaskAlg;
     TNumeric Mask;
 #ifdef __DEBUG__
@@ -626,7 +637,8 @@ bool TElementarFractionIntegralProblem::Integrate3(std::shared_ptr<THTMLWriter> 
     Mask.Assign("(d*x+f)/(a*x^2+b*x+c)");
     if (MaskAlg.Match(Mask, N)) {
         TNumeric a = MaskAlg.Coefs["a"];
-        if (a.Calculate() < 0 || a == 0) return false;
+        if (a.Calculate() < 0 || a == 0)
+            return false;
         TNumeric b = MaskAlg.Coefs["b"];
         TNumeric c = MaskAlg.Coefs["c"];
         TNumeric d = MaskAlg.Coefs["d"];
@@ -636,13 +648,13 @@ bool TElementarFractionIntegralProblem::Integrate3(std::shared_ptr<THTMLWriter> 
             TNumeric Alpha = MakeSqrt(a).Simplify();
             TNumeric Beta = (b / (Alpha * 2)).Simplify();
             TNumeric Gamma2 = (c - (Beta ^ 2)).Simplify();  // Gamma^2
-            if (Gamma2.Calculate() < 0) return false;
+            if (Gamma2.Calculate() < 0)
+                return false;
             TNumeric Gamma = MakeSqrt(Gamma2).Simplify();
             Res = (TNumeric(f) / (Alpha * Gamma)).Simplify() * MakeArctg(((Alpha * TNumeric(Var) + Beta) / Gamma).Simplify());
         } else {
             // Выделяем в числителе производную знаменателя
-            TNumeric N1 = (d / (a * 2)).Simplify() *
-                          MakeFrac((a * 2).Simplify() * TNumeric(Var) + b, a * (TNumeric(Var) ^ 2) + b * TNumeric(Var) + c);
+            TNumeric N1 = (d / (a * 2)).Simplify() * MakeFrac((a * 2).Simplify() * TNumeric(Var) + b, a * (TNumeric(Var) ^ 2) + b * TNumeric(Var) + c);
             TNumeric Res1 = (d / (a * 2)).Simplify() * MakeLn(MakeAbs(a * (TNumeric(Var) ^ 2) + b * TNumeric(Var) + c));
             TNumeric N2 = (f - b * d / (a * 2)).Simplify() / (a * (TNumeric(Var) ^ 2) + b * TNumeric(Var) + c);
             TNumeric Res2;
@@ -652,8 +664,10 @@ bool TElementarFractionIntegralProblem::Integrate3(std::shared_ptr<THTMLWriter> 
             cout << N1.Simplify().CodeBasic() << endl;
             N1 = N1.Simplify();
 #endif
-            if (Writer) Writer->AddParagraph("%N", MakeEquality(N, N1 + N2));
-            if (Integrate3(Writer, N2, Var, Res2) == false) return false;
+            if (Writer)
+                Writer->AddParagraph("%N", MakeEquality(N, N1 + N2));
+            if (Integrate3(Writer, N2, Var, Res2) == false)
+                return false;
             Res = Res1 + Res2;
 #ifdef __DEBUG__
             cout << Res.CodeBasic() << endl;
@@ -673,15 +687,19 @@ bool TElementarFractionIntegralProblem::Integrate4(std::shared_ptr<THTMLWriter> 
     Mask.Assign("(M*x+N)/((a*x^2+b*x+c)^k)");
     if (MaskAlg.Match(Mask, NConst)) {
         TNumeric a = MaskAlg.Coefs["a"];
-        if (a.Calculate() < 0 || a == 0) return false;
+        if (a.Calculate() < 0 || a == 0)
+            return false;
         TNumeric b = MaskAlg.Coefs["b"];
         TNumeric c = MaskAlg.Coefs["c"];
         TNumeric m = MaskAlg.Coefs["M"];
         TNumeric n = MaskAlg.Coefs["N"];
         TNumeric k = MaskAlg.Coefs["k"];
-        if (k.Calculate() < 0) return false;
-        if (k.isInteger() == false) return false;
-        if (k == TNumeric(1)) return Integrate3(Writer, NConst, Var, Res);
+        if (k.Calculate() < 0)
+            return false;
+        if (k.isInteger() == false)
+            return false;
+        if (k == TNumeric(1))
+            return Integrate3(Writer, NConst, Var, Res);
         if (m == TNumeric("0")) {
             TNumeric X(Var);
             TNumeric Beta = (b / (a * 2)).Simplify();
@@ -689,16 +707,15 @@ bool TElementarFractionIntegralProblem::Integrate4(std::shared_ptr<THTMLWriter> 
             Gamma2 = Gamma2.Simplify();
             TNumeric t = MakeSqrt(a).Simplify() * X + Beta;
             TNumeric Temp = MakeFrac(TNumeric("1"), ((X ^ 2) + Gamma2) ^ k);
-            if (IntegrateJn(Writer, Temp, Var, Res) == false) return false;
+            if (IntegrateJn(Writer, Temp, Var, Res) == false)
+                return false;
             Res = (n / a).Simplify() * Res.Substitute("X", t);
             //           Res = (TNumeric(NConst)/(a^k)*Res).Simplify();
             return true;
         } else {
             // Выделяем в числителе производную знаменателя
-            TNumeric N1 = (m / (a * 2)).Simplify() *
-                          MakeFrac((a * 2).Simplify() * TNumeric(Var) + b, (a * (TNumeric(Var) ^ 2) + b * TNumeric(Var) + c) ^ k);
-            TNumeric Res1 = (m / (a * 2)).Simplify() * MakeFrac(TNumeric(1), -k + 1) *
-                            MakeFrac(TNumeric("1"), (a * (TNumeric(Var) ^ 2) + b * TNumeric(Var) + c) ^ (k - 1));
+            TNumeric N1 = (m / (a * 2)).Simplify() * MakeFrac((a * 2).Simplify() * TNumeric(Var) + b, (a * (TNumeric(Var) ^ 2) + b * TNumeric(Var) + c) ^ k);
+            TNumeric Res1 = (m / (a * 2)).Simplify() * MakeFrac(TNumeric(1), -k + 1) * MakeFrac(TNumeric("1"), (a * (TNumeric(Var) ^ 2) + b * TNumeric(Var) + c) ^ (k - 1));
             Res1 = Res1.Simplify();
             TNumeric N2 = (n - b * m / (a * 2)).Simplify() / ((a * (TNumeric(Var) ^ 2) + b * TNumeric(Var) + c) ^ k);
             TNumeric Res2;
@@ -707,8 +724,10 @@ bool TElementarFractionIntegralProblem::Integrate4(std::shared_ptr<THTMLWriter> 
             cout << N1.Simplify().CodeBasic() << endl;
             cout << N2.CodeBasic() << endl;
 #endif
-            if (Writer) Writer->AddParagraph("%N", MakeEquality(NConst, N1 + N2));
-            if (Integrate4(Writer, N2, Var, Res2) == false) return false;
+            if (Writer)
+                Writer->AddParagraph("%N", MakeEquality(NConst, N1 + N2));
+            if (Integrate4(Writer, N2, Var, Res2) == false)
+                return false;
             Res = Res1 + Res2;
             return true;
         }
@@ -716,10 +735,7 @@ bool TElementarFractionIntegralProblem::Integrate4(std::shared_ptr<THTMLWriter> 
     return false;
 }
 
-bool TElementarFractionIntegralProblem::IntegrateJn(std::shared_ptr<THTMLWriter> Writer,
-                                                    const TNumeric& Num,
-                                                    string Var,
-                                                    TNumeric& Res) {
+bool TElementarFractionIntegralProblem::IntegrateJn(std::shared_ptr<THTMLWriter> Writer, const TNumeric& Num, string Var, TNumeric& Res) {
     // рекуррентная формула для 1/(x^2+a^2)^n
     TNumericMask MaskAlg;
     TNumeric Mask;
@@ -729,13 +745,16 @@ bool TElementarFractionIntegralProblem::IntegrateJn(std::shared_ptr<THTMLWriter>
 #endif
     if (MaskAlg.Match(Mask, Num)) {
         TNumeric A2 = MaskAlg.Coefs["a2"];
-        if (A2.Calculate() < 0) return false;
+        if (A2.Calculate() < 0)
+            return false;
         if (A2 == 0) {
             return Integrate1(Writer, Num, Var, Res);
         } else {
             TNumeric N = MaskAlg.Coefs["n"];
-            if (N.Calculate() < 0) return false;
-            if (N.isInteger() == false) return false;
+            if (N.Calculate() < 0)
+                return false;
+            if (N.isInteger() == false)
+                return false;
             if (N == 0) {
                 Res = TNumeric(Var);
                 return true;
@@ -747,12 +766,13 @@ bool TElementarFractionIntegralProblem::IntegrateJn(std::shared_ptr<THTMLWriter>
                 // Nnext = Nnext.Simplify(); //нельзя, а то под шаблон не попадёт
                 TNumeric X(Var);
                 TNumeric Res2;
-                if (IntegrateJn(Writer, Nnext, Var, Res2) == false) return false;
+                if (IntegrateJn(Writer, Nnext, Var, Res2) == false)
+                    return false;
                 // J_{n+1} = 1/{2na^2} * (a/((x^2+a^2)^n) + (2*n-1)*J_n}
                 // J_n = 1/{2(n-1)a^2} * (a/((x^2+a^2)^(n-1)) + (2*(n-1)-1)*J_{n-1}}
-                Res = TNumeric(1) / (TNumeric(2) * (N - 1) * A2).Simplify() *
-                      ((X / (((X ^ 2) + A2) ^ (N - 1)).Simplify()) + (TNumeric(2) * (N - 1) - 1).Simplify() * Res2);
-                if (Writer) Writer->AddFormula(MakeEquality(MakeIntegral(Num, "x"), Res + TNumeric("C")));
+                Res = TNumeric(1) / (TNumeric(2) * (N - 1) * A2).Simplify() * ((X / (((X ^ 2) + A2) ^ (N - 1)).Simplify()) + (TNumeric(2) * (N - 1) - 1).Simplify() * Res2);
+                if (Writer)
+                    Writer->AddFormula(MakeEquality(MakeIntegral(Num, "x"), Res + TNumeric("C")));
                 Res = Res.Simplify();
                 if (Writer)
                     Writer->AddParagraph("After simplifying: %N", MakeEquality(MakeIntegral(Num, "x"), Res + TNumeric("C")));
@@ -765,7 +785,8 @@ bool TElementarFractionIntegralProblem::IntegrateJn(std::shared_ptr<THTMLWriter>
 
 TNumeric TElementarFractionIntegralProblem::Integrate(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var) {
     TNumeric Res;
-    if (Writer) Writer->IncrementNestingLevel();
+    if (Writer)
+        Writer->IncrementNestingLevel();
     if (Integrate1(Writer, N, Var, Res) == false)
         if (Integrate2(Writer, N, Var, Res) == false)
             if (Integrate3(Writer, N, Var, Res) == false)
@@ -774,7 +795,8 @@ TNumeric TElementarFractionIntegralProblem::Integrate(std::shared_ptr<THTMLWrite
                     Res.OperandsPushback(N);
                     Res.OperandsPushback(TNumeric(Var));
                 };
-    if (Writer) Writer->DecrementNestingLevel();
+    if (Writer)
+        Writer->DecrementNestingLevel();
     return Res;
 }
 
@@ -807,7 +829,8 @@ TTabularIntegralProblem::TTabularIntegralProblem() {
 }
 
 void TTabularIntegralProblem::BuildPhrases() {
-    if (MyTranslator.CheckDictionary(GetClassName())) return;
+    if (MyTranslator.CheckDictionary(GetClassName()))
+        return;
     MyTranslator.AddDictionary(GetClassName());
 
     //    MyTranslator.AddEng("After simplifying: %N");
@@ -838,7 +861,8 @@ bool TTabularIntegralProblem::IntegrateSin(std::shared_ptr<THTMLWriter> Writer,
             Expr = b * TNumeric("x");
         else
             Expr = b * TNumeric("x") + c;
-        if (b != TNumeric("1")) NewA = NewA / b;
+        if (b != TNumeric("1"))
+            NewA = NewA / b;
 
         if (b == TNumeric("0")) {  // a*sin(c) ==> a*sin(c)*x
             Res = a * MakeSin(c) * TNumeric(Var);
@@ -855,13 +879,15 @@ bool TTabularIntegralProblem::IntegrateSin(std::shared_ptr<THTMLWriter> Writer,
 
 TNumeric TTabularIntegralProblem::Integrate(std::shared_ptr<THTMLWriter> Writer, const TNumeric& N, string Var) {
     TNumeric Res;
-    if (Writer) Writer->IncrementNestingLevel();
+    if (Writer)
+        Writer->IncrementNestingLevel();
     if (IntegrateSin(Writer, N, Var, Res) == false) {
         Res.operation = OperatorIntegral;
         Res.OperandsPushback(N);
         Res.OperandsPushback(TNumeric(Var));
     };
-    if (Writer) Writer->DecrementNestingLevel();
+    if (Writer)
+        Writer->DecrementNestingLevel();
     return Res;
 }
 

@@ -133,14 +133,12 @@ void TRationalSumConditions::Randomize(std::mt19937& rng) {
 }
 
 //*******************************************************************************************************************
-TRationalSumEquality::TRationalSumEquality(size_t MaxPower, int Sign1, int Sign2) :
-    TRationalSumConditions(MaxPower, Sign1, Sign2), TEquality() {
+TRationalSumEquality::TRationalSumEquality(size_t MaxPower, int Sign1, int Sign2) : TRationalSumConditions(MaxPower, Sign1, Sign2), TEquality() {
     CanRandomize = true;
     BuildPhrases();
 }
 
-TRationalSumEquality::TRationalSumEquality(const TRationalSumEquality& R, int Sign1, int Sign2) :
-    TRationalSumConditions(R, Sign1, Sign2), TEquality() {
+TRationalSumEquality::TRationalSumEquality(const TRationalSumEquality& R, int Sign1, int Sign2) : TRationalSumConditions(R, Sign1, Sign2), TEquality() {
     BuildPhrases();
 }
 

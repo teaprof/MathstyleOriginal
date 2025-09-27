@@ -42,8 +42,7 @@ class TMaclaurinSeriesProblem : public TProblem {
 
     bool ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writer, TPolynomSeries* Res, string var, const TNumeric& N, int LastTerm);
 
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() {

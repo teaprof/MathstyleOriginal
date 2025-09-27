@@ -21,9 +21,7 @@ bool NextCount(vector<size_t>& Counter, size_t MaxCount) {
     return (i < Counter.size());
 }
 
-bool TNumericMask::CheckTemplateConstant(const TNumeric& Template,
-                                         const TNumeric& NConst,
-                                         std::map<std::string, TNumeric>& Coefs) {
+bool TNumericMask::CheckTemplateConstant(const TNumeric& Template, const TNumeric& NConst, std::map<std::string, TNumeric>& Coefs) {
     //    N = N.Simplify();
     if (Template.strval == "x") {
         if (NConst.operation == OperatorConst && NConst.strval == "x")
@@ -96,9 +94,7 @@ void DisperseSort(vector<vector<size_t>>& SubSetsVector) {
     //    PrintVV(SubSetsVector);
 }
 
-bool TNumericMask::CheckTemplateCommunative(const TNumeric& Template,
-                                            const TNumeric& NConst,
-                                            std::map<std::string, TNumeric>& Coefs)
+bool TNumericMask::CheckTemplateCommunative(const TNumeric& Template, const TNumeric& NConst, std::map<std::string, TNumeric>& Coefs)
 // operation должен быть коммутативным
 {
 #ifdef __DEBUG__
@@ -169,8 +165,7 @@ bool TNumericMask::CheckTemplateCommunative(const TNumeric& Template,
                     SubNumeric.OperandsPushback(*N.operands[i]);
             if (SubNumeric.operands.size() == 0)
                 SubNumeric.OperandsPushback(AdditionalTerm);
-            if (SubNumeric.operands.size() ==
-                1)  // исключаем случай вида SumNumeric = prod(x) или sum(x) - произведение и сумма одного члена
+            if (SubNumeric.operands.size() == 1)  // исключаем случай вида SumNumeric = prod(x) или sum(x) - произведение и сумма одного члена
             {
                 // SubNumeric = SubNumeric.operands[0] не работает
                 TNumeric Temp = *SubNumeric.operands[0];
@@ -384,8 +379,7 @@ bool TNumericMask::CheckTemplateProd(const TNumeric& Template, const TNumeric& N
 bool TNumericMask::CheckTemplatePow(const TNumeric& Template, const TNumeric& NConst, std::map<std::string, TNumeric>& Coefs) {
     std::map<std::string, TNumeric> TempCoefs;
     if (NConst.operation == OperatorPow) {
-        if (Match(*Template.operands[0], *NConst.operands[0], TempCoefs) &&
-            Match(*Template.operands[1], *NConst.operands[1], TempCoefs)) {
+        if (Match(*Template.operands[0], *NConst.operands[0], TempCoefs) && Match(*Template.operands[1], *NConst.operands[1], TempCoefs)) {
             if (AcceptCoefs(Coefs, TempCoefs))
                 return true;
             else
@@ -394,8 +388,7 @@ bool TNumericMask::CheckTemplatePow(const TNumeric& Template, const TNumeric& NC
             return false;
     } else {
         TNumeric N = ToPow(NConst);
-        if (N.operation == OperatorPow && Match(*Template.operands[0], *N.operands[0], TempCoefs) &&
-            Match(*Template.operands[1], *N.operands[1], TempCoefs)) {
+        if (N.operation == OperatorPow && Match(*Template.operands[0], *N.operands[0], TempCoefs) && Match(*Template.operands[1], *N.operands[1], TempCoefs)) {
             if (AcceptCoefs(Coefs, TempCoefs))
                 return true;
         }

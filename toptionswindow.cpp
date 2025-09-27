@@ -73,9 +73,9 @@ void TOptionsWindow::DrawSolution() {
     TLines* Solution = new TLines;
     TNumeric X("x");
     TNumeric A(2);
-    //A.SetEditableFlags(ConstAllowed);
+    // A.SetEditableFlags(ConstAllowed);
     TNumeric B(3);
-    //B.SetEditableFlags(ConstAllowed);
+    // B.SetEditableFlags(ConstAllowed);
     TNumeric Line1 = MakeEquality(A * X + B * (X ^ 2), TNumeric(0));
     TNumeric Line2 = MakeEquality((A / B) * X + B * MakeLog(X, (X ^ 2) + 2), TNumeric(0));
     TNumeric Line3 = MakeEquality(A * MakeSin(X) + B * (X ^ 2), TNumeric(0));

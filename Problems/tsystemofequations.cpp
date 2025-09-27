@@ -374,8 +374,7 @@ void TSystemOfEquations::Substitute(size_t VariableNumber, const TNumeric& Expre
         std::shared_ptr<TNumeric> LeftSide = NewEquation.operands[0];
         std::shared_ptr<TNumeric> RightSide = NewEquation.operands[1];
         // вычисляем свободный член в левой части
-        std::shared_ptr<TNumeric> LeftSideFreeTerm =
-            std::make_shared<TNumeric>(*LeftSide);  /// \todo: deep copy instad of make_shared
+        std::shared_ptr<TNumeric> LeftSideFreeTerm = std::make_shared<TNumeric>(*LeftSide);  /// \todo: deep copy instad of make_shared
         for (size_t m1 = 0; m1 < VarsCount(); m1++)
             *LeftSideFreeTerm = NSubstitute(*LeftSideFreeTerm, Variables[m1], TNumeric("0"));
 
@@ -505,9 +504,7 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
         };
     }
     for (size_t i = 0; i < EquationsToExclude.size(); i++) {
-        size_t CurrentNumber =
-            EquationsToExclude[i] -
-            i;  // необходимо сделать сдвиг, так как при удалении в i-ый раз уже i-1 уравнений удалено и все номера сместились
+        size_t CurrentNumber = EquationsToExclude[i] - i;  // необходимо сделать сдвиг, так как при удалении в i-ый раз уже i-1 уравнений удалено и все номера сместились
         RemoveEquation(CurrentNumber);
     }
 

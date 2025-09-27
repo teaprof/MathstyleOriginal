@@ -33,24 +33,30 @@ TPolynomSeries TPolynomSeries::operator+(const TPolynomSeries& P) {
     Res.Coefs = (P1 + P2).Coef;
 
     int RR = -1;
-    if (RemainderPower != -1) RR = RemainderPower;
+    if (RemainderPower != -1)
+        RR = RemainderPower;
     if (P.RemainderPower != -1)
-        if (P.RemainderPower < RR || RR == -1) RR = P.RemainderPower;
+        if (P.RemainderPower < RR || RR == -1)
+            RR = P.RemainderPower;
     Res.Cut(RR);
     return Res;
 }
 
 TPolynomSeries TPolynomSeries::operator+(const TNumeric& N) {
-    if (RemainderPower == 0) return *this;
+    if (RemainderPower == 0)
+        return *this;
     TPolynomSeries Res(*this);
-    if (Res.Coefs.size() > 0) Res.Coefs[0] = Res.Coefs[0] + N;
+    if (Res.Coefs.size() > 0)
+        Res.Coefs[0] = Res.Coefs[0] + N;
     return Res;
 }
 
 TPolynomSeries TPolynomSeries::operator-(const TNumeric& N) {
-    if (RemainderPower == 0) return *this;
+    if (RemainderPower == 0)
+        return *this;
     TPolynomSeries Res(*this);
-    if (Res.Coefs.size() > 0) Res.Coefs[0] = Res.Coefs[0] - N;
+    if (Res.Coefs.size() > 0)
+        Res.Coefs[0] = Res.Coefs[0] - N;
     return Res;
 }
 
@@ -61,9 +67,11 @@ TPolynomSeries TPolynomSeries::operator-(const TPolynomSeries& P) {
     Res.Coefs = (P1 - P2).Coef;
 
     int RR = -1;
-    if (RemainderPower != -1) RR = RemainderPower;
+    if (RemainderPower != -1)
+        RR = RemainderPower;
     if (P.RemainderPower != -1)
-        if (P.RemainderPower < RR || RR == -1) RR = P.RemainderPower;
+        if (P.RemainderPower < RR || RR == -1)
+            RR = P.RemainderPower;
     Res.Cut(RR);
     return Res;
 }
@@ -110,10 +118,13 @@ TPolynomSeries TPolynomSeries::operator=(const TPolynomSeries& P) {
 }
 
 void TPolynomSeries::Cut(int RemainderPower) {
-    if (RemainderPower > this->RemainderPower && this->RemainderPower != -1) return;
-    if (RemainderPower == -1) return;
+    if (RemainderPower > this->RemainderPower && this->RemainderPower != -1)
+        return;
+    if (RemainderPower == -1)
+        return;
     this->RemainderPower = RemainderPower;
-    if (Coefs.size() > (size_t)RemainderPower + 1) Coefs.erase(Coefs.begin() + RemainderPower + 1, Coefs.end());
+    if (Coefs.size() > (size_t)RemainderPower + 1)
+        Coefs.erase(Coefs.begin() + RemainderPower + 1, Coefs.end());
 }
 
 TPolynomSeries TPolynomSeries::Substitute(const TPolynomSeries& P, int LastTerm) {
@@ -182,7 +193,8 @@ TMaclaurinSeriesProblem::TMaclaurinSeriesProblem(size_t MaxPower) {
 
 TMaclaurinSeriesProblem::~TMaclaurinSeriesProblem() {}
 void TMaclaurinSeriesProblem::BuildPhrases() {
-    if (MyTranslator.CheckDictionary(GetClassName())) return;
+    if (MyTranslator.CheckDictionary(GetClassName()))
+        return;
     MyTranslator.AddDictionary(GetClassName());
     MyTranslator.AddEng("Transofming %N");
     MyTranslator.AddRus("Преобразуем %N");
@@ -194,8 +206,7 @@ void TMaclaurinSeriesProblem::BuildPhrases() {
                         "vicinity of zero");
     MyTranslator.AddRus("Не могу разложить по формуле Маклорена %N, так как основание степенной функции должно быть отличным от "
                         "нуля когда %n в окрестности нуля");
-    MyTranslator.AddEng(
-        "Can not find Maclaurin polynomial for %N, because base of power function should be positive if power is fractional.");
+    MyTranslator.AddEng("Can not find Maclaurin polynomial for %N, because base of power function should be positive if power is fractional.");
     MyTranslator.AddRus("Не могу разложить по формуле Маклорена %N, потому что основание степенной функции должно быть "
                         "положительным, когда показатель дробный.");
     MyTranslator.AddEng("Answer: %N");
@@ -251,7 +262,8 @@ TPolynomSeries GetMaclaurin(int operation, size_t LastTerm) {
                 int factorial = 1;
                 for (size_t j = 1; j <= i; j++)
                     factorial *= j;
-                if (i % 4 == 3) factorial *= -1;
+                if (i % 4 == 3)
+                    factorial *= -1;
                 Res.Coefs[i] = (TNumeric(1) / TNumeric(factorial)).Simplify();
             }
             Res.RemainderPower = LastTerm;
@@ -263,7 +275,8 @@ TPolynomSeries GetMaclaurin(int operation, size_t LastTerm) {
                 int factorial = 1;
                 for (size_t j = 1; j <= i; j++)
                     factorial *= j;
-                if (i % 4 == 2) factorial *= -1;
+                if (i % 4 == 2)
+                    factorial *= -1;
                 Res.Coefs[i] = (TNumeric(1) / TNumeric(factorial)).Simplify();
             }
             Res.RemainderPower = LastTerm;
@@ -337,7 +350,8 @@ TPolynomSeries GetMaclaurin(int operation, size_t LastTerm) {
                 Res.Coefs.assign(LastTerm + 1, TNumeric(0));
                 for (size_t i = 1; i <= LastTerm; i++) {
                     TNumeric C(TNumeric(1) / TNumeric(i));
-                    if (i % 2 == 0) C = C * TNumeric(-1);
+                    if (i % 2 == 0)
+                        C = C * TNumeric(-1);
                     Res.Coefs[i] = C.Simplify();
                 }
                 Res.RemainderPower = LastTerm;
@@ -356,8 +370,10 @@ TPolynomSeries GetMaclaurin(int operation, size_t LastTerm) {
         {
             Res.Coefs.assign(LastTerm + 1, TNumeric("0"));
             TNumeric Pow;
-            if (operation == OperatorFrac) Pow = TNumeric(-1);
-            if (operation == OperatorSqrt) Pow = TNumeric(1 / 2);
+            if (operation == OperatorFrac)
+                Pow = TNumeric(-1);
+            if (operation == OperatorSqrt)
+                Pow = TNumeric(1 / 2);
             for (size_t i = 0; i <= LastTerm; i++) {
                 TNumeric Coef("1");  // Coef = C_i^Pow
                 for (size_t k = 1; k <= i; k++)
@@ -373,8 +389,7 @@ TPolynomSeries GetMaclaurin(int operation, size_t LastTerm) {
     return TPolynomSeries(Res);
 }
 
-bool TMaclaurinSeriesProblem::ExpandIntoSeries(
-    std::shared_ptr<THTMLWriter> Writer, TPolynomSeries* Res, string var, const TNumeric& N, int LastTerm) {
+bool TMaclaurinSeriesProblem::ExpandIntoSeries(std::shared_ptr<THTMLWriter> Writer, TPolynomSeries* Res, string var, const TNumeric& N, int LastTerm) {
     switch (N.operation) {
         case OperatorSum:
             *Res = TPolynomSeries(TNumeric(0));
@@ -415,11 +430,13 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(
             {
                 TNumeric N2 = MakeProd(std::move(*N.operands[0]->deepCopy()), MakePow(*N.operands[1], TNumeric(-1)));
                 // N2 = N2.Simplify(); //если вызвать Simplify, то N2 опять станет дробью
-                if (Writer) Writer->AddParagraph("Transofming %N", MakeEquality(N, N2));
+                if (Writer)
+                    Writer->AddParagraph("Transofming %N", MakeEquality(N, N2));
                 return ExpandIntoSeries(Writer, Res, var, N2, LastTerm);
             } else {
                 // знаменатель - константа
-                if (ExpandIntoSeries(Writer, Res, var, *N.operands[0], LastTerm) == false) return false;
+                if (ExpandIntoSeries(Writer, Res, var, *N.operands[0], LastTerm) == false)
+                    return false;
                 *Res = *Res * (TNumeric(1) / (*N.operands[1]));
             }
         } break;
@@ -452,13 +469,11 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(
                     switch (N.operation) {
                         case OperatorSin:
                             // sin(a+b) = sin a cos b + cos a sin b
-                            *Res = GetMaclaurin(OperatorSin, LastTerm).Substitute(t, LastTerm) * MakeCos(Arg0) +
-                                   GetMaclaurin(OperatorCos, LastTerm).Substitute(t, LastTerm) * MakeSin(Arg0);
+                            *Res = GetMaclaurin(OperatorSin, LastTerm).Substitute(t, LastTerm) * MakeCos(Arg0) + GetMaclaurin(OperatorCos, LastTerm).Substitute(t, LastTerm) * MakeSin(Arg0);
                             break;
                         case OperatorCos:
                             // cos(a+b) = cos a cos b - sin a sin b
-                            *Res = GetMaclaurin(OperatorCos, LastTerm).Substitute(t, LastTerm) * MakeCos(Arg0) -
-                                   GetMaclaurin(OperatorSin, LastTerm).Substitute(t, LastTerm) * MakeSin(Arg0);
+                            *Res = GetMaclaurin(OperatorCos, LastTerm).Substitute(t, LastTerm) * MakeCos(Arg0) - GetMaclaurin(OperatorSin, LastTerm).Substitute(t, LastTerm) * MakeSin(Arg0);
                             break;
                         case OperatorTg:
                             // todo
@@ -467,8 +482,7 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(
                                 TPolynomSeries tg_t = GetMaclaurin(OperatorTg, LastTerm).Substitute(t, LastTerm);  // tg(t)
                                 TPolynomSeries Nominator = tg_t + MakeTg(Arg0);
                                 TPolynomSeries Denominator = TPolynomSeries(TNumeric(1)) - tg_t * MakeTg(Arg0);
-                                TPolynomSeries Denominator1 =
-                                    GetMaclaurin(OperatorFrac, LastTerm).Substitute(Denominator, LastTerm);
+                                TPolynomSeries Denominator1 = GetMaclaurin(OperatorFrac, LastTerm).Substitute(Denominator, LastTerm);
                                 *Res = Nominator * Denominator1;
                                 Res->Cut(LastTerm);
                             };
@@ -480,8 +494,7 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(
                         default:
                             if (Writer) {
                                 Writer->BeginError();
-                                Writer->AddParagraph(
-                                    "Can not find Maclaurin polynomial for %N, because argument is not in vicinity of zero.", N);
+                                Writer->AddParagraph("Can not find Maclaurin polynomial for %N, because argument is not in vicinity of zero.", N);
                                 Writer->EndError();
                             };
                             return false;
@@ -498,8 +511,7 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(
                 TNumeric f0 = N.operands[0]->Substitute(var, TNumeric(0)).Simplify();
                 if (f0 == TNumeric(0)) {
                     if (Writer)
-                        Writer->AddParagraph("The expression under ln is zero when %n = 0. Can not find Maclaurin polynomial.",
-                                             TNumeric(var));
+                        Writer->AddParagraph("The expression under ln is zero when %n = 0. Can not find Maclaurin polynomial.", TNumeric(var));
                     return false;
                 } else {
                     TPolynomSeries t = f * (TNumeric(1) / f0) + (-TNumeric(1));
@@ -517,7 +529,8 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(
         case OperatorLog: {
             TNumeric N2 = MakeFrac(MakeLn(*N.operands[0]), MakeLn(*N.operands[1]));
             N2 = N2.Simplify();
-            if (Writer) Writer->AddParagraph("Transforming %N", MakeEquality(N, N2));
+            if (Writer)
+                Writer->AddParagraph("Transforming %N", MakeEquality(N, N2));
             return ExpandIntoSeries(Writer, Res, var, N2, LastTerm);
         } break;
         case OperatorLg: {
@@ -531,9 +544,11 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(
                 // g(x)^f(x) = exp(f(x)*ln(g(x)))
                 TNumeric Arg = Pow * MakeLn(Base);
                 TPolynomSeries ArgSer;
-                if (Writer) Writer->AddParagraph("Transforming %N ", MakeEquality(N, MakeExp(Arg)));
+                if (Writer)
+                    Writer->AddParagraph("Transforming %N ", MakeEquality(N, MakeExp(Arg)));
                 if (ExpandIntoSeries(Writer, &ArgSer, var, Arg, LastTerm)) {
-                    if (Writer) Writer->AddFormula(MakeEquality(Arg, ArgSer.asNumeric(var)));
+                    if (Writer)
+                        Writer->AddFormula(MakeEquality(Arg, ArgSer.asNumeric(var)));
                     *Res = GetMaclaurin(OperatorExp, LastTerm);
                     *Res = Res->Substitute(ArgSer, LastTerm);
                 } else
@@ -571,7 +586,8 @@ bool TMaclaurinSeriesProblem::ExpandIntoSeries(
                         };
                         TNumeric t = (*N.operands[0] / Arg0 - TNumeric(1)).Simplify();
                         TPolynomSeries tser;
-                        if (!ExpandIntoSeries(Writer, &tser, var, t, LastTerm)) return false;
+                        if (!ExpandIntoSeries(Writer, &tser, var, t, LastTerm))
+                            return false;
                         if (Arg0 != TNumeric(1)) {
                             if (Writer) {
                                 Writer->AddFormula(MakeEquality(TNumeric("t"), t));
@@ -633,7 +649,8 @@ bool TMaclaurinSeriesProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
             Writer->AddParagraph("Answer: %N", N);
         };
     } else {
-        if (Writer) Writer->WriteError("Can not find Maclaurin polynomial.");
+        if (Writer)
+            Writer->WriteError("Can not find Maclaurin polynomial.");
     }
     return true;
 }
@@ -645,7 +662,8 @@ void TMaclaurinSeriesProblem::SaveToFile(ofstream& f) {
 
 void TMaclaurinSeriesProblem::LoadFromFile(ifstream& f) {
     f.read((char*)&MaxPower, sizeof(MaxPower));
-    if (MaxPower > 10) throw "TMaclaurinSeriesProblem::LoadFromFile: MaxPower is too large. Invalid file format?";
+    if (MaxPower > 10)
+        throw "TMaclaurinSeriesProblem::LoadFromFile: MaxPower is too large. Invalid file format?";
     TProblem::LoadFromFile(f);
 }
 

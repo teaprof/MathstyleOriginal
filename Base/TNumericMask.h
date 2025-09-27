@@ -24,9 +24,7 @@ class TNumericMask
     bool CheckTemplateFrac(const TNumeric& Template, const TNumeric& NConst, std::map<std::string, TNumeric>& Coefs);
     bool CheckTemplateSum(const TNumeric& Template, const TNumeric& NConst, std::map<std::string, TNumeric>& Coefs);
     bool CheckTemplateMinus(const TNumeric& Template, const TNumeric& NConst, std::map<std::string, TNumeric>& Coefs);
-    bool AcceptCoefs(
-        std::map<std::string, TNumeric>& Coefs,
-        std::map<std::string, TNumeric>& NewCoefs);  // добавляет NewCoefs к списку Coefs, если между ними нет противоречий
+    bool AcceptCoefs(std::map<std::string, TNumeric>& Coefs, std::map<std::string, TNumeric>& NewCoefs);  // добавляет NewCoefs к списку Coefs, если между ними нет противоречий
   public:
     std::map<std::string, TNumeric> Coefs;
 

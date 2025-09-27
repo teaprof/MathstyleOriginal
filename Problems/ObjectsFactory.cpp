@@ -19,18 +19,18 @@ void FillSignature(char* Signature)
 std::shared_ptr<TProblem> MakeCopy(std::shared_ptr<TProblem> P)
 // creates an object of the same type as P and returns pointer to it
 {
-#define CHECKTYPE(TYPE)                                                                                                          \
-    {                                                                                                                            \
-        TYPE Obj;                                                                                                                \
-        if (strcmp(Buf, Obj.GetClassName().c_str()) == 0) {                                                                      \
-            Problem = std::make_shared<TYPE>(*std::static_pointer_cast<TYPE>(P));                                                \
-        }                                                                                                                        \
+#define CHECKTYPE(TYPE)                                                           \
+    {                                                                             \
+        TYPE Obj;                                                                 \
+        if (strcmp(Buf, Obj.GetClassName().c_str()) == 0) {                       \
+            Problem = std::make_shared<TYPE>(*std::static_pointer_cast<TYPE>(P)); \
+        }                                                                         \
     }
-#define CHECKTYPE2(TYPE, STR)                                                                                                    \
-    {                                                                                                                            \
-        if (strcmp(Buf, STR) == 0) {                                                                                             \
-            Problem = std::make_shared<TYPE>(*std::static_pointer_cast<TYPE>(P));                                                \
-        }                                                                                                                        \
+#define CHECKTYPE2(TYPE, STR)                                                     \
+    {                                                                             \
+        if (strcmp(Buf, STR) == 0) {                                              \
+            Problem = std::make_shared<TYPE>(*std::static_pointer_cast<TYPE>(P)); \
+        }                                                                         \
     }
     std::shared_ptr<TProblem> Problem = 0;
     const char* Buf;

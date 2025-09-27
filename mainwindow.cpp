@@ -320,8 +320,7 @@ void MainWindow::CreateKeywords(vector<std::shared_ptr<TProblem>> Problems) {
         vector<string> CurKeywords;
         CurKeywords = Problems[i]->GetKeyWords();
         for (size_t j = 0; j < CurKeywords.size(); j++)
-            if (std::find(KeyWords.begin(), KeyWords.end(), CurKeywords[j]) == KeyWords.end() &&
-                std::find(SelectedKeywords.begin(), SelectedKeywords.end(), CurKeywords[j]) == SelectedKeywords.end())
+            if (std::find(KeyWords.begin(), KeyWords.end(), CurKeywords[j]) == KeyWords.end() && std::find(SelectedKeywords.begin(), SelectedKeywords.end(), CurKeywords[j]) == SelectedKeywords.end())
                 KeyWords.push_back(CurKeywords[j]);
     }
     if (KeywordsGlobeView) {
@@ -478,8 +477,7 @@ void MainWindow::SelectProblemByWidget(QTreeWidgetItem* item) {
 void MainWindow::DeleteProblem(size_t SelectedProblem)  // for what?
 {
     std::shared_ptr<TProblem> P = Problems[SelectedProblem];
-    for (QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>>::iterator iterator = WidgetToProblemMap.begin();
-         iterator != WidgetToProblemMap.end();) {
+    for (QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>>::iterator iterator = WidgetToProblemMap.begin(); iterator != WidgetToProblemMap.end();) {
         if (iterator.value() == P)
             WidgetToProblemMap.erase(iterator);
         else
@@ -664,8 +662,7 @@ void MainWindow::Solve() {
             Directories.push_back(Dir);
             int Milliseconds = Time.elapsed();
             stringstream str;
-            str << Problem->GetShortTask() << string(tr(" (elapsed ").toUtf8()) << double(Milliseconds) / 1000.0L
-                << string(tr(" secs)").toUtf8());
+            str << Problem->GetShortTask() << string(tr(" (elapsed ").toUtf8()) << double(Milliseconds) / 1000.0L << string(tr(" secs)").toUtf8());
             TSolutionBrowser* B = new TSolutionBrowser(this);
             B->SetCaption(QString::fromUtf8(str.str().c_str()));
             B->show();

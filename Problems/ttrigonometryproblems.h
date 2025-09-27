@@ -17,8 +17,8 @@ class TLinearTrigEquality :
 
     void Init(const TNumeric& UnknownVar, const TNumeric& CounterVar);  // конструктор
   public:
-    TNumeric UnknownVar;  // обозначение для неизвестной переменной
-    TNumeric CounterVar;  // переменная для обозначения сдвига по фазе в серии решений (типа arccos(a) + pi*n, n=CounterVar)
+    TNumeric UnknownVar;         // обозначение для неизвестной переменной
+    TNumeric CounterVar;         // переменная для обозначения сдвига по фазе в серии решений (типа arccos(a) + pi*n, n=CounterVar)
     vector<TNumeric> TrigRoots;  // найденные серии решений тригонометрического уравнения вида alpha + pi*n/k
     TLinearTrigEquality();
     TLinearTrigEquality(const TNumeric& UnknownVar, const TNumeric& CounterVar);
@@ -58,7 +58,7 @@ class THomogeneousTrigEquality :
 {
   public:
     //    TNumeric UnknownVar; //обозначение для неизвестной переменной
-    TNumeric CounterVar;  // переменная для обозначения сдвига по фазе в серии решений (типа arccos(a) + pi*n, n=CounterVar)
+    TNumeric CounterVar;         // переменная для обозначения сдвига по фазе в серии решений (типа arccos(a) + pi*n, n=CounterVar)
     vector<TNumeric> TrigRoots;  // найденные серии решений тригонометрического уравнения вида alpha + pi*n/k
     THomogeneousTrigEquality(size_t MaxPower = 2);
     THomogeneousTrigEquality(size_t MaxPower, string UnknownVar, string CounterVar);

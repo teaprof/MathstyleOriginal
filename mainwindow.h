@@ -20,16 +20,14 @@ class MainWindow;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
-    std::shared_ptr<TProblem> SimplifyProblem, LinearEquality, SquareEquality, PolynomialEquality4,
-        PolynomialEquality8; /*, RationalSumEquality1, RationalSumEquality2, PowerEquality2,
-    LinearTrigEquality, HomogeneousTrigEquality2, HomogeneousTrigEquality3, HomogeneousTrigEquality4,
-    SystemOfEquations22, SystemOfEquations33, SystemOfEquations44, SystemOfEquations55, LinearInequality,
-    SquareInequality, PolynomialInequality8, SystemOfLinearInequalities, SystemOfSquareInequalities, SetOfLinearInequalities,
-    SetOfSquareInequalities,
-    PolynomDerivative4, RationalFunctionDerivative44, PolynomDerivative, RationalFunctionDerivative, DerivativeProblem,
-    PolynomIntegralProblem, RationalIntegralProblem22, RationalIntegralProblem45, RationalIntegralProblem66,
-    IntegralProblem, MaclaurinSeriesProblem3, MaclaurinSeriesProblem5,
-    RationalIntegralProblemFactorized;*/
+    std::shared_ptr<TProblem> SimplifyProblem, LinearEquality, SquareEquality, PolynomialEquality4, PolynomialEquality8; /*, RationalSumEquality1, RationalSumEquality2, PowerEquality2,
+                                                                                                LinearTrigEquality, HomogeneousTrigEquality2, HomogeneousTrigEquality3, HomogeneousTrigEquality4,
+                                                                                                SystemOfEquations22, SystemOfEquations33, SystemOfEquations44, SystemOfEquations55, LinearInequality,
+                                                                                                SquareInequality, PolynomialInequality8, SystemOfLinearInequalities, SystemOfSquareInequalities,
+                                                                                                SetOfLinearInequalities, SetOfSquareInequalities, PolynomDerivative4, RationalFunctionDerivative44,
+                                                                                                PolynomDerivative, RationalFunctionDerivative, DerivativeProblem, PolynomIntegralProblem,
+                                                                                                RationalIntegralProblem22, RationalIntegralProblem45, RationalIntegralProblem66, IntegralProblem,
+                                                                                                MaclaurinSeriesProblem3, MaclaurinSeriesProblem5, RationalIntegralProblemFactorized;*/
     QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>> WidgetToProblemMap;
 
     QVBoxLayout* SelectedKeywordsLayout;
@@ -53,8 +51,8 @@ class MainWindow : public QMainWindow {
     size_t DirCount;  // счетчик созданных директорий с решениями
     QGraphicsScene* GViewScene;
     bool FreeDebugVersion;  // true в случае бесплатной версии, используемой во время отладки
-    bool Offline;  // если true, то обращение к сайту не производится
-    int Language;  // язык
+    bool Offline;           // если true, то обращение к сайту не производится
+    int Language;           // язык
     QNetworkAccessManager* AccessManager;
     QTreeWidgetItem* CustomSystems;
     QTreeWidgetItem* CurrentItem;
@@ -82,10 +80,10 @@ class MainWindow : public QMainWindow {
     void MySetIconSize(int Size);
     TOptions* Opt;
 
-    vector<string> Directories;   // созданные директории
-    vector<string> Files;         // созданные файлы
-    void DeleteDirs();            // удаляет директории с решениями
-    string TemporaryRootAbsPath;  // корневая директория для поддиректорий с решениями
+    vector<string> Directories;            // созданные директории
+    vector<string> Files;                  // созданные файлы
+    void DeleteDirs();                     // удаляет директории с решениями
+    string TemporaryRootAbsPath;           // корневая директория для поддиректорий с решениями
     string GetDirectory(size_t DirCount);  // выдает директорию вида Temp%d, где %d = DirCount
 
     /** loads a language by the given language shortcur (e.g. de, en, ...)

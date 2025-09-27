@@ -69,9 +69,8 @@ class THTMLWriter : public TRectangleElementVisitor {
     void AddParagraph(std::string str, void* R1, void* R2);
     void AddParagraph(std::string str, void* R1, void* R2, void* R3);
     void AddParagraph(std::string str, void* R1, void* R2, void* R3, void* R4);
-    void AddParagraph(
-        std::string str,
-        const TNumeric& N);  // %N для формулы на отдельной строке, %n - для inline-формулы; также можно использовать %d
+    void AddParagraph(std::string str,
+                      const TNumeric& N);  // %N для формулы на отдельной строке, %n - для inline-формулы; также можно использовать %d
     void AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2);
     void AddParagraph(std::string str, const TNumeric& N1, const int& D);
     void AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3);

@@ -236,8 +236,7 @@ void TPaintCanvas::TextOutRect(int X1, int Y1, int X2, int Y2, string Text, QCol
         // QRect br;
         painter_->setPen(QPen(Color));
         painter_->setFont(Font);
-        painter_->drawText(X1 - OriginX, Y1 - OriginY, X2 - X1, Y2 - Y1, Qt::AlignCenter | Qt::AlignHCenter,
-                           QString::fromUtf8(Text.c_str()));
+        painter_->drawText(X1 - OriginX, Y1 - OriginY, X2 - X1, Y2 - Y1, Qt::AlignCenter | Qt::AlignHCenter, QString::fromUtf8(Text.c_str()));
 #ifdef __DEBUG__
         Painter->drawRect(X1 - OriginX, Y1 - OriginY, X2 - X1, Y2 - Y1);
 #endif

@@ -16,8 +16,7 @@ enum TEditableFlags {
 
 class TEditableFormula : public TFormulaPlotter {
   public:
-    TEditableFormula(std::shared_ptr<TNumeric> Numeric, std::shared_ptr<TPaintCanvas> canvas) :
-        TFormulaPlotter(canvas), numeric_(Numeric) {}
+    TEditableFormula(std::shared_ptr<TNumeric> Numeric, std::shared_ptr<TPaintCanvas> canvas) : TFormulaPlotter(canvas), numeric_(Numeric) {}
     void addEditable(std::shared_ptr<const TNumeric> child) {
         editables_.push_back(child);
     }
@@ -79,16 +78,9 @@ class TEditableFormula : public TFormulaPlotter {
     }
 
     void setMouseXY(int mouse_x, int mouse_y) {
-        this->mouse_x = mouse_x;
-        this->mouse_y = mouse_y;
+        this->underMouse = this->getElementUnderMouse(mouse_x, mouse_y);
     }
 
-    std::shared_ptr<TNumeric> underMouse() {
-        return nullptr;
-    }
-
-    int mouse_x;
-    int mouse_y;
     std::shared_ptr<TNumeric> selected{nullptr};
     std::shared_ptr<TNumeric> active{nullptr};
 

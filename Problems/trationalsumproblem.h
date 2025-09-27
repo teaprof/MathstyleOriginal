@@ -9,9 +9,9 @@ class TRationalSumConditions : public TProblem {
     //  ------- + -------- = --------- +  ----------
     //  Q1_n(x)   Q2_n(x)   Q3_n(x)       Q4_n(x)
     // знаки определяются Sign1 и Sign2
-    size_t GetPStartIndex(size_t N);  // возвращает StartID для числителя N-ой дроби, выполняется Coef[0].role = StartID,
-                                      // Coef[1].role = StartID+1, ...
-    size_t GetQStartIndex(size_t N);  // то же для знаменателя
+    size_t GetPStartIndex(size_t N);            // возвращает StartID для числителя N-ой дроби, выполняется Coef[0].role = StartID,
+                                                // Coef[1].role = StartID+1, ...
+    size_t GetQStartIndex(size_t N);            // то же для знаменателя
     vector<TNumeric> GetCoefs(size_t StartID);  // возвращает коэффициенты с role от StartIndex до StartIndex+MaxPower+1
 
   public:
@@ -24,7 +24,7 @@ class TRationalSumConditions : public TProblem {
 
     vector<TNumeric> GetPCoef(size_t N);  // возвращает числитель N-ой дроби (P_N)
     vector<TNumeric> GetQCoef(size_t N);  // возвращает знаменатель N-ой дроби (P_N)
-    TPolynom asNumeric(size_t N);              // возвращает числитель N-ой дроби
+    TPolynom asNumeric(size_t N);         // возвращает числитель N-ой дроби
     TPolynom GetQ(size_t N);              // возвращает знаменатель N-ой дроби
 
     void Randomize(std::mt19937& rng);

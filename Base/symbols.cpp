@@ -9,8 +9,7 @@ void UniCode2UTF8(char* dest, int Code) {
     else if (Code < 0x10000)
         *dest++ = 224 + Code / 4096, *dest++ = 128 + Code / 64 % 64, *dest++ = 128 + Code % 64;
     else if (Code < 0x110000)
-        *dest++ = 240 + Code / 262144, *dest++ = 128 + Code / 4096 % 64, *dest++ = 128 + Code / 64 % 64,
-        *dest++ = 128 + Code % 64;
+        *dest++ = 240 + Code / 262144, *dest++ = 128 + Code / 4096 % 64, *dest++ = 128 + Code / 64 % 64, *dest++ = 128 + Code % 64;
     else
         *dest = 0;
     *dest = 0;

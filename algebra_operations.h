@@ -31,11 +31,10 @@ void Factorize(int N, vector<int>& P, vector<int>& Mult);
 // Необходимо, чтобы A и B были положительны
 int CheckCommonPower(int A, int B, int& Power, int& A1, int& B1);
 
-bool SolveLinearSystem(
-    vector<vector<TNumeric>> Coefs,
-    vector<TNumeric> RightPart,
-    vector<TNumeric>& Res,
-    bool OnlyInteger = false);  // решает систему уравнений с КВАДРАТНОЙ НЕВЫРОЖДЕННОЙ матрицей A_ij = Coef[i][j]
+bool SolveLinearSystem(vector<vector<TNumeric>> Coefs,
+                       vector<TNumeric> RightPart,
+                       vector<TNumeric>& Res,
+                       bool OnlyInteger = false);  // решает систему уравнений с КВАДРАТНОЙ НЕВЫРОЖДЕННОЙ матрицей A_ij = Coef[i][j]
 // OnlyInteger=true, если рассматриваются только целочисленные решения
 
 #endif  // ALGEBRA_OPERATIONS_H

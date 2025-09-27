@@ -56,9 +56,9 @@ void TTestFonts::DrawOnCanvas(std::shared_ptr<TPaintCanvas> Canvas) {
 void TTestFonts::NumericOnCanvas(std::shared_ptr<TPaintCanvas> Canvas) {
     TNumeric Var("x");
     TNumeric A(2);
-    //A.SetEditableFlags(ConstAllowed);
+    // A.SetEditableFlags(ConstAllowed);
     TNumeric B(3);
-    //B.SetEditableFlags(ConstAllowed);
+    // B.SetEditableFlags(ConstAllowed);
     TNumeric Line1 = MakeEquality(A * Var + B * (Var ^ 2), TNumeric(0));
     TNumeric Line2 = MakeEquality((A / B) * Var + B * MakeLog(Var, (Var ^ 2) + 2), TNumeric(0));
     TNumeric Line3 = MakeEquality(A * MakeSin(Var) + B * (Var ^ 2), TNumeric(0));

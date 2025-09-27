@@ -3,8 +3,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <math.h>
@@ -109,7 +109,7 @@ std::shared_ptr<TNumeric> TNumeric::deepCopyPtr() const {
 TNumeric::TNumeric(double value) {
     if (value == 0) {
         strval = "0";
-    } else {        
+    } else {
         char p[256];
         sprintf(p, "%g", value);  /// \todo: in this case the value should be stored in the internal variable of type double
         strval = p;
@@ -119,7 +119,7 @@ TNumeric::TNumeric(double value) {
 TNumeric::TNumeric(int value) {
     if (value == 0) {
         strval = "0";
-    } else {        
+    } else {
         char p[256];
         sprintf(p, "%d", value);
         strval = p;
@@ -139,8 +139,7 @@ TNumeric::TNumeric(const string& value) {
     operation = OperatorConst;
 }
 
-TNumeric::~TNumeric() {
-}
+TNumeric::~TNumeric() {}
 
 void TNumeric::OperandsPushback(const TNumeric& Val) {
     this->operands.push_back(std::make_shared<TNumeric>(Val));
@@ -199,15 +198,15 @@ std::shared_ptr<const TNumeric> TNumeric::GetByRoleConst(int role) const {
 }
 
 std::shared_ptr<TNumeric>& TNumeric::GetByRole(int role, std::shared_ptr<TNumeric>& self) {
-    if (role == this->role) {        
-        return self; // instead of shared_from_this();
+    if (role == this->role) {
+        return self;  // instead of shared_from_this();
     }
     for (size_t i = 0; i < operands.size(); i++) {
-        if (operands[i]->hasRole(role)) {            
+        if (operands[i]->hasRole(role)) {
             return self->GetByRole(role, operands[i]);
         }
     };
-    return self; // instead of shared_from_this();
+    return self;  // instead of shared_from_this();
 }
 
 bool TNumeric::isInteger(int* Int) const {
@@ -463,8 +462,7 @@ TNumeric TNumeric::Derivative(const string VarName) const {
             return Res;
         }
         case OperatorFrac:
-            return (operands[0]->Derivative(VarName) * (*operands[1]) - (*operands[0]) * operands[1]->Derivative(VarName)) /
-                   MakePow(*operands[1], TNumeric(2));
+            return (operands[0]->Derivative(VarName) * (*operands[1]) - (*operands[0]) * operands[1]->Derivative(VarName)) / MakePow(*operands[1], TNumeric(2));
         case OperatorSqrt:
             return TNumeric(1) / (TNumeric(2) * MakeSqrt(*operands[0])) * operands[0]->Derivative(VarName);
         case OperatorExp:
@@ -806,8 +804,8 @@ string DeleteExternalBrackets(string Str) {
     // Удаляем внешние скобки
     char* p = (char*)Str.c_str();
     int BracketLevel = 0;
-    bool External = true;  // true, если найденная пара скобок StartIndex EndIndex является внешними скобками - за пределами их
-                           // нет арифеметических операций
+    bool External = true;         // true, если найденная пара скобок StartIndex EndIndex является внешними скобками - за пределами их
+                                  // нет арифеметических операций
     size_t StartIndex, EndIndex;  // начало и конец результирующей подстроки, не включая последений символ
     // то есть Result = [StartIndex, EndIndex)
     StartIndex = 0;
@@ -942,7 +940,7 @@ void TNumeric::AssignV(const char* str) {
     strcpy(p, str);
     Assign(p);
     this->operation = Operation::OperatorConst;
-    delete [] p;
+    delete[] p;
 };
 
 void TNumeric::Assign(char* str) {
@@ -1001,9 +999,7 @@ void TNumeric::Assign(char* str) {
             CurOpPrior = GetOperatorPriority(static_cast<Operation>(CurOpCode));
 
         if (CurOpCode != -1)
-            if (OpCode == -1 ||
-                (CurBracketLevel < BracketLevel ||
-                 (CurBracketLevel == BracketLevel && (CurOpPrior < OpPriority || (CurOpPrior == OpPriority && i > OpPos)))))
+            if (OpCode == -1 || (CurBracketLevel < BracketLevel || (CurBracketLevel == BracketLevel && (CurOpPrior < OpPriority || (CurOpPrior == OpPriority && i > OpPos)))))
             // Если выполнено хотя бы одно условие
             // 1. OpCode == -1 - это первая найденная операция в выражении
             // 2. CurBracketLevel < BracketLevel - эта операция находится во внешних скобках по отношению к найденной
@@ -1168,8 +1164,7 @@ TNumeric TNumeric::EliminateUnimplementedFunctions(size_t& StartID, map<string, 
     }
     // упрощаем аргументы
     for (size_t i = 0; i < operands.size(); i++)
-        res.operands[i] =
-            TNumeric::create(std::move(res.operands[i]->EliminateUnimplementedFunctions(StartID, vars_to_functions)));
+        res.operands[i] = TNumeric::create(std::move(res.operands[i]->EliminateUnimplementedFunctions(StartID, vars_to_functions)));
     return res;
 }
 

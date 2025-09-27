@@ -49,8 +49,7 @@ TNumeric TRandomFunction::RandomFunction(int Flags, int Level, std::mt19937& rng
             break;
         case OperatorSum:
             Res.OperandsPushback(RandomFunction(Flags & ~AllowSum, Level, rng));  // we are excluding AllowSum to avoid
-            Res.OperandsPushback(RandomFunction(
-                Flags & ~AllowSum, Level, rng));  // infinite recursion (with probability = 0) and long expressions (prob > 0)
+            Res.OperandsPushback(RandomFunction(Flags & ~AllowSum, Level, rng));  // infinite recursion (with probability = 0) and long expressions (prob > 0)
             break;
     }
     return Res;

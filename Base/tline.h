@@ -99,13 +99,9 @@ class TRectangleElement {
     // virtual int GetPageBottom(TNumeric& N, std::shared_ptr<TPaintCanvas> Canvas, int Y, int CurPageBottom, int MaxWidth = -1);
     virtual Metrics GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth = -1) const = 0;
     void Draw(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth = -1) const;
-    virtual void DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas,
-                                int X,
-                                int Y,
+    virtual void DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y,
                                 int MaxWidth = -1) const = 0;  // X - левая граница, Y - положение основной линии текста
-    virtual void DrawAtTopLeft(std::shared_ptr<TPaintCanvas> Canvas,
-                               int X,
-                               int Y,
+    virtual void DrawAtTopLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y,
                                int MaxWidth = -1) const;  //(X, Y) - верхний левый угол текста
 
     QColor GetColor() const;

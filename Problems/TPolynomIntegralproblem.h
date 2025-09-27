@@ -19,8 +19,7 @@ class TPolynomIntegralProblem : public TPolynomConditions {
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() {
@@ -47,8 +46,7 @@ class TRationalIntegralProblem2 :
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() {
@@ -71,8 +69,7 @@ class TRationalIntegralProblem : public TRationalFunctionConditions {
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() {
@@ -107,8 +104,7 @@ class TElementarFractionIntegralProblem :
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() {
@@ -134,8 +130,7 @@ class TIntegralProblem : public TProblem {
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() {
@@ -163,8 +158,7 @@ class TTabularIntegralProblem :
 
     virtual string GetTask();
     virtual string GetShortTask();
-    virtual bool GetSolution(
-        std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
+    virtual bool GetSolution(std::shared_ptr<THTMLWriter> Writer);  // возвращает непосредственно само решение без дублирования условия
     virtual void BuildPhrases();
 
     virtual string GetClassName() {

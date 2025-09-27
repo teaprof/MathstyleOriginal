@@ -71,8 +71,7 @@ void QFormulaArea::paintEvent(QPaintEvent* event) {
 
         painter.setFont(QFont("Sans", 14));
         painter.setPen(QPen(Qt::black));
-        painter.drawText(QRect(X, Y, GeomWidth - 20, GeomHeight - 20), Qt::AlignJustify | Qt::TextWordWrap,
-                         QString::fromUtf8(Task.c_str()), &br);
+        painter.drawText(QRect(X, Y, GeomWidth - 20, GeomHeight - 20), Qt::AlignJustify | Qt::TextWordWrap, QString::fromUtf8(Task.c_str()), &br);
         GeomHeight = Height + Depth + br.bottom() + 20;
         if (GeomHeight < minimumHeight())
             GeomHeight = minimumHeight();
@@ -89,8 +88,7 @@ void QFormulaArea::paintEvent(QPaintEvent* event) {
             painter.fillRect(0, 0, Widget->width(), Widget->height(), QBrush(BackgroundColor));
             // int W = Widget->width();
 
-            painter.drawText(QRect(X, Y, GeomWidth - 20, GeomHeight - 20), Qt::AlignJustify | Qt::TextWordWrap,
-                             QString::fromUtf8(Task.c_str()), &br);
+            painter.drawText(QRect(X, Y, GeomWidth - 20, GeomHeight - 20), Qt::AlignJustify | Qt::TextWordWrap, QString::fromUtf8(Task.c_str()), &br);
 
             X = LeftPadding + (GeomWidth - Width - LeftPadding - RightPadding) / 2;
             // Y = (br.height() + height()/2 - (Depth-Height)/2; //рисуем формулу по середине
@@ -102,8 +100,7 @@ void QFormulaArea::paintEvent(QPaintEvent* event) {
 
 void QFormulaArea::mouseMoveEvent(QMouseEvent* M) {
     if (Formula) {
-        EditableFormula->mouse_x = M->position().x();
-        EditableFormula->mouse_y = M->position().y();
+        EditableFormula->setMouseXY(M->position().x(), M->position().y());
         repaint();
     };
 }
@@ -635,8 +632,7 @@ QFormulaEditor::QFormulaEditor(QWidget* parent) : QWidget(parent) {
     BPower = RegisterButton(":formulas/Pictures/Formulas/power.png", tr("Power"), ArithmeticsBox, 2, 0, SLOT(InsertPower()));
     BSqrt = RegisterButton(":formulas/Pictures/Formulas/sqrt.png", tr("square root"), ArithmeticsBox, 2, 1, SLOT(InsertSqrt()));
     BEdit = RegisterButton(":formulas/Pictures/Formulas/edit.png", tr("edit"), ArithmeticsBox, 3, 0, SLOT(Edit()));
-    BSimplify =
-        RegisterButton(":formulas/Pictures/Formulas/simplify.png", tr("simplify"), ArithmeticsBox, 3, 1, SLOT(Simplify()));
+    BSimplify = RegisterButton(":formulas/Pictures/Formulas/simplify.png", tr("simplify"), ArithmeticsBox, 3, 1, SLOT(Simplify()));
     BClear = RegisterButton(":formulas/Pictures/Formulas/clear.png", tr("clear"), ArithmeticsBox, 4, 0, SLOT(Clear()));
     BErase = RegisterButton(":formulas/Pictures/Formulas/erase.png", tr("erase"), ArithmeticsBox, 4, 1, SLOT(Erase()));
 
@@ -741,8 +737,7 @@ QFormulaEditor::~QFormulaEditor() {
     delete BSimplify;*/
 }
 
-QToolButton*
-    QFormulaEditor::RegisterButton(const char* Img, QString ToolTip, QWidget* Parent, int Col, int Row, const char* Slot) {
+QToolButton* QFormulaEditor::RegisterButton(const char* Img, QString ToolTip, QWidget* Parent, int Col, int Row, const char* Slot) {
     QIcon* Icon = new QIcon(Img);
     QToolButton* B = new QToolButton(Parent);
     SetPos(B, Col, Row);
@@ -756,8 +751,7 @@ QToolButton*
 }
 
 void QFormulaEditor::SetPos(QToolButton* Button, int Col, int Row) {
-    Button->setGeometry(ButtonPadding + (ButtonWidth + ButtonPadding) * Col, ButtonPadding + (ButtonHeight + ButtonPadding) * Row,
-                        ButtonWidth, ButtonHeight);
+    Button->setGeometry(ButtonPadding + (ButtonWidth + ButtonPadding) * Col, ButtonPadding + (ButtonHeight + ButtonPadding) * Row, ButtonWidth, ButtonHeight);
 };
 
 void QFormulaEditor::SetArithmeticsVisible(bool Visible) {

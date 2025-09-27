@@ -20,15 +20,10 @@ class TPolynom
     /// из множества X находит такие X, которые являются корнями многочлена
     /// записывает в Res одночлены x - x0, кратность корней - в Multiplicities, и возвращает многочлен, полученный делением
     /// исходного на найденные (x-x0) с учётом их кратности
-    TPolynom
-        TestX1(const vector<int>& Num, const vector<int>& Denom, vector<TPolynom>& Res, vector<size_t>& Multiplicities) const;
+    TPolynom TestX1(const vector<int>& Num, const vector<int>& Denom, vector<TPolynom>& Res, vector<size_t>& Multiplicities) const;
 
     /// ищет делители вида ax^2+bx+c
-    TPolynom TestX2(const vector<int>& a,
-                    const vector<int>& b,
-                    const vector<int>& c,
-                    vector<TPolynom>& Res,
-                    vector<size_t>& Multiplicities) const;
+    TPolynom TestX2(const vector<int>& a, const vector<int>& b, const vector<int>& c, vector<TPolynom>& Res, vector<size_t>& Multiplicities) const;
 
   public:
     /// Coef[0] + Coef[1]*x + Coef[2]*x^2 + ... + Coef[n]*x^n

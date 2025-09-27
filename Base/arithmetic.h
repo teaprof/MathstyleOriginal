@@ -26,7 +26,7 @@ enum Operation {
     OperatorProd = 2,
     OperatorSqrt = 3,
     OperatorPow = 4,
-    OperatorFrac = 5,
+    OperatorFrac = 5,    
 
     OperatorEqSet = 8,     // совокупность уравнений
     OperatorEqSystem = 9,  // система уравнений
@@ -262,9 +262,8 @@ TNumeric MakeSetOfEquations(const TNumeric& N1, const TNumeric& N2);
 TNumeric MakeIntegral(const TNumeric& N, const TNumeric& dx);
 TNumeric MakeIntegral(const TNumeric& N, const string& dx);
 
-TNumeric GetPolynom(
-    size_t Power,
-    size_t StartID);  // конструирует многочлен с нулевыми коэффициентами. role устанавливаются от StartID до StartID+Power
+TNumeric GetPolynom(size_t Power,
+                    size_t StartID);  // конструирует многочлен с нулевыми коэффициентами. role устанавливаются от StartID до StartID+Power
 
 //---------------------------------------------------------------------------
 std::shared_ptr<const TNumeric> FindParent(std::shared_ptr<const TNumeric> Root, std::shared_ptr<const TNumeric> Child);

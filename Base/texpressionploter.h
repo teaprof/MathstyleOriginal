@@ -37,12 +37,11 @@ class TExpressionPloter : public TRectangleElement {
     void BelongsToGetTextRectangle(TPaintCanvas* Canvas, int& Width, int& Height, int& Depth, bool WithBrackets);
     void BelongsToDraw(TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets);
 
-    void IntervalGetTextRectangle(
-        TPaintCanvas* Canvas,
-        int& Width,
-        int& Height,
-        int& Depth,
-        bool WithBrackets);  // for OperatorInterval, OperatorSegmentInterval, OperatorIntervalSegment, OperatorSegment
+    void IntervalGetTextRectangle(TPaintCanvas* Canvas,
+                                  int& Width,
+                                  int& Height,
+                                  int& Depth,
+                                  bool WithBrackets);  // for OperatorInterval, OperatorSegmentInterval, OperatorIntervalSegment, OperatorSegment
     void IntervalDraw(TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets);
 
     void SqrtGetTextRectangle(TPaintCanvas* Canvas, int& Width, int& Height, int& Depth, bool WithBrackets);
@@ -67,8 +66,7 @@ class TExpressionPloter : public TRectangleElement {
     void SubIndexDraw(TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets);
 
     void LinesGetTextRectangle(TPaintCanvas* Canvas, int& Width, int& Height, int& Depth, bool WithBrackets, int LeftMargin = 0);
-    void
-        LinesDraw(TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets, int LeftMargin = 0);
+    void LinesDraw(TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets, int LeftMargin = 0);
 
     void EqSystemGetTextRectangle(TPaintCanvas* Canvas, int& Width, int& Height, int& Depth, bool WithBrackets);
     void EqSystemDraw(TPaintCanvas* Canvas, int X, int Y, int& Width, int& Height, int& Depth, bool NeedBrackets);
@@ -86,7 +84,7 @@ class TExpressionPloter : public TRectangleElement {
     int CompareOperatorsPriority(int OpCode1, int OpCode2);
 
   public:
-    int role;  // идентификатор, по которому можно получить указатель на объект TNumeric
+    int role;       // идентификатор, по которому можно получить указатель на объект TNumeric
     bool Editable;  // true, если поле можно редактировать
     int MouseX, MouseY;
     bool DrawMouse;

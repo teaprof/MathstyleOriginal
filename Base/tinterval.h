@@ -12,7 +12,7 @@ class TInterval {
 
   public:
     // Точка: левая и правая граница совпадают, обе границы включены во множество
-    bool Empty;  // если Empty, то это пустое множество и Left, Right, IncludeLeft, IncludeRight не учитываются
+    bool Empty;            // если Empty, то это пустое множество и Left, Right, IncludeLeft, IncludeRight не учитываются
     TNumeric Left, Right;  // левая и правая границы
     bool IncludeLeft;      // входит ли левая граница во множество
     bool IncludeRight;     // входит ли правая граница во множество
@@ -20,7 +20,7 @@ class TInterval {
     TInterval(const TNumeric& Value);  // создает отрезок [Value, Value]
     TInterval(const TInterval& I);
     TInterval(const TNumeric& Left, const TNumeric& Right, bool IncludeLeft = false, bool IncludeRight = false);
-    bool TestPoint(const TNumeric& P) const;  // истина, если точка принадлежит интервалу
+    bool TestPoint(const TNumeric& P) const;   // истина, если точка принадлежит интервалу
     bool operator<(const TInterval& I) const;  // true, если самая левая точка интевала *this левее самой левой точки I
 
     TInterval operator=(const TInterval& I);

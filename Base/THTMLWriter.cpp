@@ -165,8 +165,7 @@ void THTMLWriter::AddParagraph(std::string str, const vector<const void*>& P) {
                 break;
             char code = str[curindex];
             if (P.size() <= count) {
-                cerr << "THTMLWriter::AddParagraph(string, vector): P.size() <= count, check format string, str = " << str
-                     << endl;
+                cerr << "THTMLWriter::AddParagraph(string, vector): P.size() <= count, check format string, str = " << str << endl;
                 throw "THTMLWriter::AddParagraph(string, vector): P.size() <= count, check format string str";
             };
             switch (code) {
@@ -191,8 +190,7 @@ void THTMLWriter::AddParagraph(std::string str, const vector<const void*>& P) {
                     break;
                 }
                 default:
-                    cerr << "THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string, str = " << str
-                         << endl;
+                    cerr << "THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string, str = " << str << endl;
                     throw "THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string str";
                     break;
             }
@@ -372,14 +370,12 @@ void THTMLWriter::AddInlineFormula(const TConstFormulaPlotter& fp) {
     stringstream padstr;
     padstr << "style=\"vertical-align: middle;\"";
     // fout<<"<img src=\""<<FileName<<"\" align = \"bottom\" "<<padstr.str()<<" alt = \""<<N.CodeBasic()<<"\"/>";
-    fout << "<img src=\"" << FileName << "\" align = \"bottom\" " << padstr.str() << " alt = \""
-         << TFormulaPlotter::CodeBasic(fp.numeric()) << "\"/>";
+    fout << "<img src=\"" << FileName << "\" align = \"bottom\" " << padstr.str() << " alt = \"" << TFormulaPlotter::CodeBasic(fp.numeric()) << "\"/>";
     /*fout<<"some text";
     fout<<"<img src=\""<<FileName<<"\" align = \"middle\" "<<padstr.str()<<" alt = \""<<N.CodeBasic()<<"\"/>";*/
 }
 
-void THTMLWriter::AddFormula(
-    const TConstFormulaPlotter& fp)  /// \todo: rename to printFormula since it doesn't take the ownership of fp (here and others)
+void THTMLWriter::AddFormula(const TConstFormulaPlotter& fp)  /// \todo: rename to printFormula since it doesn't take the ownership of fp (here and others)
 {
     fout << "<br/>" << endl;
     AddInlineFormula(fp);

@@ -89,7 +89,7 @@ TSimplifyProblem::TSimplifyProblem() : TProblem() {
     Conditions->OperandsPushback(TNumeric("1"));
     Conditions->OperandsPushback(TNumeric("2"));
     Conditions->Assign("((x^2+(-1*x))+1");
-    //Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);
+    // Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);
     BuildPhrases();
 }
 

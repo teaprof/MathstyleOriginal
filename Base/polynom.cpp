@@ -232,11 +232,10 @@ TPolynom TPolynom::Div(const TPolynom& P, TPolynom* Remainder) const {
         /// \todo: maybe simply return empty Res?
         Res.push_back(TNumeric::create(0));
     }
-    if(Remainder)
-    {        
+    if (Remainder) {
         *Remainder = TPolynom(Numerator);
         // all these coefs are zeros
-        Remainder->Coef.erase(Remainder->Coef.begin()+MajorPowerNumerator + 1, Remainder->Coef.end());
+        Remainder->Coef.erase(Remainder->Coef.begin() + MajorPowerNumerator + 1, Remainder->Coef.end());
     };
     for (auto& it : Res) {
         if (it == nullptr) {
@@ -448,13 +447,10 @@ TPolynom TPolynom::GetMultiplicity(const TPolynom& Divisor, size_t& Multiplicity
     return PRemaining;
 }
 
-TPolynom TPolynom::TestX1(const vector<int>& Nom,
-                          const vector<int>& Denom,
-                          vector<TPolynom>& Res,
-                          vector<size_t>& Multiplicities) const {
+TPolynom TPolynom::TestX1(const vector<int>& Nom, const vector<int>& Denom, vector<TPolynom>& Res, vector<size_t>& Multiplicities) const {
     TPolynom PRemaining(*this);
-    for (size_t i = 0; i < Nom.size(); i++)        // перебираем делители свободного члена
-        for (size_t j = 0; j < Denom.size(); j++)  // перебираем делители коэф при старшем члене
+    for (size_t i = 0; i < Nom.size(); i++)            // перебираем делители свободного члена
+        for (size_t j = 0; j < Denom.size(); j++)      // перебираем делители коэф при старшем члене
             for (int sign = -1; sign <= 1; sign += 2)  // перебераем знак
             {
                 TNumeric Test;  // тестовый корень
@@ -480,11 +476,7 @@ TPolynom TPolynom::TestX1(const vector<int>& Nom,
     return PRemaining;
 }
 
-TPolynom TPolynom::TestX2(const vector<int>& a,
-                          const vector<int>& b,
-                          const vector<int>& c,
-                          vector<TPolynom>& Res,
-                          vector<size_t>& Multiplicities) const {
+TPolynom TPolynom::TestX2(const vector<int>& a, const vector<int>& b, const vector<int>& c, vector<TPolynom>& Res, vector<size_t>& Multiplicities) const {
     TPolynom PRemaining(*this);
     for (size_t i = 0; i < a.size(); i++)
         for (size_t j = 0; j < b.size(); j++)
@@ -625,7 +617,7 @@ vector<TPolynom> TPolynom::Factorize() const {
     } else {
         int FreeMember = IntCoef[0];
         int MajorMember = IntCoef[MajorPower];
-        vector<int> FreeMemberMults = IntFactorize(FreeMember);  // раскладываем свободный член на множители
+        vector<int> FreeMemberMults = IntFactorize(FreeMember);    // раскладываем свободный член на множители
         vector<int> MajorMemberMults = IntFactorize(MajorMember);  // раскладываем коэффициент при старшем члене на множители
         // Методом подбора ищем рациональные корни
         if (find(FreeMemberMults.begin(), FreeMemberMults.end(), 1) == FreeMemberMults.end())
@@ -772,8 +764,7 @@ vector<TPolynom> TPolynom::FactorizeKroneker(vector<size_t>* ResMultiplicty) con
                 continue;
             TPolynom Q, R;
             size_t MP = P.MajorPower();
-            if (MP == m &&
-                !(MP == 0 && (*P.Coef[0] == TNumeric("1") || *P.Coef[0] == TNumeric("-1"))))  // не делим на 1 или на -1
+            if (MP == m && !(MP == 0 && (*P.Coef[0] == TNumeric("1") || *P.Coef[0] == TNumeric("-1"))))  // не делим на 1 или на -1
             {
                 size_t Multiplicity = 0;
                 TPolynom Source = *this;
@@ -830,10 +821,8 @@ TRationalFunction::TRationalFunction(const TPolynom P, const TPolynom Q) {
     this->Q = Q;
 }
 
-TRationalFunction::TRationalFunction(const std::vector<PNumeric>& PCoef, const std::vector<PNumeric>& QCoef) :
-    P(PCoef), Q(QCoef) {}
-TRationalFunction::TRationalFunction(std::vector<TNumeric>&& PCoef, std::vector<TNumeric>&& QCoef) :
-    P(std::move(PCoef)), Q(std::move(QCoef)) {}
+TRationalFunction::TRationalFunction(const std::vector<PNumeric>& PCoef, const std::vector<PNumeric>& QCoef) : P(PCoef), Q(QCoef) {}
+TRationalFunction::TRationalFunction(std::vector<TNumeric>&& PCoef, std::vector<TNumeric>&& QCoef) : P(std::move(PCoef)), Q(std::move(QCoef)) {}
 
 TRationalFunction::~TRationalFunction() {}
 

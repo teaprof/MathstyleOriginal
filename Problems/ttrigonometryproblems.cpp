@@ -310,18 +310,15 @@ bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
             if (Writer) {
                 Writer->AddParagraph("After simplifying: %N", MakeEquality(a * MakeCos(UnknownVar) + b * MakeSin(UnknownVar), c));
 
-                Writer->AddParagraph("Performing change of variables: %N",
-                                     MakeSystemOfEquations(MakeEquality(MakeSin(Psi), a), MakeEquality(MakeCos(Psi), b)));
+                Writer->AddParagraph("Performing change of variables: %N", MakeSystemOfEquations(MakeEquality(MakeSin(Psi), a), MakeEquality(MakeCos(Psi), b)));
 
-                Writer->AddParagraph("We should find at least one value for %n for which equality %N is satisfied.",
-                                     TNumeric("\\psi"),
+                Writer->AddParagraph("We should find at least one value for %n for which equality %N is satisfied.", TNumeric("\\psi"),
                                      MakeEquality(MakeSin(Psi) * MakeCos(UnknownVar) + MakeCos(Psi) * MakeSin(UnknownVar), c));
             };
             TNumeric PhiVal;
             if (b.Calculate() > 0) {
                 if (Writer) {
-                    Writer->AddParagraph("Because of %n is greater than zero, the value of %n should be in interval %n",
-                                         MakeCos(TNumeric("\\psi")), TNumeric("\\psi"), MakeInterval(-NumPi2, NumPi2));
+                    Writer->AddParagraph("Because of %n is greater than zero, the value of %n should be in interval %n", MakeCos(TNumeric("\\psi")), TNumeric("\\psi"), MakeInterval(-NumPi2, NumPi2));
                 }
                 PhiVal = MakeArcsin(a);
                 PhiVal = PhiVal.Simplify();
@@ -330,8 +327,7 @@ bool TLinearTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
                 I.Intervals.push_back(MakeInterval(NumPi2, NumPi));
                 I.Intervals.push_back(MakeInterval(-NumPi, -NumPi2));
                 if (Writer)
-                    Writer->AddParagraph("Because of %n is less than zero, the value of %n should be in interval %N",
-                                         MakeCos(TNumeric("\\psi")), TNumeric("\\psi"), I.asNumeric());
+                    Writer->AddParagraph("Because of %n is less than zero, the value of %n should be in interval %N", MakeCos(TNumeric("\\psi")), TNumeric("\\psi"), I.asNumeric());
                 PhiVal = MakeArcsin(a);
                 PhiVal = PhiVal.Simplify();
                 if (a.Calculate() > 0)
@@ -393,8 +389,7 @@ THomogeneousTrigEquality::THomogeneousTrigEquality(size_t MaxPower) : TPolynomCo
     BuildPhrases();
 }
 
-THomogeneousTrigEquality::THomogeneousTrigEquality(size_t MaxPower, string UnknownVar, string CounterVar) :
-    TPolynomConditions(), TEquality() {
+THomogeneousTrigEquality::THomogeneousTrigEquality(size_t MaxPower, string UnknownVar, string CounterVar) : TPolynomConditions(), TEquality() {
     this->UnknownVar = TNumeric(UnknownVar);
     this->CounterVar = TNumeric(CounterVar);
     SetMaxPower(MaxPower, OperatorEqual);
@@ -497,8 +492,7 @@ bool THomogeneousTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
         {
             if (HasSin) {
                 if (Writer)
-                    Writer->AddParagraph("Substituting %n one can obtain 0=0. Consequently, %N is a solution",
-                                         MakeEquality(MakeCos(TNumeric("\\phi")), TNumeric("0")),
+                    Writer->AddParagraph("Substituting %n one can obtain 0=0. Consequently, %N is a solution", MakeEquality(MakeCos(TNumeric("\\phi")), TNumeric("0")),
                                          MakeEquality(MakeCos(TNumeric("\\phi")), TNumeric("0")));
             };
 
@@ -561,8 +555,7 @@ bool THomogeneousTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
             }
         } else {
             if (Writer)
-                Writer->AddParagraph("%n is not solution. Dividing left and right sides by %n",
-                                     MakeEquality(MakeCos(TNumeric("\\phi")), TNumeric("0")),
+                Writer->AddParagraph("%n is not solution. Dividing left and right sides by %n", MakeEquality(MakeCos(TNumeric("\\phi")), TNumeric("0")),
                                      MakeEquality(MakeCos(TNumeric("\\phi")), TNumeric("0")));
 
             // Переворачиваем P задом на перед в P1
@@ -588,8 +581,7 @@ bool THomogeneousTrigEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) 
                     TrigRoots.push_back(X);
                     Result.Intervals.push_back(TInterval(X));
                     if (Writer) {
-                        Writer->AddParagraph("The solution of %N is %N", MakeEquality(MakeTg(UnknownVar), Tg),
-                                             MakeEquality(UnknownVar, X));
+                        Writer->AddParagraph("The solution of %N is %N", MakeEquality(MakeTg(UnknownVar), Tg), MakeEquality(UnknownVar, X));
                         Writer->AddParagraph("After simplifying %N", MakeEquality(UnknownVar, X));
                     }
                 };
