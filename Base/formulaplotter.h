@@ -7,81 +7,83 @@
 #include "tline.h"
 
 class TFormulaPlotter {
+    Metrics PrettyDrawAtBaseLeftRecursive(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
+
     void DrawBracket(char Bracket, int X, int Y, int Height, int Depth) const;
     int GetBracketWidth(char Bracket, int Height, int Depth) const;
     void DrawBracket(string Bracket, int X, int Y, int Height, int Depth) const;
     int GetBracketWidth(string Bracket, int Height, int Depth) const;
 
-    Metrics PrettyGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool NeedBrackets, bool Simplify) const;
+    Metrics FunctionGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void FunctionDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics FunctionGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void FunctionDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics StrGetTextRectangle(std::shared_ptr<TNumeric> N, const char* separator_str, bool WithBrackets) const;
+    void StrDraw(int zorder, std::shared_ptr<TNumeric> N, const char* separator_str, int X, int Y, bool withBrackets) const;
 
-    Metrics StrGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, const char* separator_str, bool WithBrackets, bool Simplify) const;
-    void StrDraw(std::shared_ptr<TNumeric> N, const char* separator_str, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics InlineGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void InlineDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics InlineGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void InlineDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics EqualGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void EqualDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics EqualGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void EqualDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
-
-    Metrics BelongsToGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void BelongsToDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics BelongsToGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void BelongsToDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
     /// for OperatorInterval, OperatorSegmentInterval, OperatorIntervalSegment, OperatorSegment
-    Metrics IntervalGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void IntervalDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics IntervalGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void IntervalDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics SqrtGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void SqrtDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics SqrtGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void SqrtDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics ProdGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void ProdDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics ProdGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void ProdDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics SumGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void SumDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics SumGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void SumDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics MinusGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void MinusDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics MinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void MinusDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics PlusMinusGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void PlusMinusDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics PlusMinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void PlusMinusDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics FracGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void FracDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics FracGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void FracDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics PowGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void PowDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics PowGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void PowDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics AbsGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void AbsDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics AbsGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void AbsDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics SubIndexGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void SubIndexDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics SubIndexGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void SubIndexDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics LinesGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, int LeftMargin, bool Simplify) const;
-    void LinesDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, int LeftMargin, bool Simplify) const;
+    Metrics LinesGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets, int LeftMargin) const;
+    void LinesDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool NeedBrackets, int LeftMargin) const;
 
-    Metrics EqSystemGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void EqSystemDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics EqSystemGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void EqSystemDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics EqSetGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void EqSetDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics EqSetGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void EqSetDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics IntegralGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void IntegralDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics IntegralGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void IntegralDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics UnionGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void UnionDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics UnionGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void UnionDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics IntersectionGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void IntersectionDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics IntersectionGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void IntersectionDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-    Metrics DerivGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const;
-    void DerivDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const;
+    Metrics DerivGetTextRectangle(std::shared_ptr<TNumeric> N, bool WithBrackets) const;
+    void DerivDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
-  protected:  
+    bool simplify_{false};
+
+  protected:
     class ZRect : public QRect {
       public:
         int zorder;
@@ -92,19 +94,19 @@ class TFormulaPlotter {
     };
     mutable std::map<std::shared_ptr<TNumeric>, Metrics> metrics_cache_;
     mutable std::map<std::shared_ptr<TNumeric>, ZRect> zrect_cache_;
-    void invalidateRects() const { /// \todo: remove const
+    void invalidateRects() const {  /// \todo: remove const
         metrics_cache_.clear();
         zrect_cache_.clear();
     }
     std::shared_ptr<TPaintCanvas> canvas_;
 
-    Metrics PrettyGetTextRectangleCached(std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+    Metrics PrettyGetTextRectangleCached(std::shared_ptr<TNumeric> N, bool WithBrackets) const {
         return metrics_cache_[N];
     }
 
   public:
     std::shared_ptr<TNumeric> underMouse{nullptr};
-    TFormulaPlotter(std::shared_ptr<TPaintCanvas> Canvas);
+    TFormulaPlotter(std::shared_ptr<TPaintCanvas> Canvas, bool simplify);
     void setCanvas(std::shared_ptr<TPaintCanvas> Canvas) {
         canvas_ = Canvas;
     }  // painter should be created inside PaintEvent
@@ -112,14 +114,12 @@ class TFormulaPlotter {
 
     // Если Simplify == true, то функции рисуют формулу в хорошем виде, проводя некоторые преобразования. Иначе без преобразований
     // шрифт надо выбирать вручную, вызвав заранее     Canvas->Font = Canvas->FormulaFont;
-    Metrics PrettyGetTextRectangle(std::shared_ptr<const TNumeric> N, bool NeedBrackets, bool Simplify) const;
-    Metrics PrettyGetTextRectangle(std::shared_ptr<TNumeric> N, bool NeedBrackets, bool Simplify) const;
-    Metrics PrettyDrawAtBaseLeft(std::shared_ptr<const TNumeric> N, int X, int Y, bool NeedBrackets, bool Simplify) const;
-    Metrics PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, bool NeedBrackets, bool Simplify) const;
+    Metrics PrettyGetTextRectangle(std::shared_ptr<const TNumeric> N, bool withBrackets) const;
+    Metrics PrettyGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const;
+    Metrics PrettyDrawAtBaseLeft(std::shared_ptr<const TNumeric> N, int X, int Y, bool withBrackets) const;
+    Metrics PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const;
 
     // функции рисуют формулу после некоторых преобразований, упрощающих её вид
-    Metrics GetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool NeedBrackets) const;
-    virtual Metrics GetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, int MaxWidth = -1) const;
     Metrics GetTextRectangle(std::shared_ptr<TNumeric> N, bool NeedBrackets) const;
     virtual Metrics GetTextRectangle(std::shared_ptr<TNumeric> N, int MaxWidth = -1) const;
     void DrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, int MaxWidth = -1) const;
@@ -137,11 +137,11 @@ class TConstFormulaPlotter : public TRectangleElement {
     TConstFormulaPlotter(std::shared_ptr<TNumeric> N) : numeric_(N) {}
 
     virtual Metrics GetTextRectangle(std::shared_ptr<TPaintCanvas> Canvas, int MaxWidth = -1) const {
-        TFormulaPlotter formulaPlotter(Canvas);
+        TFormulaPlotter formulaPlotter(Canvas, false);
         return formulaPlotter.GetTextRectangle(numeric_, MaxWidth);
     }
     virtual void DrawAtBaseLeft(std::shared_ptr<TPaintCanvas> Canvas, int X, int Y, int MaxWidth = -1) const {
-        TFormulaPlotter formulaPlotter(Canvas);
+        TFormulaPlotter formulaPlotter(Canvas, false);
         formulaPlotter.DrawAtBaseLeft(numeric_, X, Y, MaxWidth);
     }
 

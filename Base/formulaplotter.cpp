@@ -4,17 +4,13 @@
 
 #include "symbols.h"
 
-TFormulaPlotter::TFormulaPlotter(std::shared_ptr<TPaintCanvas> Canvas) : canvas_(Canvas) {}
+TFormulaPlotter::TFormulaPlotter(std::shared_ptr<TPaintCanvas> Canvas, bool simplify) : simplify_{simplify}, canvas_(Canvas) {}
 
-Metrics TFormulaPlotter::PrettyGetTextRectangle(std::shared_ptr<const TNumeric> N, bool NeedBrackets, bool Simplify) const {
-    return PrettyGetTextRectangle(std::const_pointer_cast<TNumeric>(N), NeedBrackets, Simplify);
-}
-Metrics TFormulaPlotter::PrettyGetTextRectangle(std::shared_ptr<TNumeric> N, bool NeedBrackets, bool Simplify) const {
-    invalidateRects();
-    return PrettyGetTextRectangle(0, N, NeedBrackets, Simplify);
+Metrics TFormulaPlotter::PrettyGetTextRectangle(std::shared_ptr<const TNumeric> N, bool withBrackets) const {
+    return PrettyGetTextRectangle(std::const_pointer_cast<TNumeric>(N), withBrackets);
 }
 
-Metrics TFormulaPlotter::PrettyGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool NeedBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::PrettyGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     string AStr;
     Metrics res;
     switch (N->operation) {
@@ -23,7 +19,7 @@ Metrics TFormulaPlotter::PrettyGetTextRectangle(int zorder, std::shared_ptr<TNum
                 if (N->strval.find("_") != string::npos) {
                     size_t pos = N->strval.find("_");
                     TNumeric Nsubs = MakeSubscript(TNumeric(N->strval.substr(0, pos)), TNumeric(N->strval.substr(pos + 1)));
-                    res = PrettyGetTextRectangle(zorder+1, std::make_shared<TNumeric>(std::move(Nsubs)), false, Simplify);
+                    res = PrettyGetTextRectangle(std::make_shared<TNumeric>(std::move(Nsubs)), false);
                 } else {
                     AStr = Recognize(N->strval);
                     // проверяем отрицательность числа
@@ -47,69 +43,69 @@ Metrics TFormulaPlotter::PrettyGetTextRectangle(int zorder, std::shared_ptr<TNum
             };
             break;
         case OperatorInline:
-            res = InlineGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = InlineGetTextRectangle(N, withBrackets);
             break;
         case OperatorInterval:
         case OperatorIntervalSegment:
         case OperatorSegmentInterval:
         case OperatorSegment:
-            res = IntervalGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = IntervalGetTextRectangle(N, withBrackets);
             break;
         case OperatorLess:
         case OperatorLessOrEqual:
         case OperatorGreater:
         case OperatorGreaterOrEqual:
         case OperatorEqual:
-            res = EqualGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = EqualGetTextRectangle(N, withBrackets);
             break;
         case OperatorSum:
-            res = SumGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = SumGetTextRectangle(N, withBrackets);
             break;
         case OperatorMinus:
-            res = MinusGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = MinusGetTextRectangle(N, withBrackets);
             break;
         case OperatorBelongsTo:
-            res = BelongsToGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = BelongsToGetTextRectangle(N, withBrackets);
             break;
         case OperatorProd:
-            res = ProdGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = ProdGetTextRectangle(N, withBrackets);
             break;
         case OperatorFrac:
-            res = FracGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = FracGetTextRectangle(N, withBrackets);
             break;
         case OperatorSqrt:
-            res = SqrtGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = SqrtGetTextRectangle(N, withBrackets);
             break;
         case OperatorSupIndex:
         case OperatorPow:
-            res = PowGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = PowGetTextRectangle(N, withBrackets);
             break;
         case OperatorSubIndex:
-            res = SubIndexGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = SubIndexGetTextRectangle(N, withBrackets);
             break;
         case OperatorEqSet:
-            res = EqSetGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = EqSetGetTextRectangle(N, withBrackets);
             break;
         case OperatorEqSystem:
-            res = EqSystemGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = EqSystemGetTextRectangle(N, withBrackets);
             break;
         case OperatorUnion:
-            res = UnionGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = UnionGetTextRectangle(N, withBrackets);
             break;
         case OperatorIntersection:
-            res = IntersectionGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = IntersectionGetTextRectangle(N, withBrackets);
             break;
         case OperatorDeriv:
-            res = DerivGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = DerivGetTextRectangle(N, withBrackets);
             break;
         case OperatorPlusMinus:
-            res = PlusMinusGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = PlusMinusGetTextRectangle(N, withBrackets);
             break;
         case OperatorIntegral:
-            res = IntegralGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = IntegralGetTextRectangle(N, withBrackets);
             break;
         case OperatorAbs:
-            res = AbsGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = AbsGetTextRectangle(N, withBrackets);
             break;
         case OperatorLog:
         case OperatorLn:
@@ -127,32 +123,38 @@ Metrics TFormulaPlotter::PrettyGetTextRectangle(int zorder, std::shared_ptr<TNum
         case OperatorSign:
         case OperatorSmallO:
         case OperatorBigO:
-            res = FunctionGetTextRectangle(zorder, N, NeedBrackets, Simplify);
+            res = FunctionGetTextRectangle(N, withBrackets);
             break;
     };
-    if(zorder >= 0) {
-        metrics_cache_[N] = res; //ZRect(zorder, res);
-    }
+    metrics_cache_[N] = res;
     return res;
 }
 
-void TFormulaPlotter::DrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, int MaxWidth) const {
+void TFormulaPlotter::DrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, int MaxWidth) const {  /// \todo: remove this function
     Q_UNUSED(MaxWidth);
     // MaxWidth не используется
     canvas_->Font = canvas_->FormulaFont;
-    PrettyDrawAtBaseLeft(N, X, Y, false, false);
+    PrettyDrawAtBaseLeft(N, X, Y, false);
 }
 
-Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<const TNumeric> N, int X, int Y, bool NeedBrackets, bool Simplify) const {
-    return PrettyDrawAtBaseLeft(std::const_pointer_cast<TNumeric>(N), X, Y, NeedBrackets, Simplify);
+Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<const TNumeric> N, int X, int Y, bool withBrackets) const {
+    return PrettyDrawAtBaseLeft(std::const_pointer_cast<TNumeric>(N), X, Y, withBrackets);
 }
 
-Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, bool NeedBrackets, bool Simplify) const
+Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    invalidateRects();
+    PrettyGetTextRectangle(N, withBrackets);
+    int zorder = 1;
+    return PrettyDrawAtBaseLeftRecursive(zorder, N, X, Y, withBrackets);
+}
+
+Metrics TFormulaPlotter::PrettyDrawAtBaseLeftRecursive(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const
 // Y = baseline
 {
-    const Metrics metrics = PrettyGetTextRectangleCached(N, NeedBrackets, Simplify);
-    if(!zrect_cache_.contains(N)) {
-        zrect_cache_[N] = ZRect(0, QPoint(X, Y-metrics.Height), QPoint(X+metrics.Width, Y+metrics.Depth));
+    Metrics metrics = PrettyGetTextRectangleCached(N, withBrackets);
+    // metrics.Width = 0;
+    if (!zrect_cache_.contains(N)) {
+        zrect_cache_[N] = ZRect(zorder, QPoint(X, Y - metrics.Height), QPoint(X + metrics.Width, Y + metrics.Depth));
     }
     if (underMouse == N) {
         canvas_->Pen.setColor(Qt::black);
@@ -166,7 +168,7 @@ Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X
                 if (N->strval.find("_") != string::npos) {
                     size_t pos = N->strval.find("_");
                     TNumeric Nsubs = MakeSubscript(TNumeric(N->strval.substr(0, pos)), TNumeric(N->strval.substr(pos + 1)));
-                    return PrettyDrawAtBaseLeft(std::make_shared<TNumeric>(std::move(Nsubs)), X, Y, false, Simplify);
+                    return PrettyDrawAtBaseLeftRecursive(zorder + 1, std::make_shared<TNumeric>(std::move(Nsubs)), X, Y, false);
                 } else {
                     string AStr = Recognize(N->strval);
                     // проверяем отрицательность числа
@@ -183,69 +185,69 @@ Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X
             };
             break;
         case OperatorInline:
-            InlineDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            InlineDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorInterval:
         case OperatorIntervalSegment:
         case OperatorSegmentInterval:
         case OperatorSegment:
-            IntervalDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            IntervalDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorLess:
         case OperatorLessOrEqual:
         case OperatorGreater:
         case OperatorGreaterOrEqual:
         case OperatorEqual:
-            EqualDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            EqualDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorSum:
-            SumDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            SumDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorMinus:
-            MinusDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            MinusDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorBelongsTo:
-            BelongsToDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            BelongsToDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorProd:
-            ProdDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            ProdDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorFrac:
-            FracDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            FracDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorSqrt:
-            SqrtDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            SqrtDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorSupIndex:
         case OperatorPow:
-            PowDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            PowDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorSubIndex:
-            SubIndexDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            SubIndexDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorEqSet:
-            EqSetDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            EqSetDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorEqSystem:
-            EqSystemDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            EqSystemDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorUnion:
-            UnionDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            UnionDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorIntersection:
-            IntersectionDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            IntersectionDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorDeriv:
-            DerivDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            DerivDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorPlusMinus:
-            PlusMinusDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            PlusMinusDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorIntegral:
-            IntegralDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            IntegralDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorAbs:
-            AbsDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            AbsDraw(zorder + 1, N, X, Y, withBrackets);
             break;
         case OperatorLog:
         case OperatorLn:
@@ -263,7 +265,7 @@ Metrics TFormulaPlotter::PrettyDrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X
         case OperatorSign:
         case OperatorSmallO:
         case OperatorBigO:
-            FunctionDraw(N, X, Y, metrics, NeedBrackets, Simplify);
+            FunctionDraw(zorder + 1, N, X, Y, withBrackets);
             break;
     };
 
@@ -335,28 +337,29 @@ int TFormulaPlotter::GetBracketWidth(string Bracket, int Height, int Depth) cons
     return res;
 }
 
-Metrics TFormulaPlotter::FracGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::FracGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
     int MidLine = canvas_->TextHeight("1") / 2;
-    Metrics metrics_num = PrettyGetTextRectangle(zorder+1, N->operands[0], false, Simplify);
+    Metrics metrics_num = PrettyGetTextRectangle(N->operands[0], false);
     res.Height = metrics_num.Height + metrics_num.Depth + 2 + MidLine;
     if (res.Width < metrics_num.Width)
         res.Width = metrics_num.Width;
-    Metrics metrics_denom = PrettyGetTextRectangle(zorder+1,N->operands[1], false, Simplify);
+    Metrics metrics_denom = PrettyGetTextRectangle(N->operands[1], false);
     res.Depth = metrics_denom.Height + metrics_denom.Depth + 2 - MidLine;
     if (res.Depth < 0)
         res.Depth = 0;
     if (res.Width < metrics_denom.Width)
         res.Width = metrics_denom.Width;
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     }
     return res;
 }
-void TFormulaPlotter::FracDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    Metrics metrics1 = FracGetTextRectangle(-10000, N, false, Simplify); // -10000 is enought to not allow recursive zorder+1 become positive
+void TFormulaPlotter::FracDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    Metrics metrics1 = FracGetTextRectangle(N, false);
     int WidthOfFrac = metrics1.Width;
-    if (NeedBrackets) {
+    if (withBrackets) {
+        const auto& metrics = metrics_cache_[N];  /// replace to metrics2
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X + metrics.Width - GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), metrics.Height, metrics.Depth), Y, metrics.Height,
                     metrics.Depth);
@@ -365,18 +368,18 @@ void TFormulaPlotter::FracDraw(std::shared_ptr<TNumeric> N, int X, int Y, const 
 
     int MidLine = Y - canvas_->TextHeight("1") / 2;
 
-    metrics1 = PrettyGetTextRectangleCached(N->operands[0], false, Simplify);
-    PrettyDrawAtBaseLeft(N->operands[0], X - metrics1.Width / 2 + WidthOfFrac / 2, MidLine - metrics1.Depth - 2, false, Simplify);
+    metrics1 = PrettyGetTextRectangleCached(N->operands[0], false);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[0], X - metrics1.Width / 2 + WidthOfFrac / 2, MidLine - metrics1.Depth - 2, false);
 
-    metrics1 = PrettyGetTextRectangleCached(N->operands[1], false, Simplify);
-    PrettyDrawAtBaseLeft(N->operands[1], X - metrics1.Width / 2 + WidthOfFrac / 2, MidLine + metrics1.Height + 2, false, Simplify);
+    metrics1 = PrettyGetTextRectangleCached(N->operands[1], false);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[1], X - metrics1.Width / 2 + WidthOfFrac / 2, MidLine + metrics1.Height + 2, false);
 
     canvas_->Line(X, MidLine, X + WidthOfFrac, MidLine, Qt::black);
 }
 
 //==============================================================================
 
-Metrics TFormulaPlotter::FunctionGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::FunctionGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
     string Name;
     switch (N->operation) {
@@ -440,7 +443,7 @@ Metrics TFormulaPlotter::FunctionGetTextRectangle(int zorder, std::shared_ptr<TN
     if (N->operation == OperatorLog) {
         QFont Font;
         Font = DecreaseFont(canvas_);
-        Metrics metrics2 = PrettyGetTextRectangle(zorder+1, N->operands[1], true, Simplify);
+        Metrics metrics2 = PrettyGetTextRectangle(N->operands[1], true);
 
         canvas_->Font = Font;
         res.Width += metrics2.Width;
@@ -449,20 +452,21 @@ Metrics TFormulaPlotter::FunctionGetTextRectangle(int zorder, std::shared_ptr<TN
         if (d2 > res.Depth)
             res.Depth = d2;
     }
-    Metrics metrics1 = PrettyGetTextRectangle(zorder+1, N->operands[1], true, Simplify);
+    Metrics metrics1 = PrettyGetTextRectangle(N->operands[1], true);
     res.Width += metrics1.Width;
     if (res.Height < metrics1.Height)
         res.Height = metrics1.Height;
     if (res.Depth < metrics1.Depth)
         res.Depth = metrics1.Depth;
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
     return res;
 }
 
-void TFormulaPlotter::FunctionDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
+void TFormulaPlotter::FunctionDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
     string Name;
+
     switch (N->operation) {
         case OperatorLog:
             Name = "log";
@@ -519,7 +523,8 @@ void TFormulaPlotter::FunctionDraw(std::shared_ptr<TNumeric> N, int X, int Y, co
     cout << CodeBasic(N) << endl;
 #endif
 
-    if (NeedBrackets) {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
@@ -531,27 +536,27 @@ void TFormulaPlotter::FunctionDraw(std::shared_ptr<TNumeric> N, int X, int Y, co
 
     if (N->operation == OperatorLog) {
         QFont Font = DecreaseFont(canvas_);
-        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[1], true, Simplify);
-        PrettyDrawAtBaseLeft(N->operands[1], X, Y + metrics1.Height, true, Simplify);
+        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[1], true);
+        PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[1], X, Y + metrics1.Height, true);
         canvas_->Font = Font;
         X += metrics1.Width;
     };
-    Metrics metrics2 = PrettyGetTextRectangleCached(N->operands[0], true, Simplify);
-    PrettyDrawAtBaseLeft(N->operands[0], X, Y, true, Simplify);
+    Metrics metrics2 = PrettyGetTextRectangleCached(N->operands[0], true);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[0], X, Y, true);
     X += metrics2.Width;
 
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
 }
 
 //==============================================================================
-Metrics TFormulaPlotter::StrGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, const char* Str, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::StrGetTextRectangle(std::shared_ptr<TNumeric> N, const char* Str, bool withBrackets) const {
     Metrics res;
     for (size_t i = 0; i < N->operands.size(); i++) {
-        bool NeedBrackets = false;
+        bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
-            NeedBrackets = true;
-        Metrics metrics = PrettyGetTextRectangle(zorder+1, N->operands[i], NeedBrackets, Simplify);
+            withBrackets = true;
+        Metrics metrics = PrettyGetTextRectangle(N->operands[i], withBrackets);
         res.Width += metrics.Width;
         if (metrics.Height > res.Height)
             res.Height = metrics.Height;
@@ -559,22 +564,23 @@ Metrics TFormulaPlotter::StrGetTextRectangle(int zorder, std::shared_ptr<TNumeri
             res.Depth = metrics.Depth;
     };
     res.Width += (N->operands.size() - 1) * (canvas_->TextWidth(Str) + canvas_->TextWidth(" "));
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
     return res;
 }
-void TFormulaPlotter::StrDraw(std::shared_ptr<TNumeric> N, const char* Str, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    if (NeedBrackets) {
+void TFormulaPlotter::StrDraw(int zorder, std::shared_ptr<TNumeric> N, const char* Str, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
     for (size_t i = 0; i < N->operands.size(); i++) {
-        bool NeedBrackets = false;
+        bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
-            NeedBrackets = true;
-        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[i], NeedBrackets, Simplify);
-        PrettyDrawAtBaseLeft(N->operands[i], X, Y, NeedBrackets, Simplify);
+            withBrackets = true;
+        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[i], withBrackets);
+        PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[i], X, Y, withBrackets);
         X = X + metrics1.Width;
         if (i + 1 < N->operands.size()) {
             //          int Plusres.Height = canvas_->TextHeight(Str);
@@ -583,16 +589,16 @@ void TFormulaPlotter::StrDraw(std::shared_ptr<TNumeric> N, const char* Str, int 
             X += canvas_->TextWidth(Str);
         };
     };
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
 }
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::IntervalGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::IntervalGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
-    Q_UNUSED(WithBrackets);
+    Q_UNUSED(withBrackets);
     for (size_t i = 0; i < N->operands.size(); i++) {
-        Metrics metrics = PrettyGetTextRectangle(zorder+1, N->operands[i], false, Simplify);
+        Metrics metrics = PrettyGetTextRectangle(N->operands[i], false);
         res.Width += metrics.Width;
         if (metrics.Height > res.Height)
             res.Height = metrics.Height;
@@ -623,10 +629,12 @@ Metrics TFormulaPlotter::IntervalGetTextRectangle(int zorder, std::shared_ptr<TN
     res.Width += GetBracketWidth(LeftBracket, res.Height, res.Depth) + GetBracketWidth(RightBracket, res.Height, res.Depth);
     return res;
 };
-void TFormulaPlotter::IntervalDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    Q_UNUSED(NeedBrackets);
+void TFormulaPlotter::IntervalDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    Q_UNUSED(withBrackets);
     string LeftBracket = UniCode2UTF8String(MyLeftParenthesis);
     string RightBracket = UniCode2UTF8String(MyRightParenthesis);
+
     switch (N->operation) {
         case OperatorInterval:
             LeftBracket = UniCode2UTF8String(MyLeftParenthesis);
@@ -648,8 +656,8 @@ void TFormulaPlotter::IntervalDraw(std::shared_ptr<TNumeric> N, int X, int Y, co
     DrawBracket(LeftBracket, X, Y, metrics.Height, metrics.Depth);
     X = X + GetBracketWidth(LeftBracket, metrics.Height, metrics.Depth);
     for (size_t i = 0; i < N->operands.size(); i++) {
-        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[i], false, Simplify);
-        PrettyDrawAtBaseLeft(N->operands[i], X, Y, false, Simplify);
+        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[i], false);
+        PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[i], X, Y, false);
         X = X + metrics1.Width;
         if (i + 1 < N->operands.size()) {
             canvas_->TextOutA(X, Y, ",");
@@ -660,36 +668,37 @@ void TFormulaPlotter::IntervalDraw(std::shared_ptr<TNumeric> N, int X, int Y, co
 }
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::InlineGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::InlineGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
     for (size_t i = 0; i < N->operands.size(); i++) {
-        Metrics metrics = PrettyGetTextRectangle(zorder+1, N->operands[i], false, Simplify);
+        Metrics metrics = PrettyGetTextRectangle(N->operands[i], false);
         res.Width += metrics.Width;
         if (metrics.Height > res.Height)
             res.Height = res.Height;
         if (metrics.Depth > res.Depth)
             res.Depth = metrics.Depth;
     };
-    if (WithBrackets)
+    if (withBrackets)
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     return res;
 }
-void TFormulaPlotter::InlineDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    if (NeedBrackets) {
+void TFormulaPlotter::InlineDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
     for (size_t i = 0; i < N->operands.size(); i++) {
-        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[i], false, Simplify);
-        PrettyDrawAtBaseLeft(N->operands[i], X, Y, false, Simplify);
+        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[i], false);
+        PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[i], X, Y, false);
         X = X + metrics1.Width;
     };
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
 }
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::SumGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::SumGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
     TNumeric Temp(*N);  // работаем с Temp, так как this = const
     string StrPlus = UniCode2UTF8String(MyPlusSign);
@@ -698,7 +707,7 @@ Metrics TFormulaPlotter::SumGetTextRectangle(int zorder, std::shared_ptr<TNumeri
 #ifdef __DEBUG__
     cout << CodeBasic(N) << endl;
 #endif
-    if (Simplify) {
+    if (simplify_) {
         for (size_t i = 0; i < Temp.operands.size(); i++) {
             if (Temp.operands[i]->operation == OperatorConst && Temp.operands[i]->strval == "0")
                 Exclude.push_back(i);
@@ -724,13 +733,13 @@ Metrics TFormulaPlotter::SumGetTextRectangle(int zorder, std::shared_ptr<TNumeri
     for (size_t i = 0; i < Temp.operands.size(); i++) {
         if (find(Exclude.begin(), Exclude.end(), i) != Exclude.end())
             continue;
-        bool NeedBrackets = false;
+        bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
-            NeedBrackets = true;
+            withBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
 
-        if ((Simplify) & (Drawn > 0))
+        if ((simplify_) & (Drawn > 0))
         // Пытаемся вынести минус, эта операция не явлеятся thread-safe
         // у первого (Drawn = 0) слагаемого минус не выносится
         {
@@ -762,19 +771,19 @@ Metrics TFormulaPlotter::SumGetTextRectangle(int zorder, std::shared_ptr<TNumeri
         }
 
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
-            NeedBrackets = true;
+            withBrackets = true;
         Metrics metrics;
-        if (Simplify)
+        if (simplify_)
         // если надо было упростить, то рисуем упрощенные слагаемые
         {
-            metrics = PrettyGetTextRectangle(zorder+1, Temp.operands[i], NeedBrackets, Simplify);
+            metrics = PrettyGetTextRectangle(Temp.operands[i], withBrackets);
         } else {
             // ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается
-            // функцией PrettyDrawAtBaseLeft в корень дерева
-            metrics = PrettyGetTextRectangle(zorder+1, N->operands[i], NeedBrackets, Simplify);
+            // функцией PrettyDrawAtBaseLeftRecursive в корень дерева
+            metrics = PrettyGetTextRectangle(N->operands[i], withBrackets);
         }
 
-        if (Simplify) {
+        if (simplify_) {
             // возвращаем минус обратно
             if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
                 for (size_t j = 0; j < TakenMinuses.size(); j++)
@@ -791,7 +800,7 @@ Metrics TFormulaPlotter::SumGetTextRectangle(int zorder, std::shared_ptr<TNumeri
             res.Depth = metrics.Depth;
         Drawn++;
     };
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
 #ifdef __DEBUG__
@@ -799,17 +808,15 @@ Metrics TFormulaPlotter::SumGetTextRectangle(int zorder, std::shared_ptr<TNumeri
 #endif
     return res;
 }
-void TFormulaPlotter::SumDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-#ifdef __DEBUG__
-    cout << CodeBasic(N) << endl;
-#endif
-    TNumeric Temp(*N);  // работаем с Temp, так как this = const
-    if (NeedBrackets) {
+void TFormulaPlotter::SumDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    TNumeric Temp(*N);                        // работаем с Temp, так как this = const
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
     vector<size_t> Exclude;  // слагаемые, равные нулю, их лучше всего исключить
-    if (Simplify) {
+    if (simplify_) {
         for (size_t i = 0; i < Temp.operands.size(); i++) {
             if (Temp.operands[i]->operation == OperatorConst && Temp.operands[i]->strval == "0")
                 Exclude.push_back(i);
@@ -839,13 +846,13 @@ void TFormulaPlotter::SumDraw(std::shared_ptr<TNumeric> N, int X, int Y, const M
     for (size_t i = 0; i < Temp.operands.size(); i++) {
         if (find(Exclude.begin(), Exclude.end(), i) != Exclude.end())
             continue;
-        bool NeedBrackets = false;
+        bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
-            NeedBrackets = true;
+            withBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
 
-        if (Simplify && Drawn > 0)
+        if (simplify_ && Drawn > 0)
         // Пытаемся вынести минус, эта операция не явлеятся thread-safe
         // у первого (Drawn = 0) слагаемого минус не выносится
         {
@@ -880,21 +887,21 @@ void TFormulaPlotter::SumDraw(std::shared_ptr<TNumeric> N, int X, int Y, const M
         }
 
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
-            NeedBrackets = true;
+            withBrackets = true;
         Metrics metrics1;
-        if (Simplify)
+        if (simplify_)
         // если надо было упростить, то рисуем упрощенные слагаемые
         {
-            metrics1 = PrettyGetTextRectangleCached(Temp.operands[i], NeedBrackets, Simplify);
-            PrettyDrawAtBaseLeft(Temp.operands[i], X, Y, NeedBrackets, Simplify);
+            metrics1 = PrettyGetTextRectangleCached(Temp.operands[i], withBrackets);
+            PrettyDrawAtBaseLeftRecursive(zorder + 1, Temp.operands[i], X, Y, withBrackets);
         } else {
             // ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается
-            // функцией PrettyDrawAtBaseLeft в корень дерева
-            metrics1 = PrettyGetTextRectangleCached(N->operands[i], NeedBrackets, Simplify);
-            PrettyDrawAtBaseLeft(Temp.operands[i], X, Y, NeedBrackets, Simplify);
+            // функцией PrettyDrawAtBaseLeftRecursive в корень дерева
+            metrics1 = PrettyGetTextRectangleCached(N->operands[i], withBrackets);
+            PrettyDrawAtBaseLeftRecursive(zorder + 1, Temp.operands[i], X, Y, withBrackets);
         }
 
-        if (Simplify) {
+        if (simplify_) {
             // возвращаем минус обратно
             if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
                 for (size_t j = 0; j < TakenMinuses.size(); j++)
@@ -908,12 +915,12 @@ void TFormulaPlotter::SumDraw(std::shared_ptr<TNumeric> N, int X, int Y, const M
         X = X + metrics1.Width;
         Drawn++;
     };
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
 }
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::MinusGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::MinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
     TNumeric Temp(*N);  // работаем с Temp, так как this = const
 #ifdef __DEBUG__
@@ -922,13 +929,13 @@ Metrics TFormulaPlotter::MinusGetTextRectangle(int zorder, std::shared_ptr<TNume
     string StrPlus = UniCode2UTF8String(MyPlusSign);
     string StrMinus = UniCode2UTF8String(MyMinusSign);
     for (size_t i = 0; i < Temp.operands.size(); i++) {
-        bool NeedBrackets = false;
+        bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
-            NeedBrackets = true;
+            withBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
 
-        if (Simplify)
+        if (simplify_)
         // Пытаемся вынести минус, эта операция не явлеятся thread-safe
         {
             if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
@@ -963,17 +970,17 @@ Metrics TFormulaPlotter::MinusGetTextRectangle(int zorder, std::shared_ptr<TNume
         }
 
         Metrics metrics;
-        if (Simplify)
+        if (simplify_)
         // если надо было упростить, то рисуем упрощенные слагаемые
         {
-            metrics = PrettyGetTextRectangle(zorder+1, Temp.operands[i], NeedBrackets, Simplify);
+            metrics = PrettyGetTextRectangle(Temp.operands[i], withBrackets);
         } else {
             // ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается
-            // функцией PrettyDrawAtBaseLeft в корень дерева
-            metrics = PrettyGetTextRectangle(zorder+1, N->operands[i], NeedBrackets, Simplify);
+            // функцией PrettyDrawAtBaseLeftRecursive в корень дерева
+            metrics = PrettyGetTextRectangle(N->operands[i], withBrackets);
         }
 
-        if (Simplify) {
+        if (simplify_) {
             // возвращаем минус обратно
             if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
                 for (size_t j = 0; j < TakenMinuses.size(); j++)
@@ -989,30 +996,28 @@ Metrics TFormulaPlotter::MinusGetTextRectangle(int zorder, std::shared_ptr<TNume
         if (metrics.Depth > res.Depth)
             res.Depth = metrics.Depth;
     };
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
     return res;
 }
-void TFormulaPlotter::MinusDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    TNumeric Temp(*N);  // работаем с Temp, так как this = const
-#ifdef __DEBUG__
-    cout << CodeBasic(N) << endl;
-#endif
-    if (NeedBrackets) {
+void TFormulaPlotter::MinusDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    TNumeric Temp(*N);                        // работаем с Temp, так как this = const
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
     string StrPlus = UniCode2UTF8String(MyPlusSign);
     string StrMinus = UniCode2UTF8String(MyMinusSign);
     for (size_t i = 0; i < Temp.operands.size(); i++) {
-        bool NeedBrackets = false;
+        bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
-            NeedBrackets = true;
+            withBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
 
-        if (Simplify)
+        if (simplify_)
         // Пытаемся вынести минус, эта операция не явлеятся thread-safe
         // todo: скопировать из SumDraw
         {
@@ -1053,19 +1058,19 @@ void TFormulaPlotter::MinusDraw(std::shared_ptr<TNumeric> N, int X, int Y, const
         }
 
         Metrics metrics1;
-        if (Simplify)
+        if (simplify_)
         // если надо было упростить, то рисуем упрощенные слагаемые
         {
-            metrics1 = PrettyGetTextRectangleCached(Temp.operands[i], NeedBrackets, Simplify);
-            PrettyDrawAtBaseLeft(Temp.operands[i], X, Y, NeedBrackets, Simplify);
+            metrics1 = PrettyGetTextRectangleCached(Temp.operands[i], withBrackets);
+            PrettyDrawAtBaseLeftRecursive(zorder + 1, Temp.operands[i], X, Y, withBrackets);
         } else {
             // ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается
-            // функцией PrettyDrawAtBaseLeft в корень дерева
-            metrics1 = PrettyGetTextRectangleCached(N->operands[i], NeedBrackets, Simplify);
-            PrettyDrawAtBaseLeft(N->operands[i], X, Y, NeedBrackets, Simplify);
+            // функцией PrettyDrawAtBaseLeftRecursive в корень дерева
+            metrics1 = PrettyGetTextRectangleCached(N->operands[i], withBrackets);
+            PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[i], X, Y, withBrackets);
         }
 
-        if (Simplify) {
+        if (simplify_) {
             // возвращаем минус обратно
             if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
                 for (size_t j = 0; j < TakenMinuses.size(); j++)
@@ -1077,57 +1082,60 @@ void TFormulaPlotter::MinusDraw(std::shared_ptr<TNumeric> N, int X, int Y, const
         };
         X = X + metrics1.Width;
     };
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
 };
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::UnionGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::UnionGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeUnion);
-    return StrGetTextRectangle(zorder, N, Sign, WithBrackets, Simplify);
+    return StrGetTextRectangle(N, Sign, withBrackets);
 }
 
-void TFormulaPlotter::UnionDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
+void TFormulaPlotter::UnionDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeUnion);
-    StrDraw(N, Sign, X, Y, metrics, NeedBrackets, Simplify);
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    StrDraw(zorder + 1, N, Sign, X, Y, withBrackets);
 }
 
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::PlusMinusGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::PlusMinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodePlusMinus);
-    return StrGetTextRectangle(zorder, N, Sign, WithBrackets, Simplify);
+    return StrGetTextRectangle(N, Sign, withBrackets);
 }
-void TFormulaPlotter::PlusMinusDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
+void TFormulaPlotter::PlusMinusDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodePlusMinus);
-    StrDraw(N, Sign, X, Y, metrics, NeedBrackets, Simplify);
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    StrDraw(zorder + 1, N, Sign, X, Y, withBrackets);
 }
 
 //==============================================================================
 //==============================================================================
 
-Metrics TFormulaPlotter::IntersectionGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::IntersectionGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeIntersection);
-    return StrGetTextRectangle(zorder, N, Sign, WithBrackets, Simplify);
+    return StrGetTextRectangle(N, Sign, withBrackets);
 }
 
-void TFormulaPlotter::IntersectionDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
+void TFormulaPlotter::IntersectionDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeIntersection);
-    StrDraw(N, Sign, X, Y, metrics, NeedBrackets, Simplify);
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    StrDraw(zorder + 1, N, Sign, X, Y, withBrackets);
 }
 
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::ProdGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::ProdGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
     vector<size_t> ExcludeOperands;
-    if (Simplify) {
+    if (simplify_) {
         for (size_t j = 0; j < N->operands.size(); j++)
             if (N->operands[j]->operation == OperatorConst && N->operands[j]->strval == "1")
                 ExcludeOperands.push_back(j);
@@ -1137,32 +1145,33 @@ Metrics TFormulaPlotter::ProdGetTextRectangle(int zorder, std::shared_ptr<TNumer
     char Str[10];
     UniCode2UTF8(Str, UnicodeMiddleDot);
     for (size_t i = 0; i < N->operands.size(); i++) {
-        if (Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end())
+        if (simplify_ && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end())
             continue;
-        bool NeedBrackets = false;
+        bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
-            NeedBrackets = true;
-        Metrics metrics = PrettyGetTextRectangle(zorder+1, N->operands[i], NeedBrackets, Simplify);
+            withBrackets = true;
+        Metrics metrics = PrettyGetTextRectangle(N->operands[i], withBrackets);
         res.Width += metrics.Width;
         if (metrics.Height > res.Height)
             res.Height = metrics.Height;
         if (metrics.Depth > res.Depth)
             res.Depth = metrics.Depth;
-        if (i + 1 < N->operands.size() && !(Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i + 1) != ExcludeOperands.end()))
+        if (i + 1 < N->operands.size() && !(simplify_ && find(ExcludeOperands.begin(), ExcludeOperands.end(), i + 1) != ExcludeOperands.end()))
             res.Width += canvas_->TextWidth(Str);
     };
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
     return res;
 };
-void TFormulaPlotter::ProdDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    if (NeedBrackets) {
+void TFormulaPlotter::ProdDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
     vector<size_t> ExcludeOperands;
-    if (Simplify) {
+    if (simplify_) {
         for (size_t j = 0; j < N->operands.size(); j++)
             if (N->operands[j]->operation == OperatorConst && N->operands[j]->strval == "1")
                 ExcludeOperands.push_back(j);
@@ -1172,15 +1181,15 @@ void TFormulaPlotter::ProdDraw(std::shared_ptr<TNumeric> N, int X, int Y, const 
     char Str[10];
     UniCode2UTF8(Str, UnicodeMiddleDot);
     for (size_t i = 0; i < N->operands.size(); i++) {
-        if (Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end())
+        if (simplify_ && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end())
             continue;
-        bool NeedBrackets = false;
+        bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
-            NeedBrackets = true;
-        Metrics metrics = PrettyGetTextRectangleCached(N->operands[i], NeedBrackets, Simplify);
-        PrettyDrawAtBaseLeft(N->operands[i], X, Y, NeedBrackets, Simplify);
+            withBrackets = true;
+        Metrics metrics = PrettyGetTextRectangleCached(N->operands[i], withBrackets);
+        PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[i], X, Y, withBrackets);
         X = X + metrics.Width;
-        if (i + 1 < N->operands.size() && !(Simplify && find(ExcludeOperands.begin(), ExcludeOperands.end(), i + 1) != ExcludeOperands.end())) {
+        if (i + 1 < N->operands.size() && !(simplify_ && find(ExcludeOperands.begin(), ExcludeOperands.end(), i + 1) != ExcludeOperands.end())) {
             // canvas_->TextOutA(X, Y, "*");
 #ifdef __DEBUG__
             int W, H, D;
@@ -1194,23 +1203,24 @@ void TFormulaPlotter::ProdDraw(std::shared_ptr<TNumeric> N, int X, int Y, const 
             X = X + canvas_->TextWidth(Str);
         };
     };
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
 }
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::BelongsToGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::BelongsToGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     char Sign[10];
     UniCode2UTF8(Sign, UnicodeElementOf);
-    return StrGetTextRectangle(zorder, N, Sign, WithBrackets, Simplify);
+    return StrGetTextRectangle(N, Sign, withBrackets);
 };
-void TFormulaPlotter::BelongsToDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
+void TFormulaPlotter::BelongsToDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
     char Sign[10];
     UniCode2UTF8(Sign, 0x2208);
-    StrDraw(N, Sign, X, Y, metrics, NeedBrackets, Simplify);
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    StrDraw(zorder + 1, N, Sign, X, Y, withBrackets);
 };
 //==============================================================================
-Metrics TFormulaPlotter::EqualGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::EqualGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     string str;
     switch (N->operation) {
         case OperatorLess:
@@ -1231,12 +1241,13 @@ Metrics TFormulaPlotter::EqualGetTextRectangle(int zorder, std::shared_ptr<TNume
         default:
             str = "?";
     }
-    return StrGetTextRectangle(zorder, N, str.c_str(), WithBrackets, Simplify);
+    return StrGetTextRectangle(N, str.c_str(), withBrackets);
 };
-void TFormulaPlotter::EqualDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
+void TFormulaPlotter::EqualDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
     string str;
     switch (N->operation) {
         case OperatorLess:
+
             str = UniCode2UTF8String(MyLessThanSign);
             break;
         case OperatorLessOrEqual:
@@ -1254,87 +1265,91 @@ void TFormulaPlotter::EqualDraw(std::shared_ptr<TNumeric> N, int X, int Y, const
         default:
             str = "?";
     }
-    StrDraw(N, str.c_str(), X, Y, metrics, NeedBrackets, Simplify);
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    StrDraw(zorder + 1, N, str.c_str(), X, Y, withBrackets);
 };
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::PowGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
-    Metrics metrics1 = PrettyGetTextRectangle(zorder+1, N->operands[0], true, Simplify);
+Metrics TFormulaPlotter::PowGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
+    Metrics metrics1 = PrettyGetTextRectangle(N->operands[0], true);
     Metrics res = metrics1;
     QFont Font = DecreaseFont(canvas_);
-    Metrics metrics2 = PrettyGetTextRectangle(zorder+1, N->operands[1], true, Simplify);
+    Metrics metrics2 = PrettyGetTextRectangle(N->operands[1], true);
     canvas_->Font = Font;
     if (res.Height < metrics1.Height / 2 + metrics2.Height + metrics2.Depth)
         res.Height = metrics1.Height / 2 + metrics2.Height + metrics2.Depth;
     if (res.Depth < metrics2.Depth - metrics1.Height / 2)
         res.Depth = metrics1.Depth - metrics1.Height / 2;
     res.Width += metrics2.Width;
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
     return res;
 };
-void TFormulaPlotter::PowDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    if (NeedBrackets) {
+void TFormulaPlotter::PowDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
-    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], true, Simplify);
-    PrettyDrawAtBaseLeft(N->operands[0], X, Y, true, Simplify);
+    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], true);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[0], X, Y, true);
     X += metrics1.Width;
     QFont Font = DecreaseFont(canvas_);
-    Metrics metrics2 = PrettyGetTextRectangleCached(N->operands[1], true, Simplify);
-    PrettyDrawAtBaseLeft(N->operands[1], X, Y - metrics1.Height / 2 - metrics2.Depth, true, Simplify);
+    Metrics metrics2 = PrettyGetTextRectangleCached(N->operands[1], true);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[1], X, Y - metrics1.Height / 2 - metrics2.Depth, true);
     canvas_->Font = Font;
     X += metrics2.Width;
 
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
 };
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::AbsGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::AbsGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
-    Q_UNUSED(WithBrackets);
-    Metrics metrics1 = PrettyGetTextRectangle(zorder+1, N->operands[0], false, Simplify);
+    Q_UNUSED(withBrackets);
+    Metrics metrics1 = PrettyGetTextRectangle(N->operands[0], false);
     res = metrics1;
     res.Width += 2 * GetBracketWidth("|", res.Height, res.Depth);
     return res;
 };
-void TFormulaPlotter::AbsDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    Q_UNUSED(NeedBrackets);
+void TFormulaPlotter::AbsDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    Q_UNUSED(withBrackets);
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
     DrawBracket("|", X, Y, metrics.Height, metrics.Depth);
     X += GetBracketWidth("|", metrics.Height, metrics.Depth);
 
-    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], false, Simplify);
-    PrettyDrawAtBaseLeft(N->operands[0], X, Y, false, Simplify);
+    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], false);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[0], X, Y, false);
     X += metrics1.Width;
 
     DrawBracket("|", X, Y, metrics.Height, metrics.Depth);
 };
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::DerivGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::DerivGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
     res.Width = res.Height = res.Depth = 0;
-    Metrics metrics1 = PrettyGetTextRectangle(zorder+1, N->operands[0], true, Simplify);
+    Metrics metrics1 = PrettyGetTextRectangle(N->operands[0], true);
     res = metrics1;
 
     int W2 = canvas_->TextWidth("'");
 
     res.Width += W2;
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     }
     return res;
 }
-void TFormulaPlotter::DerivDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    if (NeedBrackets) {
+void TFormulaPlotter::DerivDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
-    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], true, Simplify);
-    PrettyDrawAtBaseLeft(N->operands[0], X, Y, true, Simplify);
+    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], true);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[0], X, Y, true);
     X += metrics1.Width;
 
     int W2 = canvas_->TextWidth("'");
@@ -1342,67 +1357,69 @@ void TFormulaPlotter::DerivDraw(std::shared_ptr<TNumeric> N, int X, int Y, const
     canvas_->TextOutA(X, Y - metrics1.Height + H2, "'");
     X += W2;
 
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
 };
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::SubIndexGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::SubIndexGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
-    Metrics metrics = PrettyGetTextRectangle(zorder+1, N->operands[0], true, Simplify);
+    Metrics metrics = PrettyGetTextRectangle(N->operands[0], true);
     res = metrics;
     QFont Font = DecreaseFont(canvas_);
-    metrics = PrettyGetTextRectangle(zorder+1, N->operands[1], true, Simplify);
+    metrics = PrettyGetTextRectangle(N->operands[1], true);
     canvas_->Font = Font;
     if (metrics.Height + metrics.Depth > 2 * res.Depth)
         res.Depth = (metrics.Height + metrics.Depth) / 2 + 1;
 
     res.Width += metrics.Width;
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
     return res;
 };
-void TFormulaPlotter::SubIndexDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    if (NeedBrackets) {
+void TFormulaPlotter::SubIndexDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
-    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], true, Simplify);
-    PrettyDrawAtBaseLeft(N->operands[0], X, Y, true, Simplify);
+    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], true);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[0], X, Y, true);
     X += metrics1.Width;
 
     QFont Font = DecreaseFont(canvas_);
-    Metrics metrics2 = PrettyGetTextRectangleCached(N->operands[1], true, Simplify);
-    PrettyDrawAtBaseLeft(N->operands[1], X, Y + (metrics.Height - metrics.Depth) / 2, true, Simplify);
+    Metrics metrics2 = PrettyGetTextRectangleCached(N->operands[1], true);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[1], X, Y + (metrics.Height - metrics.Depth) / 2, true);
     X += metrics2.Width;
     canvas_->Font = Font;
 
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
 };
 //==============================================================================
 //==============================================================================
-Metrics TFormulaPlotter::SqrtGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::SqrtGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
-    Metrics metrics = PrettyGetTextRectangle(zorder+1, N->operands[0], false, Simplify);
+    Metrics metrics = PrettyGetTextRectangle(N->operands[0], false);
     res = metrics;
     res.Width += 10;
     res.Height = res.Height + 10;
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
     return res;
 };
-void TFormulaPlotter::SqrtDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    if (NeedBrackets) {
+void TFormulaPlotter::SqrtDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
-    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], false, Simplify);
+    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], false);
     auto [W, H, D] = metrics1;
     auto [Width, Height, Depth] = metrics;
-    PrettyDrawAtBaseLeft(N->operands[0], X + 10, Y, false, Simplify);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[0], X + 10, Y, false);
     QColor Color = canvas_->Pen.color();
     canvas_->Line(X, Y, X + 2, Y, Color, 1);
     canvas_->Line(X + 2, Y, X + 5, Y + Depth, Color, 2);
@@ -1410,18 +1427,18 @@ void TFormulaPlotter::SqrtDraw(std::shared_ptr<TNumeric> N, int X, int Y, const 
     canvas_->Line(X + 9, Y - Height + 2, X + 10 + W, Y - Height + 2, Color, 1);
     canvas_->Line(X + 10 + W, Y - Height + 2, X + 10 + W, Y - Height + 5, Color, 1);
 
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X + 10 + W, Y, Height, Depth);
 };
 //==============================================================================
-Metrics TFormulaPlotter::LinesGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, int LeftMargin, bool Simplify) const
+Metrics TFormulaPlotter::LinesGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets, int LeftMargin) const
 // одна или несколько строк, объединенных оператором совокупности или пересечения
 {
     Metrics res;
 
     int InterLineSpacing = canvas_->TextHeight("A") / 3;
     for (size_t i = 0; i < N->operands.size(); i++) {
-        Metrics metrics = PrettyGetTextRectangle(zorder+1, N->operands[i], false, Simplify);
+        Metrics metrics = PrettyGetTextRectangle(N->operands[i], false);
         if (metrics.Width > res.Width)
             res.Width = metrics.Width;
         res.Height += metrics.Depth + metrics.Height;
@@ -1430,67 +1447,73 @@ Metrics TFormulaPlotter::LinesGetTextRectangle(int zorder, std::shared_ptr<TNume
     };
     res.Depth = res.Height / 2;
     res.Height = res.Height - res.Depth;
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
 
     res.Width += LeftMargin;
     return res;
 };
-void TFormulaPlotter::LinesDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, int LeftMargin, bool Simplify) const {
+void TFormulaPlotter::LinesDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets, int LeftMargin) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
     X += LeftMargin;
-    if (NeedBrackets) {
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
+
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
     int InterLineSpacing = canvas_->TextHeight("A") / 3;
     for (size_t i = 0; i < N->operands.size(); i++) {
-        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[i], false, Simplify);
-        PrettyDrawAtBaseLeft(N->operands[i], X, Y - metrics.Height + metrics1.Height, false, Simplify);
+        Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[i], false);
+        PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[i], X, Y - metrics.Height + metrics1.Height, false);
         Y += metrics1.Height + metrics1.Depth;
         if (i + 1 < N->operands.size())
             Y += InterLineSpacing;
     };
-    if (NeedBrackets)
+    if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X + metrics.Width - GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), metrics.Height, metrics.Depth), Y, metrics.Height,
                     metrics.Depth);
 };
 
-Metrics TFormulaPlotter::EqSystemGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
-    Metrics res = LinesGetTextRectangle(zorder, N, WithBrackets, 0, Simplify);
+Metrics TFormulaPlotter::EqSystemGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
+    Metrics res = LinesGetTextRectangle(N, withBrackets, 0);
     res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftCurlyBracket), res.Height, res.Depth);
     return res;
 }
-void TFormulaPlotter::EqSystemDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
+void TFormulaPlotter::EqSystemDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
     string bracket = UniCode2UTF8String(MyLeftCurlyBracket);
     DrawBracket(bracket, X, Y, metrics.Height, metrics.Depth);
     int BW = GetBracketWidth(bracket, metrics.Height, metrics.Depth);
+
     X += BW;
-    LinesDraw(N, X, Y, metrics, NeedBrackets, 0, Simplify);
+    LinesDraw(zorder + 1, N, X, Y, withBrackets, 0);
 }
-Metrics TFormulaPlotter::EqSetGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::EqSetGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
-    res = LinesGetTextRectangle(zorder, N, WithBrackets, 0, Simplify);
+    res = LinesGetTextRectangle(N, withBrackets, 0);
     res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftCurlyBracket), res.Height, res.Depth);
     return res;
 };
-void TFormulaPlotter::EqSetDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
+void TFormulaPlotter::EqSetDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
     string bracket = UniCode2UTF8String(MyLeftCurlyBracket);
     DrawBracket(bracket, X, Y, metrics.Height, metrics.Depth);
     int BW = GetBracketWidth(bracket, metrics.Height, metrics.Depth);
+
     X += BW;
-    LinesDraw(N, X, Y, metrics, NeedBrackets, 0, Simplify);
+    LinesDraw(zorder + 1, N, X, Y, withBrackets, 0);
 }
-Metrics TFormulaPlotter::IntegralGetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool WithBrackets, bool Simplify) const {
+Metrics TFormulaPlotter::IntegralGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
     bool Brackets = false;
     if (GetOperatorPriority(N->operands[0]->operation) < GetOperatorPriority(OperatorIntegral))
         Brackets = true;
 
-    auto [W1, H1, D1] = PrettyGetTextRectangle(zorder+1, N->operands[0], Brackets, Simplify);
-    auto [W2, H2, D2] = PrettyGetTextRectangle(zorder+1, N->operands[1], false, Simplify);
+    auto [W1, H1, D1] = PrettyGetTextRectangle(N->operands[0], Brackets);
+    auto [W2, H2, D2] = PrettyGetTextRectangle(N->operands[1], false);
     auto d = std::make_shared<TNumeric>("d");
-    auto [dW, dH, dD] = PrettyGetTextRectangle(zorder+1, d, false, false);
+    auto [dW, dH, dD] = PrettyGetTextRectangle(d, false);
     res.Width = W1 + W2 + dW;
     res.Height = max(max(H1, H2), dH);
     res.Depth = max(max(D1, D2), dD);
@@ -1498,14 +1521,15 @@ Metrics TFormulaPlotter::IntegralGetTextRectangle(int zorder, std::shared_ptr<TN
     res.Depth += res.Depth / 2;
     res.Width += GetBracketWidth(UniCode2UTF8String(UnicodeIntegral), res.Height, res.Depth);
 
-    if (WithBrackets) {
+    if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
     };
     return res;
 }
 
-void TFormulaPlotter::IntegralDraw(std::shared_ptr<TNumeric> N, int X, int Y, const Metrics& metrics, bool NeedBrackets, bool Simplify) const {
-    if (NeedBrackets) {
+void TFormulaPlotter::IntegralDraw(int zorder, std::shared_ptr<TNumeric> N, int X, int Y, bool withBrackets) const {
+    const auto& metrics = metrics_cache_[N];  /// replace to metrics2
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
@@ -1513,24 +1537,24 @@ void TFormulaPlotter::IntegralDraw(std::shared_ptr<TNumeric> N, int X, int Y, co
     bool Brackets = false;
     if (GetOperatorPriority(N->operands[0]->operation) < GetOperatorPriority(OperatorIntegral))
         Brackets = true;
-    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], Brackets, Simplify);
-    Metrics metrics2 = PrettyGetTextRectangleCached(N->operands[1], false, Simplify);
+    Metrics metrics1 = PrettyGetTextRectangleCached(N->operands[0], Brackets);
+    Metrics metrics2 = PrettyGetTextRectangleCached(N->operands[1], false);
     auto d = std::make_shared<TNumeric>("d");
-    Metrics dmetrics = PrettyGetTextRectangleCached(d, false, false);
+    Metrics dmetrics = PrettyGetTextRectangleCached(d, false);
 
     DrawBracket(UniCode2UTF8String(UnicodeIntegral), X, Y, metrics.Height, metrics.Depth);
     X += GetBracketWidth(UniCode2UTF8String(UnicodeIntegral), metrics.Height, metrics.Depth);
 
-    PrettyDrawAtBaseLeft(N->operands[0], X, Y, Brackets, Simplify);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[0], X, Y, Brackets);
     X += metrics1.Width;
 
-    PrettyDrawAtBaseLeft(d, X, Y, false, false);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, d, X, Y, false);
     X += dmetrics.Width;
 
-    PrettyDrawAtBaseLeft(N->operands[1], X, Y, false, Simplify);
+    PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[1], X, Y, false);
     X += metrics2.Width;
 
-    if (NeedBrackets) {
+    if (withBrackets) {
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X + metrics.Width - GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), metrics.Height, metrics.Depth), Y, metrics.Height,
                     metrics.Depth);
         // X = X + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), Canvas, Height, Depth);
@@ -1538,32 +1562,27 @@ void TFormulaPlotter::IntegralDraw(std::shared_ptr<TNumeric> N, int X, int Y, co
 }
 
 // функции рисуют формулу после некоторых преобразований, упрощающих её вид
-Metrics TFormulaPlotter::GetTextRectangle(std::shared_ptr<TNumeric> N, bool NeedBrackets) const {    
-    return PrettyGetTextRectangle(0, N, NeedBrackets, true);
+Metrics TFormulaPlotter::GetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
+    canvas_->Font = canvas_->FormulaFont;
+    return PrettyGetTextRectangle(N, withBrackets);
 }
 
 Metrics TFormulaPlotter::GetTextRectangle(std::shared_ptr<TNumeric> N, int MaxWidth) const {
-    return GetTextRectangle(0, N, false);
-}
-
-Metrics TFormulaPlotter::GetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, bool NeedBrackets) const {
-    canvas_->Font = canvas_->FormulaFont;
-    return PrettyGetTextRectangle(zorder, N, NeedBrackets, true);
-}
-
-Metrics TFormulaPlotter::GetTextRectangle(int zorder, std::shared_ptr<TNumeric> N, int MaxWidth) const {
     // MaxWidth не используется
     Q_UNUSED(MaxWidth);
-    canvas_->Font = canvas_->FormulaFont;
-    return GetTextRectangle(zorder, N, false);
+    return GetTextRectangle(N, false);
 }
 
 std::shared_ptr<TNumeric> TFormulaPlotter::getElementUnderMouse(int mouseX, int mouseY) const {
     std::shared_ptr<TNumeric> res{nullptr};
-    for(auto it : zrect_cache_) {
+    int zorder = -1;
+    for (auto it : zrect_cache_) {
         const auto& rect = it.second;
-        if(mouseX >= rect.left() && mouseX <= rect.right() && mouseY >= rect.top() && mouseY <= rect.bottom()) {
-            res = it.first;
+        if (mouseX >= rect.left() && mouseX <= rect.right() && mouseY >= rect.top() && mouseY <= rect.bottom()) {
+            if (rect.zorder > zorder) {
+                res = it.first;
+                zorder = rect.zorder;
+            }
         }
     }
     return res;

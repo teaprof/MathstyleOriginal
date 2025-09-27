@@ -26,7 +26,7 @@ enum Operation {
     OperatorProd = 2,
     OperatorSqrt = 3,
     OperatorPow = 4,
-    OperatorFrac = 5,    
+    OperatorFrac = 5,
 
     OperatorEqSet = 8,     // совокупность уравнений
     OperatorEqSystem = 9,  // система уравнений

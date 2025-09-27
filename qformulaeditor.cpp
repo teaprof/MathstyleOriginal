@@ -61,7 +61,7 @@ void QFormulaArea::paintEvent(QPaintEvent* event) {
         Canvas->FormulaColor = FormulaColor;
         Canvas->EditableColor = EditableColor;
         EditableFormula->setCanvas(Canvas);
-        auto [Width, Height, Depth] = EditableFormula->PrettyGetTextRectangle(Formula, false, false);
+        auto [Width, Height, Depth] = EditableFormula->PrettyGetTextRectangle(Formula, false);
         int GeomWidth = Width + RightPadding;
         if (GeomWidth < minimumWidth())
             GeomWidth = minimumWidth();
@@ -93,7 +93,7 @@ void QFormulaArea::paintEvent(QPaintEvent* event) {
             X = LeftPadding + (GeomWidth - Width - LeftPadding - RightPadding) / 2;
             // Y = (br.height() + height()/2 - (Depth-Height)/2; //рисуем формулу по середине
             Y = br.bottom() + Height + 20;  // рисуем формулу сразу после текста задания
-            EditableFormula->PrettyDrawAtBaseLeft(Formula, X, Y, false, false);
+            EditableFormula->PrettyDrawAtBaseLeft(Formula, X, Y, false);
         };
     }
 }

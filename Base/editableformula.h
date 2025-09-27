@@ -16,7 +16,7 @@ enum TEditableFlags {
 
 class TEditableFormula : public TFormulaPlotter {
   public:
-    TEditableFormula(std::shared_ptr<TNumeric> Numeric, std::shared_ptr<TPaintCanvas> canvas) : TFormulaPlotter(canvas), numeric_(Numeric) {}
+    TEditableFormula(std::shared_ptr<TNumeric> Numeric, std::shared_ptr<TPaintCanvas> canvas) : TFormulaPlotter(canvas, false), numeric_(Numeric) {}
     void addEditable(std::shared_ptr<const TNumeric> child) {
         editables_.push_back(child);
     }
