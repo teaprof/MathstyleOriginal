@@ -38,7 +38,7 @@ class QFormulaArea : public QWidget {
     void DebugPrintBuffer();
     void SetFormula(std::shared_ptr<TNumeric> Formula);
   signals:
-    void OnSelectionChanged(TNumeric* NewSelection);
+    void OnSelectionChanged_2del(TNumeric* NewSelection);
     void OnButtonsChanged(int EditableFlags, int CanEraseFlag, bool IsConst);
     void OnEnableUndo(bool Enabled);
     void OnEnableRedo(bool Enabled);
@@ -114,7 +114,7 @@ class QFormulaEditor : public QWidget {
 
   public slots:
     void OnButtonsChanged(int EditableFlags, int CanEraseFlag, bool IsConst);
-    void OnSelectionChangedSlot(TNumeric* NewSelection);
+    //void OnSelectionChangedSlot(TNumeric* NewSelection);
 
     void OnEnableUndo(bool Enabled);
     void OnEnableRedo(bool Enabled);

@@ -16,7 +16,8 @@
 using namespace std;
 #include "qformulaeditor.h"
 QFormulaArea::QFormulaArea(QWidget* parent) : QWidget(parent) {
-    Formula = 0;
+    Formula = nullptr;
+    EditableFormula = nullptr;
     setMouseTracking(true);
     if (parent)
         parent->setEnabled(true);  // wtf?
@@ -37,7 +38,7 @@ void QFormulaArea::paintEvent(QPaintEvent* event) {
     QWidget* Widget = this;
     int CurWidth = Widget->width();
     int CurHeight = Widget->height();
-    if (!Formula) {
+    if (!EditableFormula) {
         if (minimumWidth() != CurWidth || minimumHeight() != CurHeight) {
             Widget->resize(Widget->minimumSize());
             // размер успешно поменян, мы должны вернуться в главный цикл, чтобы обработать событие об изменении размера
@@ -108,17 +109,18 @@ void QFormulaArea::mouseMoveEvent(QMouseEvent* M) {
 void QFormulaArea::mousePressEvent(QMouseEvent*) {
     if (Formula) {
         /*if(Formula->Active)
-        {
-            Formula->Selected = Formula->Active;
-            bool CanEraseVar = CanErase(Formula, Formula->Selected);
-            bool IsConst = (Formula->Active->operation == OperatorConst);
-            emit OnSelectionChanged(Formula->Selected);
-            emit OnButtonsChanged(Formula->Selected->EditableFlags, CanEraseVar, IsConst);
-        } else {
+        {*/       
+            EditableFormula->selected = EditableFormula->underMouse;
+            //bool CanEraseVar = CanErase(Formula, Formula->Selected);
+            //bool IsConst = (Formula->Active->operation == OperatorConst);
+            bool CanEraseVar = false;
+            bool IsConst = false;
+            //emit OnSelectionChanged(EditableFormula->selected.get());
+            emit OnButtonsChanged(EditableFormula->editableFlags(EditableFormula->selected), CanEraseVar, IsConst);            
+        /*} else {
             Formula->Selected = 0;
             emit OnButtonsChanged(false, false, false);
         }*/
-        std::cout << "todo: mouse press event" << std::endl;
         repaint();
     }
 }
@@ -321,20 +323,24 @@ void QFormulaArea::InsertSqrt() {
 }
 
 void QFormulaArea::InsertSin() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
+    if(Formula && EditableFormula->selected)
     {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorSin;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+        TEditableFlags EditableFlags = EditableFormula->editableFlags(EditableFormula->selected);
+        if(EditableFlags != NoEditable) {
+            PNumeric Temp = EditableFormula->selected;
+            int OldID = EditableFormula->selected->role;
+            Temp->role = -1;
+            auto replacement = TNumeric::create();
+            replacement->OperandsPushback(Temp);
+            replacement->operation = OperatorSin;
+            replacement->role = OldID;
+            EditableFormula->replace(EditableFormula->selected, replacement);
+            EditableFormula->addEditable(replacement);
+            EditableFormula->removeEditable(Temp);
+            Save();
+            repaint();
+        }
+    }
 }
 
 void QFormulaArea::InsertCos() {
@@ -610,7 +616,7 @@ QFormulaEditor::QFormulaEditor(QWidget* parent) : QWidget(parent) {
     FormulaArea->setMinimumSize(100, 100);
     FormulaArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     connect(FormulaArea, SIGNAL(OnButtonsChanged(int, int, bool)), this, SLOT(OnButtonsChanged(int, int, bool)));
-    connect(FormulaArea, SIGNAL(OnSelectionChanged(TNumeric*)), this, SLOT(OnSelectionChangedSlot(TNumeric*)));
+    //connect(FormulaArea, SIGNAL(OnSelectionChanged(TNumeric*)), this, SLOT(OnSelectionChangedSlot(TNumeric*)));
     connect(FormulaArea, SIGNAL(OnEnableRedo(bool)), this, SLOT(OnEnableRedo(bool)));
     connect(FormulaArea, SIGNAL(OnEnableUndo(bool)), this, SLOT(OnEnableUndo(bool)));
 
@@ -925,9 +931,9 @@ void QFormulaEditor::OnButtonsChanged(int EditableFlags, int CanEraseFlag, bool 
     BErase->setEnabled(CanEraseFlag);
     BEdit->setEnabled(IsConst & (EditableFlags != NoEditable));
 }
-void QFormulaEditor::OnSelectionChangedSlot(TNumeric* NewSelection) {
+/*void QFormulaEditor::OnSelectionChangedSlot(TNumeric* NewSelection) {
     emit OnSelectionChanged(NewSelection);
-}
+}*/
 
 void QFormulaEditor::TranslateButtons() {
     BPlus->setToolTip(tr("sum"));

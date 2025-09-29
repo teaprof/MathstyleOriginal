@@ -130,7 +130,7 @@ Metrics TFormulaPlotter::PrettyGetTextRectangle(std::shared_ptr<TNumeric> N, boo
     return res;
 }
 
-void TFormulaPlotter::DrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, int MaxWidth) const {  /// \todo: remove this function
+void TFormulaPlotter::DrawAtBaseLeft(std::shared_ptr<TNumeric> N, int X, int Y, int MaxWidth) const {
     Q_UNUSED(MaxWidth);
     // MaxWidth не используется
     canvas_->Font = canvas_->FormulaFont;
@@ -452,7 +452,7 @@ Metrics TFormulaPlotter::FunctionGetTextRectangle(std::shared_ptr<TNumeric> N, b
         if (d2 > res.Depth)
             res.Depth = d2;
     }
-    Metrics metrics1 = PrettyGetTextRectangle(N->operands[1], true);
+    Metrics metrics1 = PrettyGetTextRectangle(N->operands[0], true);
     res.Width += metrics1.Width;
     if (res.Height < metrics1.Height)
         res.Height = metrics1.Height;

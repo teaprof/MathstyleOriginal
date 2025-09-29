@@ -20,6 +20,12 @@ class TEditableFormula : public TFormulaPlotter {
     void addEditable(std::shared_ptr<const TNumeric> child) {
         editables_.push_back(child);
     }
+    void removeEditable(std::shared_ptr<const TNumeric> child) {
+        auto it = std::find(editables_.begin(), editables_.end(), child);
+        if(it != editables_.end()) {
+            editables_.erase(it);
+        }
+    }
     bool isEditable(std::shared_ptr<const TNumeric> child) const {
         auto v = isEditable(numeric_, child);
         if (v.has_value() && v.value() == true)
@@ -51,6 +57,11 @@ class TEditableFormula : public TFormulaPlotter {
             }
         }
         return nullopt;
+    }
+    TEditableFlags editableFlags(std::shared_ptr<const TNumeric> N) {
+        if(isEditable(N))
+            return FunctionsAllowed;
+        return NoEditable;
     }
     bool replace(std::shared_ptr<TNumeric> oldN, std::shared_ptr<TNumeric> newN) {
         if (numeric_ == oldN) {
@@ -85,8 +96,11 @@ class TEditableFormula : public TFormulaPlotter {
     std::shared_ptr<TNumeric> active{nullptr};
 
     virtual QColor getFontColor(std::shared_ptr<TNumeric> N) const {
-        if (isEditable(N)) {
+        if(selected == N) {
             return Qt::red;
+        }
+        if (isEditable(N)) {
+            return Qt::blue;
             // return canvas_->EditableColor;
         }
         return canvas_->FormulaColor;
