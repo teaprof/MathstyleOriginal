@@ -220,109 +220,7 @@ void QFormulaArea::Redo() {
     DebugPrintBuffer();
 }
 
-void QFormulaArea::InsertSum() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->operation = OperatorSum;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
-}
-void QFormulaArea::InsertMinus() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->operation = OperatorMinus;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
-}
-void QFormulaArea::InsertProd() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->operation = OperatorProd;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
-}
-void QFormulaArea::InsertFrac() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->operation = OperatorFrac;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
-}
-void QFormulaArea::InsertPower() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->operation = OperatorPow;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
-}
-void QFormulaArea::InsertSqrt() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorSqrt;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
-}
-
-void QFormulaArea::InsertSin() {
+void QFormulaArea::insertOperator(Operation opcode, size_t nArgs) {
     if(Formula && EditableFormula->selected)
     {
         TEditableFlags EditableFlags = EditableFormula->editableFlags(EditableFormula->selected);
@@ -331,10 +229,14 @@ void QFormulaArea::InsertSin() {
             int OldID = EditableFormula->selected->role;
             Temp->role = -1;
             auto replacement = TNumeric::create();
-            replacement->OperandsPushback(Temp);
-            replacement->operation = OperatorSin;
+            if(nArgs > 0)
+                replacement->OperandsPushback(Temp);
+            for(size_t n = 1; n < nArgs; n++)
+                replacement->OperandsPushback(TNumeric::create());
+            replacement->operation = opcode;
             replacement->role = OldID;
             EditableFormula->replace(EditableFormula->selected, replacement);
+            EditableFormula->selected = replacement;
             EditableFormula->addEditable(replacement);
             EditableFormula->removeEditable(Temp);
             Save();
@@ -343,188 +245,73 @@ void QFormulaArea::InsertSin() {
     }
 }
 
+void QFormulaArea::InsertSum() {
+    insertOperator(OperatorSum, 2);
+}
+void QFormulaArea::InsertMinus() {
+    insertOperator(OperatorMinus, 2);
+}
+void QFormulaArea::InsertProd() {
+    insertOperator(OperatorProd, 2);
+}
+void QFormulaArea::InsertFrac() {
+    insertOperator(OperatorFrac, 2);
+}
+void QFormulaArea::InsertPower() {
+    insertOperator(OperatorPow, 1);
+}
+void QFormulaArea::InsertSqrt() {
+    insertOperator(OperatorSqrt, 1);
+}
+
+void QFormulaArea::InsertSin() {
+    insertOperator(OperatorSin, 1);
+}
+
 void QFormulaArea::InsertCos() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorCos;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorCos, 1);
 }
 
 void QFormulaArea::InsertTg() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorTg;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorTg, 1);
 }
 
 void QFormulaArea::InsertArcsin() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorArcsin;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorArcsin, 1);
 }
 
 void QFormulaArea::InsertArccos() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorArccos;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorArccos, 1);
 }
 
 void QFormulaArea::InsertArctg() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorArctg;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorArctg, 1);
 }
 
 void QFormulaArea::InsertLn() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorLn;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorLn, 1);
 }
 
 void QFormulaArea::InsertLog() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->OperandsPushback(TNumeric());
-        Formula->Selected->operation = OperatorLog;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorLog, 2);
 }
 
 void QFormulaArea::InsertX() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        int EditableFlags = Formula->Selected->EditableFlags;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->operation = OperatorConst;
-        Formula->Selected->strval = "x";
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorConst, 0);
+    if(EditableFormula->selected)
+        EditableFormula->selected->strval = "x";
 }
 
 void QFormulaArea::InsertExp() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorExp;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorExp, 1);
 }
 
 void QFormulaArea::InsertSh() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorSh;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorSh, 1);
 }
 
 void QFormulaArea::InsertCh() {
-    /*if(Formula && Formula->Selected && Formula->Selected->EditableFlags != NoEditable)
-    {
-        TNumeric Temp = *Formula->Selected;
-        int EditableFlags = Formula->Selected->EditableFlags;
-        int OldID = Temp.role;
-        Temp.role = -1;
-        Formula->Selected->Operands.clear();
-        Formula->Selected->OperandsPushback(Temp);
-        Formula->Selected->operation = OperatorCh;
-        Formula->Selected->SetEditableFlags(EditableFlags);
-        Formula->Selected->role = OldID;
-        Save();
-        repaint();
-    }*/
+    insertOperator(OperatorCh, 1);
 }
 
 void QFormulaArea::Clear() {

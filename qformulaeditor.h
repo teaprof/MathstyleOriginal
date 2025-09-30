@@ -49,6 +49,8 @@ class QFormulaArea : public QWidget {
     void Redo();
     void SetUndoRedoEnabled();
 
+    void insertOperator(Operation opcode, size_t nArgs);
+
     void InsertSum();
     void InsertMinus();
     void InsertProd();
