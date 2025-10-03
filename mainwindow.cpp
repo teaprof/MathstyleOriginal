@@ -476,13 +476,13 @@ void MainWindow::SelectProblemByWidget(QTreeWidgetItem* item) {
 
 void MainWindow::DeleteProblem(size_t SelectedProblem)  // for what?
 {
+    assert(SelectedProblem < Problems.size());
     std::shared_ptr<TProblem> P = Problems[SelectedProblem];
-    for (QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>>::iterator iterator = WidgetToProblemMap.begin(); iterator != WidgetToProblemMap.end();) {
-        if (iterator.value() == P)
+    for (QMap<QTreeWidgetItem*, std::shared_ptr<TProblem>>::iterator iterator = WidgetToProblemMap.begin(); iterator != WidgetToProblemMap.end(); iterator++) {
+        if (iterator.value() == P) {
             WidgetToProblemMap.erase(iterator);
-        else
-            iterator++;
-        //        cout<<WidgetToProblemMap.size()<<endl;
+            break;
+        } 
     };
     Problems.erase(Problems.begin() + SelectedProblem);
 }

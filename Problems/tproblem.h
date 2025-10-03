@@ -19,7 +19,7 @@ class TRandom;
 
 class TProblem {
   public:
-    bool CanRandomize;
+    bool CanRandomize{false};
     std::shared_ptr<TNumeric> Conditions;
 
     TProblem();

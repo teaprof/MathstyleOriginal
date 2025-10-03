@@ -451,7 +451,7 @@ void TPolynomialEquality::AddAnswer(const TPolynomialEquality* Eq) {
         };
     }
     Result = Result + Eq->Result;
-    LinearMultiplier = TNumeric::create(((*LinearMultiplier) * (*Eq->LinearMultiplier)).Simplify());
+    LinearMultiplier = ((*LinearMultiplier) * (*Eq->LinearMultiplier)).Simplify();
 };
 void TPolynomialEquality::AddRoot(const TNumeric& N, size_t Multiplicity) {
     TPolynomialEquality PE;
@@ -480,7 +480,7 @@ void TPolynomialEquality::AddMultiplicator(const TPolynom& P, size_t Multiplicit
         SquareModsMultiplicity.push_back(Multiplicity);
     };
     if (P.MajorPower() == 0 && P.Coef.size() > 0)
-        LinearMultiplier = TNumeric::create((*LinearMultiplier * (*P.Coef[0])).Simplify());
+        LinearMultiplier = (*LinearMultiplier * (*P.Coef[0])).Simplify();
 
     AddAnswer(&PE);
 }
@@ -489,15 +489,15 @@ bool TPolynomialEquality::CheckRationalAndGetNOK(std::shared_ptr<THTMLWriter> Wr
     NOK = 1;
     for (size_t Power = 0; Power <= MaxPower; Power++) {
         if (P.GetCoef(Power)->operation != OperatorConst) {
-            P.GetCoef(Power) = TNumeric::create(P.GetCoef(Power)->Simplify());  // пробуем сделать вычисления
+            P.GetCoef(Power) = P.GetCoef(Power)->Simplify();  // пробуем сделать вычисления
         };
 
         if (P.GetCoef(Power)->operation == OperatorFrac) {
-            TNumeric Denom = P.GetCoef(Power)->operands[1]->Simplify();
-            P.GetCoef(Power)->operands[1] = std::make_shared<TNumeric>(Denom);
+            PNumeric Denom = P.GetCoef(Power)->operands[1]->Simplify();
+            P.GetCoef(Power)->operands[1] = Denom;
 
             int intD;
-            if (!Denom.isInteger(&intD)) {
+            if (!Denom->isInteger(&intD)) {
                 if (Writer)
                     Writer->WriteError("All denominators should be integer.");
                 return false;
@@ -505,9 +505,9 @@ bool TPolynomialEquality::CheckRationalAndGetNOK(std::shared_ptr<THTMLWriter> Wr
 
             NOK = GetNOK(NOK, intD);
 
-            TNumeric Nom = P.GetCoef(Power)->operands[0]->Simplify();
-            P.GetCoef(Power)->operands[0] = std::make_shared<TNumeric>(Nom);
-            if (!Nom.isInteger(0)) {
+            PNumeric Num = P.GetCoef(Power)->operands[0]->Simplify();
+            P.GetCoef(Power)->operands[0] = Num;
+            if (!Num->isInteger(0)) {
                 if (Writer)
                     Writer->WriteError("All numerators should be integer.");
                 return false;
@@ -640,7 +640,7 @@ bool TPolynomialEquality::SearchRationalRoots(std::shared_ptr<THTMLWriter> Write
                     Test.OperandsPushback(TNumeric(sign * N));
                     Test.OperandsPushback(TNumeric(D));
                 };
-                Test = Test.Simplify();
+                Test = *Test.Simplify();
 
                 bool AllreadyFound = false;
                 for (size_t r = 0; r < RationalRoots.size(); r++) {
@@ -678,7 +678,7 @@ bool TPolynomialEquality::SearchRationalRoots(std::shared_ptr<THTMLWriter> Write
             vector<TNumeric> divisor_n;
             // устанавливаем делитель в x - RationalRoots[i]
             divisor_n.assign(2, TNumeric(0));
-            divisor_n[0] = (RationalRoots[i] * TNumeric(-1)).Simplify();
+            divisor_n[0] = *(RationalRoots[i] * TNumeric(-1)).Simplify();
             divisor_n[1] = TNumeric(1);
             TPolynom divisor(std::move(divisor_n));
 
@@ -785,10 +785,10 @@ bool TPolynomialEquality::AnalyzePRemaining(std::shared_ptr<THTMLWriter> Writer,
                     case 0:
                         break;
                     case 1: {
-                        TNumeric X = (TNumeric(-1) * (*Mults[i].Coef[0])).Simplify();
-                        AddRoot(X, MMults[i]);
+                        PNumeric X = (TNumeric(-1) * (*Mults[i].Coef[0])).Simplify();
+                        AddRoot(*X, MMults[i]);
                         if (Writer)
-                            Writer->addParagraph("Found root: %n", TNumeric::create(X));
+                            Writer->addParagraph("Found root: %n", X);
                         break;
                     }
                     case 2: {
@@ -1070,12 +1070,12 @@ bool TLinearEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
         }
     } else {
         TNumeric X = (c - b) / a;
-        TNumeric XSimplified = X.Simplify();
+        PNumeric XSimplified = X.Simplify();
         if (Writer)
             Writer->addParagraph("Only solution exists: ");
         if (Writer)
-            Writer->AddFormula(MakeEquality(UnknownVar, MakeEquality(X, XSimplified)));
-        AddRoot(XSimplified);
+            Writer->AddFormula(MakeEquality(UnknownVar, MakeEquality(X, *XSimplified)));
+        AddRoot(*XSimplified);
     };
     SortRoots();
     AllRootsFound = true;
@@ -1169,9 +1169,9 @@ void TSquareEquality::SetLeftPartP(const TPolynom& P, bool) {
 
 bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     ClearSolution();
-    TNumeric& a = *GetCoefP(2);
-    TNumeric& b = *GetCoefP(1);
-    TNumeric& c = *GetCoefP(0);
+    TNumeric a = *GetCoefP(2);
+    TNumeric b = *GetCoefP(1);
+    TNumeric c = *GetCoefP(0);
     if (!(a.CanCalculate() && b.CanCalculate() && c.CanCalculate()))
         return false;
 
@@ -1210,7 +1210,7 @@ bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
             } else {
                 // случай ax^2+bx = 0
                 TNumeric X2(-b / a);
-                TNumeric X2Simplified = X2.Simplify();
+                TNumeric X2Simplified = *X2.Simplify();
                 if (Writer)
                     Writer->addParagraph("Equality has two different roots.");
                 if (Writer)
@@ -1225,7 +1225,7 @@ bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
 
         } else {
             TNumeric D = (b ^ TNumeric(2)) - TNumeric(4) * a * c;
-            TNumeric DSimplified = D.Simplify();
+            TNumeric DSimplified = *D.Simplify();
             if (Writer)
                 Writer->addParagraph("Finding discriminant: %N", TNumeric::create(MakeEquality(TNumeric("D"), MakeEquality(D, DSimplified))));
 
@@ -1235,7 +1235,7 @@ bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
                 if (Writer)
                     Writer->addParagraph("Discriminant is zero. So equality has one root of twice multiplicity.");
                 TNumeric X1 = (-b + DSimplified.sqrt()) / (TNumeric(2) * a);
-                TNumeric X1Simplified = X1.Simplify();
+                TNumeric X1Simplified = *X1.Simplify();
                 if (Writer)
                     Writer->AddFormula(MakeEquality(UnknownVar, MakeEquality(X1, X1Simplified)));
                 AddRoot(X1Simplified, 2);
@@ -1245,13 +1245,13 @@ bool TSquareEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
                         Writer->Add("Discriminant is greater than zero. So equality has two different roots");
 
                     TNumeric X1 = (-b + DSimplified.sqrt()) / (TNumeric(2) * a);
-                    TNumeric X1Simplified = X1.Simplify();
+                    TNumeric X1Simplified = *X1.Simplify();
                     if (Writer)
                         Writer->AddFormula(MakeEquality(X_1, MakeEquality(X1, X1Simplified)));
                     Result.Intervals.push_back(TInterval(X1Simplified, X1Simplified, true, true));
 
                     TNumeric X2 = (-b - DSimplified.sqrt()) / (TNumeric(2) * a);
-                    TNumeric X2Simplified = X2.Simplify();
+                    TNumeric X2Simplified = *X2.Simplify();
                     if (Writer)
                         Writer->AddFormula(MakeEquality(X_2, MakeEquality(X2, X2Simplified)));
                     Result.Intervals.push_back(TInterval(X2Simplified, X2Simplified, true, true));
@@ -1558,7 +1558,7 @@ bool TLinearInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
 
     if ((Less && a.Calculate() > 0) || (!Less && a.Calculate() < 0)) {
         TNumeric X = (c - b) / a;
-        TNumeric XSimplified = X.Simplify();
+        TNumeric XSimplified = *X.Simplify();
         if (Writer)
             Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(NumericMinusInf, XSimplified, false, !Strict)));
         Result.Intervals.push_back(TInterval(NumericMinusInf, XSimplified, false, !Strict));
@@ -1567,7 +1567,7 @@ bool TLinearInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
         if (Writer)
             Writer->addParagraph("Because coefficient in linear term is less than zero, the direction of inequality is reversed");
         TNumeric X = (c - b) / a;
-        TNumeric XSimplified = X.Simplify();
+        TNumeric XSimplified = *X.Simplify();
         if (Writer)
             Writer->AddFormula(MakeBelongsTo(UnknownVar, MakeInterval(XSimplified, NumericPlusInf, !Strict, false)));
         Result.Intervals.push_back(TInterval(XSimplified, NumericPlusInf, !Strict, false));
@@ -1790,7 +1790,7 @@ bool TSquareInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
             if (Writer)
                 Writer->addParagraph("Linear term is greater than zero so only root exists.");
             TNumeric X = TNumeric("-1") * c / b;
-            TNumeric XSimplified = X.Simplify();
+            TNumeric XSimplified = *X.Simplify();
             if (Writer)
                 Writer->AddFormula(MakeEquality(UnknownVar, XSimplified));
             if (Less) {
@@ -1808,7 +1808,7 @@ bool TSquareInequality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
             if (Writer)
                 Writer->addParagraph("Linear term is less than zero so only root exists.");
             TNumeric X = TNumeric("-1") * c / b;
-            TNumeric XSimplified = X.Simplify();
+            TNumeric XSimplified = *X.Simplify();
             if (Writer)
                 Writer->AddFormula(MakeEquality(UnknownVar, XSimplified));
             if (Less) {
@@ -2254,7 +2254,7 @@ bool TPolynomDerivative::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
         TPolynom D = P.Derivative();
         TPolynom DSimplified = D;
         for (size_t i = 0; i < DSimplified.Coef.size(); i++)
-            DSimplified.Coef[i] = TNumeric::create(DSimplified.Coef[i]->Simplify());
+            DSimplified.Coef[i] = DSimplified.Coef[i]->Simplify();
         TNumeric dP;
         dP.operation = OperatorDeriv;
         dP.OperandsPushback(P.asNumeric());
@@ -2345,9 +2345,9 @@ bool TRationalFunctionDerivative::GetSolution(std::shared_ptr<THTMLWriter> Write
         TRationalFunction D = R.Derivative();
         TRationalFunction DSimplified = D;
         for (size_t i = 0; i < DSimplified.P.Coef.size(); i++)
-            DSimplified.P.Coef[i] = TNumeric::create(DSimplified.P.Coef[i]->Simplify());
+            DSimplified.P.Coef[i] = DSimplified.P.Coef[i]->Simplify();
         for (size_t i = 0; i < DSimplified.Q.Coef.size(); i++)
-            DSimplified.Q.Coef[i] = TNumeric::create(DSimplified.Q.Coef[i]->Simplify());
+            DSimplified.Q.Coef[i] = DSimplified.Q.Coef[i]->Simplify();
         TNumeric dP;
         TNumeric MainAndO;
         dP.operation = OperatorDeriv;

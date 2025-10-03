@@ -120,7 +120,7 @@ std::vector<std::shared_ptr<TNumeric>> TSimplifyProblem::getEditables() {
 }
 
 bool TSimplifyProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
-    auto XSimplified = TNumeric::create(std::move(Conditions->Simplify()));
+    auto XSimplified = Conditions->Simplify();
     if (Writer)
         Writer->addParagraph("Answer: %N", XSimplified);
     return true;

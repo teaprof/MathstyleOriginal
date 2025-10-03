@@ -82,6 +82,9 @@ enum Operation {
 int GetOperatorPriority(Operation OpCode);
 int CompareOperatorsPriority(Operation OpCode1, Operation OpCode2);
 
+class TNumeric;
+using PNumeric = std::shared_ptr<TNumeric>;
+
 class TNumeric : public std::enable_shared_from_this<TNumeric> {
     /// упрощает выражение, где последним оператором является тригонометрическая функция
     TNumeric SimplifyTrig() const;
@@ -95,7 +98,7 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
     TNumeric SimplifyFunctions() const;
 
     /// интерфейс к mathomatic
-    TNumeric MathoCmd(const string& Cmd) const;
+    PNumeric MathoCmd(const string& Cmd) const;
 
     /// проверяет, был ли чем-нибудь инициализирован объект ранее; если не был, то вызывает исключение
     void CheckInitialized() const;
@@ -200,8 +203,8 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
     std::shared_ptr<TNumeric>& GetByRole(int role, std::shared_ptr<TNumeric>& self);
     TNumeric replaceByRole(int role, TNumeric&& N);
 
-    TNumeric Simplify() const;
-    TNumeric Unfactor() const;
+    PNumeric Simplify() const;
+    PNumeric Unfactor() const;
 
     /// true, если выражение является арифметическим выражением и является полным, то есть не содержит пустых прямоугольников
     bool CanCalculate() const;
@@ -220,7 +223,7 @@ class TNumeric : public std::enable_shared_from_this<TNumeric> {
     void SaveToFile(ofstream& f);
 };
 
-using PNumeric = std::shared_ptr<TNumeric>;
+
 
 string DeleteExternalBrackets(string q);
 TNumeric MakeEquality(const TNumeric& N1, const TNumeric& N2);

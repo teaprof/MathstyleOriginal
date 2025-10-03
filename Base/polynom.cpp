@@ -83,7 +83,7 @@ bool TPolynom::operator==(const TPolynom& P) const {
     if (M1 != M2)
         return false;
     for (size_t i = 0; i <= M1; i++)
-        if (GetCoef(i)->Simplify().Calculate() != P.GetCoef(i)->Simplify().Calculate())
+        if (GetCoef(i)->Simplify()->Calculate() != P.GetCoef(i)->Simplify()->Calculate())
             return false;
     return true;
 }
@@ -126,11 +126,11 @@ TPolynom TPolynom::operator-(const TPolynom& P) {
     Res.assign(M + 1, nullptr);
     for (size_t power = 0; power <= M; power++) {
         if (power > M1)
-            Res[power] = (TNumeric(-1) * (*P.GetCoef(power))).Simplify().shared_from_this();
+            Res[power] = (TNumeric(-1) * (*P.GetCoef(power))).Simplify();
         else if (power > M2)
             Res[power] = GetCoef(power);
         else
-            Res[power] = (*GetCoef(power) - (*P.GetCoef(power))).Simplify().shared_from_this();
+            Res[power] = (*GetCoef(power) - (*P.GetCoef(power))).Simplify();
     }
     return TPolynom(Res);
 }
@@ -146,7 +146,7 @@ TPolynom TPolynom::operator*(const TPolynom& P) {
             Res[power1 + power2] = (*Res[power1 + power2] + *GetCoef(power1) * (*P.GetCoef(power2))).shared_from_this();
         }
     for (size_t power = 0; power <= M; power++)
-        Res[power] = Res[power]->Simplify().shared_from_this();
+        Res[power] = Res[power]->Simplify();
     return TPolynom(Res);
 }
 
@@ -155,7 +155,7 @@ TPolynom TPolynom::operator*(const TNumeric& P) {
     vector<PNumeric> Res;
     Res.assign(M + 1, nullptr);
     for (size_t power = 0; power <= M; power++)
-        Res[power] = (*GetCoef(power) * P).Simplify().shared_from_this();
+        Res[power] = (*GetCoef(power) * P).Simplify();
     return TPolynom(Res);
 }
 
@@ -174,7 +174,7 @@ TPolynom TPolynom::operator/(const TNumeric& P) {
     Res.reserve(M + 1);
     ;
     for (size_t power = 0; power <= M; power++)
-        Res.push_back(TNumeric::create(std::move((*GetCoef(power) / P).Simplify())));
+        Res.push_back((*GetCoef(power) / P).Simplify());
     return TPolynom(Res);
 }
 
@@ -211,7 +211,7 @@ TPolynom TPolynom::Div(const TPolynom& P, TPolynom* Remainder) const {
         while (MajorPowerNumerator >= MajorPowerDenominator) {
             size_t CurPower = MajorPowerNumerator - MajorPowerDenominator;
             TNumeric val = *Numerator[MajorPowerNumerator] / *Denominator[MajorPowerDenominator];
-            val = val.Simplify();
+            val = *val.Simplify();
             assert(Res[CurPower] == nullptr);
             Res[CurPower] = TNumeric::create(std::move(val));
             // Numerator[MajorPowerNumerator] = TNumeric(0); //можно это не делать
@@ -223,7 +223,7 @@ TPolynom TPolynom::Div(const TPolynom& P, TPolynom* Remainder) const {
                 for (size_t power = 0; power <= MajorPowerDenominator; power++) {
                     TNumeric P = *Denominator[power] * val;
                     TNumeric new_coef = *Numerator[power + CurPower] - P;
-                    new_coef = new_coef.Simplify();
+                    new_coef = *new_coef.Simplify();
                     Numerator[power + CurPower] = TNumeric::create(std::move(new_coef));
                 }
             }
@@ -305,7 +305,7 @@ TNumeric TPolynom::Calculate(const TNumeric& x) const {
             Res = (*GetCoef(power) * (x ^ TNumeric(static_cast<int>(power)))) + Res;
         };
     }
-    return Res.Simplify();
+    return *Res.Simplify();
 }
 
 vector<double> TPolynom::Calculate(const vector<double> X) const {
@@ -466,7 +466,7 @@ TPolynom TPolynom::TestX1(const vector<int>& Nom, const vector<int>& Denom, vect
                     // тестовый корень подошёл, ищем его кратность
                     TPolynom Divisor;
                     Divisor.Coef.assign(2, TNumeric::create(1));
-                    Divisor.Coef[0] = TNumeric::create(std::move((-Test).Simplify()));
+                    Divisor.Coef[0] = (-Test).Simplify();
                     size_t M;
                     PRemaining = GetMultiplicity(Divisor, M);
                     Res.push_back(Divisor);
@@ -564,25 +564,25 @@ vector<TPolynom> TPolynom::Factorize() const {
     for (size_t Power = 0; Power <= MaxPower; Power++) {
         if (P.GetCoef(Power)->operation != OperatorConst) {
             // пробуем сделать вычисления
-            auto val = std::move(P.GetCoef(Power)->Simplify());
-            P.GetCoef(Power) = TNumeric::create(std::move(val));
+            auto val = P.GetCoef(Power)->Simplify();
+            P.GetCoef(Power) = val;
         };
 
         if (P.GetCoef(Power)->operation == OperatorFrac) {
-            TNumeric Denom = P.GetCoef(Power)->operands[1]->Simplify();
-            P.GetCoef(Power)->operands[1] = std::make_shared<TNumeric>(Denom);
+            PNumeric Denom = P.GetCoef(Power)->operands[1]->Simplify();
+            P.GetCoef(Power)->operands[1] = Denom;
 
             int intD;
-            if (Denom.operation != OperatorConst || !Denom.isInteger(&intD)) {
+            if (Denom->operation != OperatorConst || !Denom->isInteger(&intD)) {
                 // не могу привести коэффициенты к рациональному виду
                 Res.push_back(*this);
                 return Res;
             };
             NOK = GetNOK(NOK, intD);
 
-            TNumeric Nom = P.GetCoef(Power)->operands[0]->Simplify();
-            P.GetCoef(Power)->operands[0] = std::make_shared<TNumeric>(Nom);
-            if (Nom.operation != OperatorConst || !Nom.isInteger()) {
+            PNumeric Num = P.GetCoef(Power)->operands[0]->Simplify();
+            P.GetCoef(Power)->operands[0] = Num;
+            if (Num->operation != OperatorConst || !Num->isInteger()) {
                 // не могу привести коэффициенты к рациональному виду
                 Res.push_back(*this);
                 return Res;
@@ -876,7 +876,7 @@ TNumeric TRationalFunction::Calculate(const TNumeric& x) {
     Res.operation = OperatorFrac;
     Res.OperandsPushback(P.Calculate(x));
     Res.OperandsPushback(Q.Calculate(x));
-    return Res.Simplify();
+    return *Res.Simplify();
 }
 
 TRationalFunction TRationalFunction::Derivative() {
@@ -909,7 +909,7 @@ bool BuildIntegerPolynom(const vector<TNumeric>& X, const vector<TNumeric>& Y, T
         vector<TNumeric> Line;
         Line.assign(X.size(), TNumeric("0"));
         for (size_t j = 0; j < X.size(); j++)
-            Line[j] = (X[i] ^ TNumeric(static_cast<int>(j))).Simplify();
+            Line[j] = *(X[i] ^ TNumeric(static_cast<int>(j))).Simplify();
         Coefs.push_back(Line);
     };
     vector<TNumeric> Res;

@@ -210,10 +210,10 @@ std::shared_ptr<TNumeric>& TNumeric::GetByRole(int role, std::shared_ptr<TNumeri
 }
 
 bool TNumeric::isInteger(int* Int) const {
-    const TNumeric& Simplified = Simplify();
-    if (Simplified.operation == OperatorConst) {
+    PNumeric Simplified = Simplify();
+    if (Simplified->operation == OperatorConst) {
         double d;
-        if (sscanf(Simplified.strval.c_str(), "%lf", &d) == 1) {
+        if (sscanf(Simplified->strval.c_str(), "%lf", &d) == 1) {
             if (d == static_cast<int>(d)) {
                 if (Int)
                     *Int = static_cast<int>(d);
@@ -285,8 +285,8 @@ bool TNumeric::operator==(const TNumeric& N) const {
         return true;
     } else {
         const TNumeric& Diff = *this - N;
-        const TNumeric& simplified = Diff.Simplify();
-        if (simplified.operation == OperatorConst && simplified.strval == "0")
+        PNumeric simplified = Diff.Simplify();
+        if (simplified->operation == OperatorConst && simplified->strval == "0")
             return true;
         return false;
     };
@@ -295,9 +295,9 @@ bool TNumeric::operator!=(const TNumeric& N) const {
     return !operator==(N);
 }
 bool TNumeric::operator==(double Value) const {
-    const TNumeric& Temp = Simplify();
-    if (Temp.CanCalculate())
-        return Temp.Calculate() == Value;
+    PNumeric Temp = Simplify();
+    if (Temp->CanCalculate())
+        return Temp->Calculate() == Value;
     else
         return false;
 }
@@ -1152,7 +1152,7 @@ TNumeric TNumeric::EliminateUnimplementedFunctions(size_t& StartID, map<string, 
             std::pair<string, TNumeric> NewItem;
             NewItem.second = *this;
             for (size_t i = 0; i < NewItem.second.operands.size(); i++)
-                NewItem.second.operands[i] = std::make_shared<TNumeric>(NewItem.second.operands[i]->Simplify());
+                NewItem.second.operands[i] = NewItem.second.operands[i]->Simplify();
 
             char Buf[128];
             sprintf(Buf, "a%d", (int)StartID++);
@@ -1217,7 +1217,7 @@ TNumeric TNumeric::SimplifyTrig() const {
         return *this;
 
     TNumeric Res(*this);
-    Res.operands[0] = TNumeric::create(Res.operands[0]->Simplify());
+    Res.operands[0] = Res.operands[0]->Simplify();
     // double Val = Operands[0]->Calculate();
     // if(Val == 0)
     if (*Res.operands[0] == TNumeric(0)) {
@@ -1274,7 +1274,7 @@ TNumeric TNumeric::SimplifyInverseTrig() const {
         return *this;
 
     TNumeric Res(*this);
-    Res.operands[0] = std::make_shared<TNumeric>(Res.operands[0]->Simplify());
+    Res.operands[0] = Res.operands[0]->Simplify();
     // double Val = Operands[0]->Calculate();
 
     if (*Res.operands[0] == TNumeric(0)) {
@@ -1365,14 +1365,14 @@ TNumeric TNumeric::SimplifyInverseTrig() const {
 TNumeric TNumeric::SimplifyLog() const {
     if (operation != OperatorLog)
         return *this;
-    TNumeric A = operands[0]->Simplify();
-    TNumeric B = operands[1]->Simplify();
-    if (A.CanCalculate() && B.CanCalculate()) {
+    PNumeric A = operands[0]->Simplify();
+    PNumeric B = operands[1]->Simplify();
+    if (A->CanCalculate() && B->CanCalculate()) {
         TNumeric Res;
-        double a = A.Calculate();
-        double b = B.Calculate();
+        double a = A->Calculate();
+        double b = B->Calculate();
         if (a < 0 || b < 0 || b == 1) {
-            return MakeLog(A, B);
+            return MakeLog(*A, *B);
         };
         if (a == b)
             return TNumeric(1);
@@ -1381,7 +1381,7 @@ TNumeric TNumeric::SimplifyLog() const {
         int AN, AD, BN, BD;
         Res.operation = OperatorLog;
         int N, D;  // коэффициент перед логарифмом
-        if (A.asRational(AN, AD)) {
+        if (A->asRational(AN, AD)) {
             int AN1, AD1;
             if (AN * AD < 0)
                 throw "TNumeric::SimplifyLog: AN*AD<0";
@@ -1392,9 +1392,10 @@ TNumeric TNumeric::SimplifyLog() const {
             CheckCommonPower(AN, AD, N, AN1, AD1);
             if (N > 1)
                 A = (TNumeric(AN1) / TNumeric(AD1)).Simplify();
-        } else
+        } else {
             N = 1;
-        if (B.asRational(BN, BD)) {
+        }
+        if (B->asRational(BN, BD)) {
             int BN1, BD1;
             if (BN * BD < 0)
                 throw "TNumeric::SimplifyLog: AN*AD<0";
@@ -1405,8 +1406,9 @@ TNumeric TNumeric::SimplifyLog() const {
             CheckCommonPower(BN, BD, D, BN1, BD1);
             if (D > 1)
                 B = (TNumeric(BN1) / TNumeric(BD1)).Simplify();
-        } else
+        } else {
             D = 1;
+        }
         Res.OperandsPushback(A);
         Res.OperandsPushback(B);
         if (N == 1 && D != 1)
@@ -1451,12 +1453,12 @@ TNumeric TNumeric::SimplifyFunctions() const {
     for (size_t i = 0; i < operands.size(); i++)
     {
         auto opres = operands[i]->Simplify();
-        res.operands[i] = TNumeric::create(opres);
+        res.operands[i] = opres;
     }
     return res;
 }
 
-TNumeric TNumeric::MathoCmd(const string& Cmd) const {
+PNumeric TNumeric::MathoCmd(const string& Cmd) const {
     // ходим по всему дереву и упрощаем все функции
 
     // 1.Устраняем все нереализованные в mathomatic функции
@@ -1486,22 +1488,19 @@ TNumeric TNumeric::MathoCmd(const string& Cmd) const {
     auto res = std::make_shared<TNumeric>(ResCode);
     // 3. восстанавливаем функции
     res->RestoreUnimplementedFunctions(func_map);
-    return Temp;
+    return res;
 }
 
-TNumeric TNumeric::Simplify() const {
+PNumeric TNumeric::Simplify() const {
     /// \todo: if *this is not changed, do not create new object and return this
-    TNumeric Res(*this);
     if (operation == OperatorConst)
-        return Res;
-    Res = Res.SimplifyFunctions();
+        return TNumeric::create(*this); //return copy of this
     if (operation == OperatorEqual) {
-        const TNumeric& A = operands[0]->MathoCmd("simplify");
-        const TNumeric& B = operands[1]->MathoCmd("simplify");
-        return MakeEquality(A, B);
+        PNumeric A = operands[0]->MathoCmd("simplify");
+        PNumeric B = operands[1]->MathoCmd("simplify");
+        return TNumeric::create(MakeEquality(*A, *B));
     };
-    Res = Res.MathoCmd("simplify");
-    return Res;
+    return MathoCmd("simplify");
 }
 
 void TNumeric::LoadFromFile(ifstream& f) {
@@ -1512,7 +1511,7 @@ void TNumeric::SaveToFile(ofstream& f) {
     assert(false);
 }
 
-TNumeric TNumeric::Unfactor() const {
+PNumeric TNumeric::Unfactor() const {
     return MathoCmd("unfactor");
 }
 

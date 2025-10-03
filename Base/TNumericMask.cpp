@@ -173,7 +173,7 @@ bool TNumericMask::CheckTemplateCommunative(const TNumeric& Template, const TNum
             };
             if (Match(*Template.operands[j], SubNumeric, TempCoefs) == false) {
                 // операнд подогнать под шаблон не удалось, переходим к следующему перераспределению операндов
-                SubNumeric = SubNumeric.Simplify();
+                SubNumeric = *SubNumeric.Simplify();
                 if (Match(*Template.operands[j], SubNumeric, TempCoefs) == false) {
                     /*#ifdef __DEBUG__
                                     cout<<SubNumeric.CodeBasic()<<endl;

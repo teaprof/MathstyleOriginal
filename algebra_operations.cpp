@@ -236,8 +236,8 @@ bool Gauss(size_t left, size_t up, vector<vector<TNumeric>>& Coefs, vector<TNume
                 TNumeric Mult = TNumeric("-1") * Coefs[i][left] / Coefs[NonZero][left];
                 // прибавляем к строке i строку NonZero*Mult
                 for (size_t j = 0; j < Coefs[0].size(); j++)
-                    Coefs[i][j] = (Coefs[i][j] + Coefs[NonZero][j] * Mult).Simplify();
-                RightPart[i] = (RightPart[i] + RightPart[NonZero] * Mult).Simplify();
+                    Coefs[i][j] = *(Coefs[i][j] + Coefs[NonZero][j] * Mult).Simplify();
+                RightPart[i] = *(RightPart[i] + RightPart[NonZero] * Mult).Simplify();
             };
         }
     };
@@ -266,7 +266,7 @@ bool SolveLinearSystem(vector<vector<TNumeric>> Coefs, vector<TNumeric> RightPar
         Res[row] = RightPart[row];
         for (size_t j = row + 1; j < Coefs.size(); j++)
             Res[row] = Res[row] - Coefs[row][j] * Res[j];
-        Res[row] = (Res[row] / Coefs[row][row]).Simplify();
+        Res[row] = *(Res[row] / Coefs[row][row]).Simplify();
         if (OnlyInteger) {
             if (Res[row].isInteger(0) == false)
                 return false;

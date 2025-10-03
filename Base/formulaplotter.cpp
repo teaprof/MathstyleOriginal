@@ -1594,7 +1594,7 @@ std::string TFormulaPlotter::CodeBasic(std::shared_ptr<const TNumeric> N) {
 
 QColor TFormulaPlotter::getFontColor(std::shared_ptr<TNumeric> N) const {
     (void)N;
-    return Qt::green;
+    return Qt::black;
 }
 std::optional<QColor> TFormulaPlotter::getBorderColor(std::shared_ptr<TNumeric> N) const {
     (void)N;
