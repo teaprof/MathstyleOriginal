@@ -13,8 +13,10 @@ set(CMAKE_AUTOMOC ON)
 include(GNUInstallDirs)
 set(CMAKE_AUTOUIC ON)
 
+#To install these packages use:
+#sudo apt install qt6-base-dev qt6-webengine-dev-tools qt6-webview-dev
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Network PrintSupport Widgets WebEngineWidgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Network PrintSupport Widgets WebEngineWidgets) # QtWebview)
 
 qt_add_executable(Schoolar WIN32 MACOSX_BUNDLE
     Base/THTMLWriter.cpp Base/THTMLWriter.h
@@ -71,7 +73,7 @@ target_link_libraries(Schoolar PRIVATE
     mathomatic
 )
 
-target_link_directories(Schoolar PRIVATE mathomatic/mathomatic/lib)
+target_link_directories(Schoolar PRIVATE mathomatic/lib)
 
 #target_compile_options(Schoolar
 #    -O3

@@ -1,0 +1,3 @@
+[submodule "mathomatic"]
+	path = mathomatic
+	url = git@github.com:mfillpot/mathomatic.git
