@@ -6,9 +6,11 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <variant>
 
 #include "tline.h"
 #include "tphrases.h"
+#include "formulaplotter.h"
 
 #define __MULTITHREAD__
 
@@ -63,20 +65,55 @@ class THTMLWriter : public TRectangleElementVisitor {
     using printable = std::variant<int, std::shared_ptr<TNumeric>>;
 
     void AddHeader1(std::string str);
-    void AddParagraph(std::string str);
-    void AddParagraph(std::string format, int N);
-    void AddParagraph(std::string format, const vector<printable>& P);
+    
      // %N для формулы на отдельной строке, %n - для inline-формулы; также можно использовать %d
-    void AddParagraph2(std::string format, void* R); 
-    void AddParagraph(std::string format, void* R1, void* R2);
-    void AddParagraph(std::string format, void* R1, void* R2, void* R3);
-    void AddParagraph(std::string format, void* R1, void* R2, void* R3, void* R4);
-    // %N для формулы на отдельной строке, %n - для inline-формулы; также можно использовать %d
-    void AddParagraph(std::string format, const TNumeric& N); 
-    void AddParagraph(std::string format, const TNumeric& N1, const TNumeric& N2);
-    void AddParagraph2(std::string format, const TNumeric& N1, const int& D);
-    void AddParagraph(std::string format, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3);
-    void AddParagraph(std::string format, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3, const TNumeric& N4);
+    template<class ... Args>
+    void addParagraph(const std::string& format, Args ... args) {
+      BeginParagraph();
+      parseFormatString(format, printable(args)...);
+      EndParagraph();
+    }
+
+    void parseFormatString(const std::string& format) {
+      fout<<format;
+    }
+
+    template<class Arg, class ... Args>
+    void parseFormatString(const std::string& format, Arg arg, Args ... args) {
+      size_t pos = format.find('%');
+      assert(pos != std::string::npos);
+      assert(pos + 1 < format.size());
+      fout << format.substr(0, pos);
+      const char& format_char = format[pos+1];
+      switch (format_char) {
+          case 'd':
+          case 'D': {
+              assert(std::holds_alternative<int>(arg));
+              int i = std::get<int>(arg);
+              fout << i;
+              break;
+          };
+          case 'n': {
+              assert(std::holds_alternative<std::shared_ptr<TNumeric>>(arg));
+              auto R = std::get<std::shared_ptr<TNumeric>>(arg);              
+              TConstFormulaPlotter plotter(R);
+              WriteRectangleElement(&plotter);
+              break;
+          }
+          case 'N': {
+              assert(std::holds_alternative<std::shared_ptr<TNumeric>>(arg));
+              auto R = std::get<std::shared_ptr<TNumeric>>(arg);
+              TConstFormulaPlotter plotter(R);
+              NewLine();
+              WriteRectangleElement(&plotter);
+              NewLine();
+              break;
+          }
+          default:
+            assert(false); 
+      }
+      parseFormatString(format.substr(pos+2, format.length()), std::forward<Args>(args)...);
+    }
 
     void Add(std::string str);
     void AddFormula(const TConstFormulaPlotter& fp);       // на отдельной строке <br/> $$FORMULA$$ <br/>

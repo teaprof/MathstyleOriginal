@@ -39,7 +39,7 @@ TSolutionBrowser::TSolutionBrowser(QWidget* parent) : QWidget(parent) {
     RegisterToolButton(":Commands/Pictures/Commands/cross_48.png", "Close", this, SLOT(Close()));
 
     SetCaption("Mathstyle Pro Browser");
-    this->setMinimumSize(300, 100);
+    setMinimumSize(800, 600);
 };
 
 void TSolutionBrowser::RegisterToolButton(const char* Img, QString ToolTip, QWidget* Receiver, const char* Slot) {
