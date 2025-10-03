@@ -923,7 +923,7 @@ void TPolynomialEquality::PrintAnswer(std::shared_ptr<THTMLWriter> Writer) {
             Writer->AddParagraph("Found roots:");
             Writer->IncrementNestingLevel();
             for (size_t i = 0; i < Roots.size(); i++)
-                Writer->AddParagraph("%n has multiplicity %d", MakeEquality(UnknownVar, *Roots[i]), RootsMultiplicity[i]);
+                Writer->AddParagraph2("%n has multiplicity %d", MakeEquality(UnknownVar, *Roots[i]), RootsMultiplicity[i]);
             Writer->DecrementNestingLevel();
         }
     } else {

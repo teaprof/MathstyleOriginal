@@ -60,21 +60,23 @@ class THTMLWriter : public TRectangleElementVisitor {
 
     void WriteError(string Message);
 
+    using printable = std::variant<int, std::shared_ptr<TNumeric>>;
+
     void AddHeader1(std::string str);
     void AddParagraph(std::string str);
-    void AddParagraph(std::string str, int N);
-    void AddParagraph(std::string str, const vector<const void*>& P);
-    void AddParagraph(std::string str,
-                      void* R);  // %N для формулы на отдельной строке, %n - для inline-формулы; также можно использовать %d
-    void AddParagraph(std::string str, void* R1, void* R2);
-    void AddParagraph(std::string str, void* R1, void* R2, void* R3);
-    void AddParagraph(std::string str, void* R1, void* R2, void* R3, void* R4);
-    void AddParagraph(std::string str,
-                      const TNumeric& N);  // %N для формулы на отдельной строке, %n - для inline-формулы; также можно использовать %d
-    void AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2);
-    void AddParagraph(std::string str, const TNumeric& N1, const int& D);
-    void AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3);
-    void AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3, const TNumeric& N4);
+    void AddParagraph(std::string format, int N);
+    void AddParagraph(std::string format, const vector<printable>& P);
+     // %N для формулы на отдельной строке, %n - для inline-формулы; также можно использовать %d
+    void AddParagraph2(std::string format, void* R); 
+    void AddParagraph(std::string format, void* R1, void* R2);
+    void AddParagraph(std::string format, void* R1, void* R2, void* R3);
+    void AddParagraph(std::string format, void* R1, void* R2, void* R3, void* R4);
+    // %N для формулы на отдельной строке, %n - для inline-формулы; также можно использовать %d
+    void AddParagraph(std::string format, const TNumeric& N); 
+    void AddParagraph(std::string format, const TNumeric& N1, const TNumeric& N2);
+    void AddParagraph2(std::string format, const TNumeric& N1, const int& D);
+    void AddParagraph(std::string format, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3);
+    void AddParagraph(std::string format, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3, const TNumeric& N4);
 
     void Add(std::string str);
     void AddFormula(const TConstFormulaPlotter& fp);       // на отдельной строке <br/> $$FORMULA$$ <br/>

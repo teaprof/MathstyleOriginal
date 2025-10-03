@@ -1421,13 +1421,11 @@ TNumeric TNumeric::SimplifyLog() const {
 }
 
 TNumeric TNumeric::SimplifyFunctions() const {
-    TNumeric res;
+    TNumeric res(*this);
     switch (operation) {
         case OperatorLog:
             res = SimplifyLog();
             break;
-        /*case OperatorLn:
-            case OperatorLg:*/
         case OperatorSin:
         case OperatorCos:
         case OperatorTg:
@@ -1445,12 +1443,16 @@ TNumeric TNumeric::SimplifyFunctions() const {
                 break;*/
         case OperatorLn:
         case OperatorLg:
-            if (*operands[0] == TNumeric(1))
+            res = SimplifyLog();
+            if (*res.operands[0] == TNumeric(1))
                 res = TNumeric(0);
             break;
     }
     for (size_t i = 0; i < operands.size(); i++)
-        res.operands[i] = TNumeric::create(std::move(operands[i]->Simplify()));
+    {
+        auto opres = operands[i]->Simplify();
+        res.operands[i] = TNumeric::create(opres);
+    }
     return res;
 }
 

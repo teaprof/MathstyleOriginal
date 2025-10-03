@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <variant>
 
 #include "arithmetic.h"
 #include "formulaplotter.h"
@@ -142,55 +143,58 @@ void THTMLWriter::AddHeader1(std::string str) {
 void THTMLWriter::AddParagraph(string str) {
     fout << "<p>" << Translate(str) << "</p>" << endl;
 }
-void THTMLWriter::AddParagraph(std::string str, int N) {
-    vector<const void*> V;
-    V.push_back(&N);
-    AddParagraph(str, V);
+void THTMLWriter::AddParagraph(std::string format, int N) {
+    vector<printable> v;
+    v.push_back(N);
+    AddParagraph(format, v);
 }
 
-void THTMLWriter::AddParagraph(std::string str, const vector<const void*>& P) {
-    str = Translate(str);
+void THTMLWriter::AddParagraph(std::string format, const vector<printable>& P) {
+    format = Translate(format);
     size_t startindex = 0;
-    size_t len = str.length();
+    size_t len = format.length();
     size_t count = 0;
     BeginParagraph();
     for (size_t curindex = 0; curindex < len; curindex++) {
-        if (str[curindex] == '\\')
+        if (format[curindex] == '\\')
             curindex++;
-        if (str[curindex] == '%') {
-            string SubStr = str.substr(startindex, curindex - startindex);
+        if (format[curindex] == '%') {
+            string SubStr = format.substr(startindex, curindex - startindex);
             fout << SubStr << endl;
             curindex++;
             if (curindex >= len)
                 break;
-            char code = str[curindex];
+            char code = format[curindex];
             if (P.size() <= count) {
-                cerr << "THTMLWriter::AddParagraph(string, vector): P.size() <= count, check format string, str = " << str << endl;
+                cerr << "THTMLWriter::AddParagraph(string, vector): P.size() <= count, check format string, str = " << format << endl;
                 throw "THTMLWriter::AddParagraph(string, vector): P.size() <= count, check format string str";
             };
             switch (code) {
                 case 'd':
                 case 'D': {
-                    stringstream str;
-                    const void* Pointer = P[count];
-                    int i = *(reinterpret_cast<const int*>(Pointer));
+                    assert(std::holds_alternative<int>(P[count]));
+                    int i = std::get<int>(P[count]);
                     fout << i;
                     break;
                 };
                 case 'n': {
-                    const TRectangleElement* R = reinterpret_cast<const TRectangleElement*>(P[count]);
-                    WriteRectangleElement(R);
+                    assert(std::holds_alternative<std::shared_ptr<TNumeric>>(P[count]));
+                    auto R = std::get<std::shared_ptr<TNumeric>>(P[count]);
+                    TConstFormulaPlotter plotter(R);
+                    WriteRectangleElement(&plotter);
                     break;
                 }
                 case 'N': {
-                    const TRectangleElement* R = reinterpret_cast<const TRectangleElement*>(P[count]);
+                    assert(std::holds_alternative<std::shared_ptr<TNumeric>>(P[count]));
+                    auto R = std::get<std::shared_ptr<TNumeric>>(P[count]);
+                    TConstFormulaPlotter plotter(R);
                     NewLine();
-                    WriteRectangleElement(R);
+                    WriteRectangleElement(&plotter);
                     NewLine();
                     break;
                 }
                 default:
-                    cerr << "THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string, str = " << str << endl;
+                    cerr << "THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string, str = " << format << endl;
                     throw "THTMLWriter::AddParagraph(string, vector): unknown format letter, check format string str";
                     break;
             }
@@ -198,72 +202,72 @@ void THTMLWriter::AddParagraph(std::string str, const vector<const void*>& P) {
             startindex = curindex + 1;
         }
     }
-    string SubStr = str.substr(startindex);
+    string SubStr = format.substr(startindex);
     fout << SubStr << endl;
     EndParagraph();
 }
 
-void THTMLWriter::AddParagraph(std::string str, void* R) {
-    vector<const void*> V;
+void THTMLWriter::AddParagraph2(std::string format, void* R) {
+    vector<printable> V;
     V.push_back(R);
-    AddParagraph(str, V);
+    AddParagraph(format, V);
 }
 
-void THTMLWriter::AddParagraph(std::string str, void* R1, void* R2) {
-    vector<const void*> V;
+void THTMLWriter::AddParagraph(std::string format, void* R1, void* R2) {
+    vector<printable> V;
     V.push_back(R1);
     V.push_back(R2);
-    AddParagraph(str, V);
+    AddParagraph(format, V);
 }
 
-void THTMLWriter::AddParagraph(std::string str, void* R1, void* R2, void* R3) {
-    vector<const void*> V;
+void THTMLWriter::AddParagraph(std::string format, void* R1, void* R2, void* R3) {
+    vector<printable> V;
     V.push_back(R1);
     V.push_back(R2);
     V.push_back(R3);
-    AddParagraph(str, V);
+    AddParagraph(format, V);
 }
-void THTMLWriter::AddParagraph(std::string str, void* R1, void* R2, void* R3, void* R4) {
-    vector<const void*> V;
+void THTMLWriter::AddParagraph(std::string format, void* R1, void* R2, void* R3, void* R4) {
+    vector<printable> V;
     V.push_back(R1);
     V.push_back(R2);
     V.push_back(R3);
     V.push_back(R4);
-    AddParagraph(str, V);
+    AddParagraph(format, V);
 }
 
-void THTMLWriter::AddParagraph(std::string str, const TNumeric& N) {
-    vector<const void*> V;
+void THTMLWriter::AddParagraph(std::string format, const TNumeric& N) {
+    vector<printable> V;
     V.push_back(&N);
-    AddParagraph(str, V);
+    AddParagraph(format, V);
 }
-void THTMLWriter::AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2) {
-    vector<const void*> V;
+void THTMLWriter::AddParagraph(std::string format, const TNumeric& N1, const TNumeric& N2) {
+    vector<printable> V;
     V.push_back(&N1);
     V.push_back(&N2);
-    AddParagraph(str, V);
+    AddParagraph(format, V);
 }
-void THTMLWriter::AddParagraph(std::string str, const TNumeric& N1, const int& D) {
-    vector<const void*> V;
+void THTMLWriter::AddParagraph2(std::string format, const TNumeric& N1, const int& D) {
+    vector<printable> V;
     V.push_back(&N1);
     V.push_back(&D);
-    AddParagraph(str, V);
+    AddParagraph(format, V);
 }
 
-void THTMLWriter::AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3) {
-    vector<const void*> V;
+void THTMLWriter::AddParagraph(std::string format, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3) {
+    vector<printable> V;
     V.push_back(&N1);
     V.push_back(&N2);
     V.push_back(&N3);
-    AddParagraph(str, V);
+    AddParagraph(format, V);
 }
-void THTMLWriter::AddParagraph(std::string str, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3, const TNumeric& N4) {
-    vector<const void*> V;
+void THTMLWriter::AddParagraph(std::string format, const TNumeric& N1, const TNumeric& N2, const TNumeric& N3, const TNumeric& N4) {
+    vector<printable> V;
     V.push_back(&N1);
     V.push_back(&N2);
     V.push_back(&N3);
     V.push_back(&N4);
-    AddParagraph(str, V);
+    AddParagraph(format, V);
 }
 
 void THTMLWriter::Add(string str) {
