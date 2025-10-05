@@ -328,24 +328,24 @@ void QFormulaArea::Clear() {
 }
 
 void QFormulaArea::Edit() {
-    /*if(Formula && Formula->Selected && Formula->Selected->operation == OperatorConst)
+    if(EditableFormula && EditableFormula->selected && EditableFormula->selected->operation == OperatorConst)
     {
-        if(Formula->Selected->EditableFlags == NoEditable)
-            return;
+        /*if(EditableFormula->selected->EditableFlags == NoEditable)
+            return;*/
         bool ok;
         double newval;
         double oldval;
-        sscanf(Formula->Selected->strval.c_str(), "%lf", &oldval);
+        sscanf(EditableFormula->selected->strval.c_str(), "%lf", &oldval);
         newval = QInputDialog::getDouble(this, tr("New value"), tr("Enter value"), oldval, -1e5, 1e5, 4, &ok);
         if(ok)
         {
             char Data[100];
             sprintf(Data, "%g", newval);
-            Formula->Selected->strval = Data;
+            EditableFormula->selected->strval = Data;
             Save();
         };
         repaint();
-    }*/
+    }
 }
 
 void QFormulaArea::Erase() {

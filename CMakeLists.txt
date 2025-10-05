@@ -29,6 +29,7 @@ qt_add_executable(Schoolar WIN32 MACOSX_BUNDLE
     Base/tline.cpp Base/tline.h
     Base/formulaplotter.cpp Base/formulaplotter.h
     Base/tphrases.cpp Base/tphrases.h
+    Base/PrettyPrinterTransformer.cpp Base/PrettyPrinterTransformer.h
     #Problems/GraphicsProblems.cpp Problems/GraphicsProblems.h
     Problems/ObjectsFactory.cpp Problems/ObjectsFactory.h
     Problems/RandomFunction.cpp Problems/RandomFunction.h

@@ -27,6 +27,7 @@ TPolynomConditions::TPolynomConditions(size_t MaxPower, bool HaveRightPart, Oper
     UnknownVar = TNumeric("x");
     this->HaveRightPart = HaveRightPart;
     SetMaxPower(MaxPower, operation);
+    this->CanRandomize = true;
 }
 
 TPolynomConditions::TPolynomConditions(const TPolynom& P, bool HaveRightPart, Operation operation, bool AllCoef) {
@@ -41,6 +42,7 @@ TPolynomConditions::TPolynomConditions(const TPolynom& P, bool HaveRightPart, Op
         // RightPart.SetEditableFlags(ConstAllowed);
         Conditions->OperandsPushback(TNumeric("0"));
     };
+    this->CanRandomize = true;
 
     SetLeftPartP(P, AllCoef);
 }

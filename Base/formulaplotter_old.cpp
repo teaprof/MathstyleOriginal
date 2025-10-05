@@ -706,24 +706,100 @@ Metrics TFormulaPlotter::SumGetTextRectangle(std::shared_ptr<TNumeric> N, bool w
 #ifdef __DEBUG__
     cout << CodeBasic(N) << endl;
 #endif
+/*  
+    vector<size_t> Exclude;  // слагаемые, равные нулю, их лучше всего исключить
+    if (simplify_) {
+        for (size_t i = 0; i < Temp.operands.size(); i++) {
+            if (Temp.operands[i]->operation == OperatorConst && Temp.operands[i]->strval == "0")
+                Exclude.push_back(i);
+            if (Temp.operands[i]->operation == OperatorFrac) {
+                if (Temp.operands[i]->operands[0]->operation == OperatorConst && Temp.operands[i]->operands[0]->strval == "0")
+                    Exclude.push_back(i);
+            }
+            if (Temp.operands[i]->operation == OperatorProd) {
+                for (size_t j = 0; j < Temp.operands[i]->operands.size(); j++)
+                    if (Temp.operands[i]->operands[j]->operation == OperatorConst && Temp.operands[i]->operands[j]->strval == "0") {
+                        Exclude.push_back(i);
+                        break;
+                    };
+            }
+        }
+        if (Exclude.size() == Temp.operands.size() && Temp.operands.size() > 0)
+        // все слагаемые - нули, оставляем только одно из них
+        {
+            Exclude.erase(Exclude.begin());
+        };
+    };*/
+    size_t termsDrawn = 0;  // количество уже отрисованных слагаемых
     for (size_t i = 0; i < Temp.operands.size(); i++) {
+        //if (find(Exclude.begin(), Exclude.end(), i) != Exclude.end())
+        //    continue;
         bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             withBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
+        size_t MinusesCount = 0;
+
+        /*if ((simplify_) & (termsDrawn > 0))
+        // Пытаемся вынести минус, эта операция не явлеятся thread-safe
+        // у первого (Drawn = 0) слагаемого минус не выносится
+        {
+            if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
+                for (size_t j = 0; j < Temp.operands[i]->operands.size(); j++) {
+                    if (Temp.operands[i]->operands[j]->operation == OperatorConst) {
+                        if (Temp.operands[i]->operands[j]->strval.length() > 0 && Temp.operands[i]->operands[j]->strval[0] == '-') {
+                            TakenMinuses.push_back(j);
+                            Temp.operands[i]->at(j)->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
+                            MinusesCount++;
+                        }
+                    }
+                }
+            }
+            if (Temp.operands[i]->operation == OperatorConst)
+                if (Temp.operands[i]->strval.length() > 0 && Temp.operands[i]->strval[0] == '-') {
+                    MinusesCount++;
+                    Temp.at(i)->strval.erase(Temp.operands[i]->strval.begin());
+                }
+        }*/
         // рисуем знак
-        // плюс, перед первым членом не ставится
-        if (i > 0)
-            res.Width += canvas_->TextWidth(StrPlus);
+        if (MinusesCount % 2 == 0) {
+            // плюс, перед первым членом не ставится
+            if (termsDrawn > 0)
+                res.Width += canvas_->TextWidth(StrPlus);
+        } else {
+            // минус
+            res.Width += canvas_->TextWidth(StrMinus);
+        }
 
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             withBrackets = true;
-        Metrics metrics = PrettyGetTextRectangle(N->operands[i], withBrackets);
+        Metrics metrics;
+        /*if (simplify_)
+        // если надо было упростить, то рисуем упрощенные слагаемые
+        {
+            metrics = PrettyGetTextRectangle(Temp.operands[i], withBrackets);
+        } else {*/
+            // ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается
+            // функцией PrettyDrawAtBaseLeftRecursive в корень дерева
+            metrics = PrettyGetTextRectangle(N->operands[i], withBrackets);
+        //}
+
+        /*if (simplify_) {
+            // возвращаем минус обратно
+            if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
+                for (size_t j = 0; j < TakenMinuses.size(); j++)
+                    Temp.operands[i]->at(TakenMinuses[j])->strval = string("-") + Temp.operands[i]->operands[TakenMinuses[j]]->strval;
+            }
+            if (Temp.operands[i]->operation == OperatorConst && MinusesCount % 2 == 1) {
+                Temp.at(i)->strval = string("-") + Temp.operands[i]->strval;
+            }
+        };*/
         res.Width += metrics.Width;
         if (metrics.Height > res.Height)
             res.Height = metrics.Height;
         if (metrics.Depth > res.Depth)
             res.Depth = metrics.Depth;
+        termsDrawn++;
     };
     if (withBrackets) {
         res.Width += GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), res.Height, res.Depth) + GetBracketWidth(UniCode2UTF8String(MyRightParenthesis), res.Height, res.Depth);
@@ -740,30 +816,105 @@ void TFormulaPlotter::SumDraw(int zorder, std::shared_ptr<TNumeric> N, int X, in
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
+    /*vector<size_t> Exclude;  // слагаемые, равные нулю, их лучше всего исключить
+    if (simplify_) {
+        for (size_t i = 0; i < Temp.operands.size(); i++) {
+            if (Temp.operands[i]->operation == OperatorConst && Temp.operands[i]->strval == "0")
+                Exclude.push_back(i);
+            if (Temp.operands[i]->operation == OperatorFrac) {
+                if (Temp.operands[i]->operands[0]->operation == OperatorConst && Temp.operands[i]->operands[0]->strval == "0")
+                    Exclude.push_back(i);
+            }
+            if (Temp.operands[i]->operation == OperatorProd) {
+                for (size_t j = 0; j < Temp.operands[i]->operands.size(); j++)
+                    if (Temp.operands[i]->operands[j]->operation == OperatorConst && Temp.operands[i]->operands[j]->strval == "0") {
+                        Exclude.push_back(i);
+                        break;
+                    };
+            }
+        }
+        if (Exclude.size() == Temp.operands.size() && Temp.operands.size() > 0)
+        // все слагаемые - нули, оставляем только одно из них
+        {
+            Exclude.erase(Exclude.begin());
+        };
+    };*/
+
     string StrPlus = UniCode2UTF8String(MyPlusSign);
     string StrMinus = UniCode2UTF8String(MyMinusSign);
+    size_t Drawn = 0;  // количество уже отрисованных слагаемых
 
     for (size_t i = 0; i < Temp.operands.size(); i++) {
+        /*if (find(Exclude.begin(), Exclude.end(), i) != Exclude.end())
+            continue;*/
         bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             withBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
 
+        /*if (simplify_ && Drawn > 0)
+        // Пытаемся вынести минус, эта операция не явлеятся thread-safe
+        // у первого (Drawn = 0) слагаемого минус не выносится
+        {
+            if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
+                for (size_t j = 0; j < Temp.operands[i]->operands.size(); j++) {
+                    if (Temp.operands[i]->operands[j]->operation == OperatorConst) {
+                        if (Temp.operands[i]->operands[j]->strval.length() > 0 && Temp.operands[i]->operands[j]->strval[0] == '-') {
+                            TakenMinuses.push_back(j);
+                            Temp.operands[i]->at(j)->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
+                            MinusesCount++;
+                        }
+                    }
+                }
+            }
+            if (Temp.operands[i]->operation == OperatorConst)
+                if (Temp.operands[i]->strval.length() > 0 && Temp.operands[i]->strval[0] == '-') {
+                    MinusesCount++;
+                    Temp.at(i)->strval.erase(Temp.operands[i]->strval.begin());
+                }
+        }*/
         // рисуем знак
-        // плюс, перед первым членом не ставится
-        if (i > 0) {
-            canvas_->TextOutA(X, Y, StrPlus);
-            X = X + canvas_->TextWidth(StrPlus);
+        if (MinusesCount % 2 == 0) {
+            // плюс, перед первым членом не ставится
+            if (Drawn > 0) {
+                canvas_->TextOutA(X, Y, StrPlus);
+                X = X + canvas_->TextWidth(StrPlus);
+            }
+        } else {
+            // минус, рисуется всегда
+            canvas_->TextOutA(X, Y, StrMinus);
+            X = X + canvas_->TextWidth(StrMinus);
         }
 
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             withBrackets = true;
         Metrics metrics1;
-        metrics1 = PrettyGetTextRectangleCached(N->operands[i], withBrackets);
-        PrettyDrawAtBaseLeftRecursive(zorder + 1, Temp.operands[i], X, Y, withBrackets);
+        /*if (simplify_)
+        // если надо было упростить, то рисуем упрощенные слагаемые
+        {
+            metrics1 = PrettyGetTextRectangleCached(Temp.operands[i], withBrackets);
+            PrettyDrawAtBaseLeftRecursive(zorder + 1, Temp.operands[i], X, Y, withBrackets);
+        } else {*/
+            // ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается
+            // функцией PrettyDrawAtBaseLeftRecursive в корень дерева
+            metrics1 = PrettyGetTextRectangleCached(N->operands[i], withBrackets);
+            PrettyDrawAtBaseLeftRecursive(zorder + 1, Temp.operands[i], X, Y, withBrackets);
+        //}
+
+        /*if (simplify_) {
+            // возвращаем минус обратно
+            if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
+                for (size_t j = 0; j < TakenMinuses.size(); j++)
+                    Temp.operands[i]->at(TakenMinuses[j])->strval = string("-") + Temp.operands[i]->operands[TakenMinuses[j]]->strval;
+            }
+            if (Temp.operands[i]->operation == OperatorConst && MinusesCount % 2 == 1) {
+                Temp.at(i)->strval = string("-") + Temp.operands[i]->strval;
+            }
+        };*/
 
         X = X + metrics1.Width;
+        Drawn++;
     };
     if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
@@ -785,6 +936,26 @@ Metrics TFormulaPlotter::MinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
         size_t MinusesCount = 0;
 
+        /*if (simplify_)
+        // Пытаемся вынести минус, эта операция не явлеятся thread-safe
+        {
+            if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
+                for (size_t j = 0; j < Temp.operands[i]->operands.size(); j++) {
+                    if (Temp.operands[i]->operands[j]->operation == OperatorConst) {
+                        if (Temp.operands[i]->operands[j]->strval.length() > 0 && Temp.operands[i]->operands[j]->strval[0] == '-') {
+                            TakenMinuses.push_back(j);
+                            Temp.operands[i]->at(j)->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
+                            MinusesCount++;
+                        }
+                    }
+                }
+            }
+            if (Temp.operands[i]->operation == OperatorConst)
+                if (Temp.operands[i]->strval.length() > 0 && Temp.operands[i]->strval[0] == '-') {
+                    MinusesCount++;
+                    Temp.at(i)->strval.erase(Temp.operands[i]->strval.begin());
+                }
+        }*/
         // рисуем знак
         if (MinusesCount % 2 == 1) {
             // минус, и ещё один минус перед вторым членом и далее
@@ -800,7 +971,26 @@ Metrics TFormulaPlotter::MinusGetTextRectangle(std::shared_ptr<TNumeric> N, bool
         }
 
         Metrics metrics;
-        metrics = PrettyGetTextRectangle(N->operands[i], withBrackets);
+        /*if (simplify_)
+        // если надо было упростить, то рисуем упрощенные слагаемые
+        {
+            metrics = PrettyGetTextRectangle(Temp.operands[i], withBrackets);
+        } else {*/
+            // ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается
+            // функцией PrettyDrawAtBaseLeftRecursive в корень дерева
+            metrics = PrettyGetTextRectangle(N->operands[i], withBrackets);
+        //}
+
+        /*if (simplify_) {
+            // возвращаем минус обратно
+            if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
+                for (size_t j = 0; j < TakenMinuses.size(); j++)
+                    Temp.operands[i]->at(TakenMinuses[j])->strval = string("-") + Temp.operands[i]->operands[TakenMinuses[j]]->strval;
+            }
+            if (Temp.operands[i]->operation == OperatorConst && (MinusesCount % 2 == 1)) {
+                Temp.at(i)->strval = string("-") + Temp.operands[i]->strval;
+            }
+        };*/
         res.Width += metrics.Width;
         if (metrics.Height > res.Height)
             res.Height = metrics.Height;
@@ -826,18 +1016,71 @@ void TFormulaPlotter::MinusDraw(int zorder, std::shared_ptr<TNumeric> N, int X, 
         if (CompareOperatorsPriority(N->operation, Temp.operands[i]->operation) > 0)
             withBrackets = true;
         vector<size_t> TakenMinuses;  // Операнды, у которых минусы уже учтены в знаке перед произведением или дробью
+        size_t MinusesCount = 0;
+
+        /*if (simplify_)
+        // Пытаемся вынести минус, эта операция не явлеятся thread-safe
+        // todo: скопировать из SumDraw
+        {
+            if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
+                for (size_t j = 0; j < Temp.operands[i]->operands.size(); j++) {
+                    if (Temp.operands[i]->operands[j]->operation == OperatorConst) {
+                        if (Temp.operands[i]->operands[j]->strval.length() > 0 && Temp.operands[i]->operands[j]->strval[0] == '-') {
+                            TakenMinuses.push_back(j);
+                            Temp.operands[i]->at(j)->strval.erase(Temp.operands[i]->operands[j]->strval.begin());
+                            MinusesCount++;
+                        }
+                    }
+                }
+            }
+            if (Temp.operands[i]->operation == OperatorConst)
+                if (Temp.operands[i]->strval.length() > 0 && Temp.operands[i]->strval[0] == '-') {
+                    MinusesCount++;
+                    Temp.at(i)->strval.erase(Temp.operands[i]->strval.begin());
+                }
+        }*/
         // рисуем знак
-        // минус, и ещё один минус перед вторым членом и далее
-        if (i == 0) {
-            canvas_->TextOutA(X, Y, StrMinus);
-            X = X + canvas_->TextWidth(StrMinus);
+        if (MinusesCount % 2 == 1) {
+            // минус, и ещё один минус перед вторым членом и далее
+            if (i == 0) {
+                canvas_->TextOutA(X, Y, StrMinus);
+                X = X + canvas_->TextWidth(StrMinus);
+            } else {
+                canvas_->TextOutA(X, Y, StrPlus);
+                X = X + canvas_->TextWidth(StrPlus);
+            }
         } else {
-            canvas_->TextOutA(X, Y, StrPlus);
-            X = X + canvas_->TextWidth(StrPlus);
+            // плюс, перед первым членом знак не нужен
+            // начиная со второго - знак минус
+            if (i > 0) {
+                canvas_->TextOutA(X, Y, StrMinus);
+                X = X + canvas_->TextWidth(StrMinus);
+            }
         }
+
         Metrics metrics1;
-        metrics1 = PrettyGetTextRectangleCached(N->operands[i], withBrackets);
-        PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[i], X, Y, withBrackets);
+        /*if (simplify_)
+        // если надо было упростить, то рисуем упрощенные слагаемые
+        {
+            metrics1 = PrettyGetTextRectangleCached(Temp.operands[i], withBrackets);
+            PrettyDrawAtBaseLeftRecursive(zorder + 1, Temp.operands[i], X, Y, withBrackets);
+        } else {
+            // ничего не упрощали, тогда рисуем исходные слагаемые. При этом поле Active у этих слагаемых меняется и вытаскивается
+            // функцией PrettyDrawAtBaseLeftRecursive в корень дерева*/
+            metrics1 = PrettyGetTextRectangleCached(N->operands[i], withBrackets);
+            PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[i], X, Y, withBrackets);
+        //}
+
+        /*if (simplify_) {
+            // возвращаем минус обратно
+            if (Temp.operands[i]->operation == OperatorProd || Temp.operands[i]->operation == OperatorFrac) {
+                for (size_t j = 0; j < TakenMinuses.size(); j++)
+                    Temp.operands[i]->at(TakenMinuses[j])->strval = string("-") + Temp.operands[i]->operands[TakenMinuses[j]]->strval;
+            }
+            if (Temp.operands[i]->operation == OperatorConst && (MinusesCount % 2 == 1)) {
+                Temp.at(i)->strval = string("-") + Temp.operands[i]->strval;
+            }
+        };*/
         X = X + metrics1.Width;
     };
     if (withBrackets)
@@ -892,9 +1135,19 @@ void TFormulaPlotter::IntersectionDraw(int zorder, std::shared_ptr<TNumeric> N, 
 //==============================================================================
 Metrics TFormulaPlotter::ProdGetTextRectangle(std::shared_ptr<TNumeric> N, bool withBrackets) const {
     Metrics res;
+    /*vector<size_t> ExcludeOperands;
+    if (simplify_) {
+        for (size_t j = 0; j < N->operands.size(); j++)
+            if (N->operands[j]->operation == OperatorConst && N->operands[j]->strval == "1")
+                ExcludeOperands.push_back(j);
+        if (ExcludeOperands.size() == N->operands.size() && ExcludeOperands.size() > 0)
+            ExcludeOperands.erase(ExcludeOperands.begin());
+    }*/
     char Str[10];
     UniCode2UTF8(Str, UnicodeMiddleDot);
     for (size_t i = 0; i < N->operands.size(); i++) {
+        /*if (simplify_ && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end())
+            continue;*/
         bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
             withBrackets = true;
@@ -904,7 +1157,7 @@ Metrics TFormulaPlotter::ProdGetTextRectangle(std::shared_ptr<TNumeric> N, bool 
             res.Height = metrics.Height;
         if (metrics.Depth > res.Depth)
             res.Depth = metrics.Depth;
-        if(i + 1 < N->operands.size())
+        //if (i + 1 < N->operands.size() && !(simplify_ && find(ExcludeOperands.begin(), ExcludeOperands.end(), i + 1) != ExcludeOperands.end()))
             res.Width += canvas_->TextWidth(Str);
     };
     if (withBrackets) {
@@ -918,19 +1171,30 @@ void TFormulaPlotter::ProdDraw(int zorder, std::shared_ptr<TNumeric> N, int X, i
         DrawBracket(UniCode2UTF8String(MyLeftParenthesis), X, Y, metrics.Height, metrics.Depth);
         X = X + GetBracketWidth(UniCode2UTF8String(MyLeftParenthesis), metrics.Height, metrics.Depth);
     };
+    /*vector<size_t> ExcludeOperands;
+    if (simplify_) {
+        for (size_t j = 0; j < N->operands.size(); j++)
+            if (N->operands[j]->operation == OperatorConst && N->operands[j]->strval == "1")
+                ExcludeOperands.push_back(j);
+        if (ExcludeOperands.size() == N->operands.size() && ExcludeOperands.size() > 0)
+            ExcludeOperands.erase(ExcludeOperands.begin());
+    }*/
     char Str[10];
     UniCode2UTF8(Str, UnicodeMiddleDot);
     for (size_t i = 0; i < N->operands.size(); i++) {
+        /*if (simplify_ && find(ExcludeOperands.begin(), ExcludeOperands.end(), i) != ExcludeOperands.end())
+            continue;*/
         bool withBrackets = false;
         if (CompareOperatorsPriority(N->operation, N->operands[i]->operation) > 0)
             withBrackets = true;
         Metrics metrics = PrettyGetTextRectangleCached(N->operands[i], withBrackets);
         PrettyDrawAtBaseLeftRecursive(zorder + 1, N->operands[i], X, Y, withBrackets);
         X = X + metrics.Width;
-        if(i + 1 < N->operands.size()) {
+        //if (i + 1 < N->operands.size() && !(simplify_ && find(ExcludeOperands.begin(), ExcludeOperands.end(), i + 1) != ExcludeOperands.end())) {
+            // canvas_->TextOutA(X, Y, "*");
             canvas_->TextOutA(X, Y, Str);
             X = X + canvas_->TextWidth(Str);
-        }
+        //};
     };
     if (withBrackets)
         DrawBracket(UniCode2UTF8String(MyRightParenthesis), X, Y, metrics.Height, metrics.Depth);
