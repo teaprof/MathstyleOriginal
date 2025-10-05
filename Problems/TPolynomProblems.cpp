@@ -710,7 +710,7 @@ bool TPolynomialEquality::SearchRationalRoots(std::shared_ptr<THTMLWriter> Write
                     Multiplier.operation = OperatorPow;
                 };
                 if (Writer)
-                    Writer->AddFormula(MakeEquality(PRemainingPrev.asNumeric(UnknownVar), Multiplier * PRemaining.asNumeric(UnknownVar)));
+                    Writer->AddFormula(MakeEquality(*PRemainingPrev.asNumeric(UnknownVar), Multiplier * (*PRemaining.asNumeric(UnknownVar))));
 
                 // Добавляем найденный корень к результатам
                 AddRoot(RationalRoots[i], Multiplicity);
@@ -765,11 +765,11 @@ bool TPolynomialEquality::AnalyzePRemaining(std::shared_ptr<THTMLWriter> Writer,
                 Writer->addParagraph("Using the Kroneckers method");
                 Writer->IncrementNestingLevel();
                 if (Mults.size() == 1) {
-                    Writer->addParagraph("Can not factorize polynom %n", TNumeric::create(PRemaining.asNumeric(UnknownVar)));
+                    Writer->addParagraph("Can not factorize polynom %n", PRemaining.asNumeric(UnknownVar));
                 } else {
                     TNumeric Factorization;
                     for (size_t i = 0; i < Mults.size(); i++) {
-                        TNumeric Term = Mults[i].asNumeric(UnknownVar);
+                        TNumeric Term = *Mults[i].asNumeric(UnknownVar);
                         if (MMults[i] > 1)
                             Term = Term ^ TNumeric(static_cast<int>(MMults[i]));  /// \todo: why MMults is size_t?
                         if (i == 0)
@@ -900,7 +900,7 @@ bool TPolynomialEquality::GetSolution(std::shared_ptr<THTMLWriter> Writer) {  //
             AddMultiplicator(TPolynom(TNumeric(NOD)));  // регистрируем множитель
 
         if (Writer)
-            Writer->addParagraph("After simplifying coefficients: %N", TNumeric::create(MakeEquality(TPolynom(IntCoef).asNumeric(UnknownVar), TNumeric(0))));
+            Writer->addParagraph("After simplifying coefficients: %N", TNumeric::create(MakeEquality(*TPolynom(IntCoef).asNumeric(UnknownVar), TNumeric(0))));
 
         // Рассматриваем случай x^k*P(x) = 0
         if (factorOutXk(Writer, IntCoef) == false)
@@ -941,7 +941,7 @@ void TPolynomialEquality::PrintAnswer(std::shared_ptr<THTMLWriter> Writer) {
         TNumeric Res;
         Res.operation = OperatorProd;
         for (size_t i = 0; i < Multiplicators.size(); i++) {
-            TNumeric A = Multiplicators[i].asNumeric(UnknownVar);
+            TNumeric A = *Multiplicators[i].asNumeric(UnknownVar);
             if (MMultiplicity[i] > 1)
                 A = A ^ MMultiplicity[i];
             Res.OperandsPushback(A);
@@ -2261,7 +2261,7 @@ bool TPolynomDerivative::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
         dP.operation = OperatorDeriv;
         dP.OperandsPushback(P.asNumeric());
         Writer->AddFormula(MakeEquality(dP, TNumeric(" ")));
-        Writer->AddFormula(MakeEquality(D.asNumeric(), TNumeric(" ")));
+        Writer->AddFormula(MakeEquality(*D.asNumeric(), TNumeric(" "))); /// \todo: what does " " mean?
         Writer->AddFormula(DSimplified.asNumeric());
     }
     return true;

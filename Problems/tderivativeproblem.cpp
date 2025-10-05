@@ -10,12 +10,11 @@ TDerivativeProblem::TDerivativeProblem() {
     // Conditions->operation = OperatorFrac;
     // Conditions->OperandsPushback(TNumeric(1));
     // Conditions->OperandsPushback(MakeLog(TNumeric("x"), TNumeric(5)));
-    Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);
+    //Conditions->SetEditableFlags(ConstAllowed | FunctionsAllowed);
     BuildPhrases();
 }
 
 TDerivativeProblem::TDerivativeProblem(const TDerivativeProblem& D) : TProblem(D) {
-    this->Assign(D);
     BuildPhrases();
 }
 
@@ -46,8 +45,8 @@ vector<string> TDerivativeProblem::GetKeyWords() {
     return Res;
 }
 
-void TDerivativeProblem::Assign(const TDerivativeProblem& S) {
-    Conditions = std::make_shared<TNumeric>(*S.Conditions);
+std::vector<std::shared_ptr<TNumeric>> TDerivativeProblem::getEditables() {
+    return {Conditions};
 }
 
 string TDerivativeProblem::GetTask() {
@@ -60,7 +59,7 @@ string TDerivativeProblem::GetShortTask() {
 
 bool TDerivativeProblem::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
     TNumeric XDeriv = Conditions->Derivative();
-    TNumeric XDerivSimplified = XDeriv.Simplify();
+    PNumeric XDerivSimplified = XDeriv.Simplify();
     if (Writer) {
         Writer->BeginParagraph();
         Writer->AddFormula(XDeriv);
@@ -96,6 +95,6 @@ void TDerivativeProblem::Randomize(std::mt19937& rng) {
             Res.OperandsPushback(RF.RandomFunction(RF.AllowTrigFunction | RF.AllowSum | RF.AllowLnFunction | RF.AllowExpFunction | RF.AllowInverseTrigFunction, 2, rng));
             break;
     }
-    Res.SetEditableFlags(ConstAllowed | FunctionsAllowed);
+    //Res.SetEditableFlags(ConstAllowed | FunctionsAllowed);
     *Conditions = Res;
 }

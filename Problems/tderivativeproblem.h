@@ -4,15 +4,13 @@
 #include "tproblem.h"
 
 class TDerivativeProblem : public TProblem {
-    void Assign(const TDerivativeProblem& S);
 
   public:
     TDerivativeProblem();
-    ~TDerivativeProblem();
     TDerivativeProblem(const TDerivativeProblem& D);
-    void operator=(const TDerivativeProblem& D) {
-        Assign(D);
-    };
+    ~TDerivativeProblem();
+
+    virtual std::vector<std::shared_ptr<TNumeric>> getEditables();
 
     virtual string GetTask();
     virtual string GetShortTask();

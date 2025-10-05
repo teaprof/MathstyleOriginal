@@ -44,9 +44,9 @@ class TPolynom
     virtual ~TPolynom();
 
     /// the following function generate TNumeric representation of this polynom
-    TNumeric asNumeric() const;                                   // x^k + x^(k-1) + ... + x^0
-    TNumeric asNumeric(const TNumeric& UnknownVar) const;         // x^k + x^(k-1) + ... + x^0
-    TNumeric GetSeriesNumeric(const TNumeric& UnknownVar) const;  // x^0 + x^1 + x^2 +...
+    PNumeric asNumeric() const;                                   // x^k + x^(k-1) + ... + x^0
+    PNumeric asNumeric(const TNumeric& UnknownVar) const;         // x^k + x^(k-1) + ... + x^0
+    PNumeric GetSeriesNumeric(const TNumeric& UnknownVar) const;  // x^0 + x^1 + x^2 +...
 
     bool operator==(const TPolynom& P) const;
     TPolynom operator=(const TNumeric& N);  // => P = const
@@ -110,7 +110,7 @@ class TRationalFunction {
     TRationalFunction operator/(const TRationalFunction& R);
 
     TNumeric asNumeric(const TNumeric& UnknownVar) {
-        return MakeFrac(P.asNumeric(UnknownVar), Q.asNumeric(UnknownVar));
+        return MakeFrac(*P.asNumeric(UnknownVar), *Q.asNumeric(UnknownVar));
     }
 
     const TPolynom& Numerator() const {

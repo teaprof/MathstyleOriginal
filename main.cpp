@@ -35,11 +35,11 @@ void TestFactorise() {
     P.Coef.push_back(TNumeric::create(0));
     P.Coef.push_back(TNumeric::create(10));
 
-    cout << "Source: " << P.asNumeric(TNumeric("x")).CodeBasic() << endl;
+    cout << "Source: " << P.asNumeric(TNumeric("x"))->CodeBasic() << endl;
 
     vector<TPolynom> F = P.FactorizeKroneker();
     for (size_t i = 0; i < F.size(); i++)
-        cout << F[i].asNumeric(TNumeric("x")).CodeBasic() << endl;
+        cout << F[i].asNumeric(TNumeric("x"))->CodeBasic() << endl;
     done_mathomatic();
 }
 

@@ -328,8 +328,8 @@ vector<double> TPolynom::Calculate(const vector<double> X) const {
     return Res;
 }
 
-TNumeric TPolynom::asNumeric(const TNumeric& UnknownVar) const {
-    TNumeric Res;
+PNumeric TPolynom::asNumeric(const TNumeric& UnknownVar) const {
+    PNumeric Res = TNumeric::create();
     size_t M = MajorPower();
     bool Zero = true;
     for (size_t power = 0; power <= M; power++) {
@@ -342,37 +342,38 @@ TNumeric TPolynom::asNumeric(const TNumeric& UnknownVar) const {
         if (C != 0) {
             if (Zero) {
                 if (power == 0)
-                    Res = C;
+                    *Res = C;
                 else {
                     if (C.strval != "1")
-                        Res = C * xpowered;
+                        *Res = C * xpowered;
                     else
-                        Res = xpowered;
+                        *Res = xpowered;
                 };
                 Zero = false;
             } else {
                 if (power == 0)
-                    Res = TNumeric(0) + Res;
+                    *Res = TNumeric(0) + *Res;
                 else {
                     if (C.strval != "1")
-                        Res = C * xpowered + Res;
+                        *Res = C * xpowered + *Res;
                     else
-                        Res = xpowered + Res;
+                        *Res = xpowered + *Res;
                 }
             };
         }
     }
-    if (Zero)
-        Res = TNumeric(0);
+    if (Zero) {
+        Res = TNumeric::create(0);
+    }
     return Res;
 }
 
-TNumeric TPolynom::asNumeric() const {
+PNumeric TPolynom::asNumeric() const {
     return asNumeric(TNumeric("x"));
 }
 
-TNumeric TPolynom::GetSeriesNumeric(const TNumeric& UnknownVar) const {
-    TNumeric Res;
+PNumeric TPolynom::GetSeriesNumeric(const TNumeric& UnknownVar) const {
+    PNumeric Res;
     size_t M = MajorPower();
     bool Zero = true;
     for (size_t power = 0; power <= M; power++) {
@@ -385,28 +386,29 @@ TNumeric TPolynom::GetSeriesNumeric(const TNumeric& UnknownVar) const {
         if (C != 0) {
             if (Zero) {
                 if (power == 0)
-                    Res = C;
+                    *Res = C;
                 else {
                     if (C.strval != "1")
-                        Res = C * xpowered;
+                        *Res = C * xpowered;
                     else
-                        Res = xpowered;
+                        *Res = xpowered;
                 };
                 Zero = false;
             } else {
                 if (power == 0)
-                    Res = Res + TNumeric(0);
+                    *Res = *Res + TNumeric(0);
                 else {
                     if (C.strval != "1")
-                        Res = Res + C * xpowered;
+                        *Res = *Res + C * xpowered;
                     else
-                        Res = Res + xpowered;
+                        *Res = *Res + xpowered;
                 }
             };
         }
     }
-    if (Zero)
-        Res = TNumeric(0);
+    if (Zero) {
+        Res = TNumeric::create(0);
+    }
     return Res;
 }
 
@@ -890,9 +892,9 @@ TNumeric TRationalFunction::GetMainPartAndO() {
     TPolynom A, R;
     A = P.Div(Q, &R);
     if (A.IsZero()) {
-        return R.asNumeric() / Q.asNumeric();
+        return *R.asNumeric() / *Q.asNumeric();
     } else {
-        return A.asNumeric() + R.asNumeric() / Q.asNumeric();
+        return *A.asNumeric() + *R.asNumeric() / *Q.asNumeric();
     }
 }
 

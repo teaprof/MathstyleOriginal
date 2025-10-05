@@ -20,7 +20,7 @@ TSystemOfEquations::TSystemOfEquations(size_t VarsCount, size_t EqCount) : TProb
             v[0] = v[0] + i;
             *V = TNumeric(v);
         } else {
-            *V = MakeSubscript(TNumeric("x"), TNumeric(i + 1));
+            *V = MakeSubscript(TNumeric("x"), TNumeric(static_cast<int>(i) + 1));
         };
         Variables.push_back(V);
     };
@@ -36,7 +36,7 @@ TSystemOfEquations::TSystemOfEquations(size_t VarsCount, size_t EqCount) : TProb
             TNumeric A(IDCount + 1);
             EqIDs[m] = IDCount;
             A.role = IDCount++;
-            A.SetEditableFlags(ConstAllowed);
+            //A.SetEditableFlags(ConstAllowed);
             if (m == 0) {
                 *LeftSide = A * (*Variables[m]);
             } else {
@@ -44,7 +44,7 @@ TSystemOfEquations::TSystemOfEquations(size_t VarsCount, size_t EqCount) : TProb
             };
         }
         TNumeric FreeTerm(0);
-        FreeTerm.EditableFlags = ConstAllowed;
+        //FreeTerm.EditableFlags = ConstAllowed;
         EqIDs[VarsCount] = IDCount;
         FreeTerm.role = IDCount++;
         TNumeric Eq = MakeEquality(*LeftSide, FreeTerm);
@@ -138,7 +138,7 @@ void TSystemOfEquations::SaveToFile(ofstream& f) {
     f.write((char*)&EqCount, sizeof(EqCount));
 
     for (size_t i = 0; i < VarsCount; i++)
-        Variables[i].WriteToFile(f);
+        Variables[i]->SaveToFile(f);
 
     uint16_t IDsize = role.size();
     f.write((char*)&IDsize, sizeof(IDsize));
@@ -157,19 +157,19 @@ void TSystemOfEquations::SaveToFile(ofstream& f) {
         CoefsSize = Coefs[i].size();
         f.write((char*)&CoefsSize, sizeof(CoefsSize));
         for (size_t j = 0; j < VarsCount; j++) {
-            Coefs[i][j].WriteToFile(f);
+            Coefs[i][j]->SaveToFile(f);
         }
     };
 
     uint16_t RightSideSize = RightSide.size();
     f.write((char*)&RightSideSize, sizeof(RightSideSize));
     for (size_t j = 0; j < RightSideSize; j++)
-        RightSide[j].WriteToFile(f);
+        RightSide[j]->SaveToFile(f);
 
     uint16_t AnswerSize = Answer.size();
     f.write((char*)&AnswerSize, sizeof(AnswerSize));
     for (size_t i = 0; i < AnswerSize; i++)
-        Answer[i].WriteToFile(f);
+        Answer[i]->SaveToFile(f);
 
     TProblem::SaveToFile(f);
 }
@@ -187,7 +187,7 @@ void TSystemOfEquations::LoadFromFile(ifstream& f) {
     for (size_t i = 0; i < VarsCount; i++) {
         TNumeric N;
         N.LoadFromFile(f);
-        Variables.push_back(N);
+        Variables.push_back(TNumeric::create(std::move(N)));
     }
 
     role.clear();
@@ -211,11 +211,11 @@ void TSystemOfEquations::LoadFromFile(ifstream& f) {
     for (size_t i = 0; i < CoefsSize; i++) {
         uint16_t CoefsSize1;
         f.read((char*)&CoefsSize1, sizeof(CoefsSize1));
-        vector<TNumeric> Coefs1;
+        vector<PNumeric> Coefs1;
         for (size_t j = 0; j < CoefsSize1; j++) {
             TNumeric N;
             N.LoadFromFile(f);
-            Coefs1.push_back(N);
+            Coefs1.push_back(TNumeric::create(std::move(N)));
         }
         Coefs.push_back(Coefs1);
     };
@@ -226,7 +226,7 @@ void TSystemOfEquations::LoadFromFile(ifstream& f) {
     for (size_t j = 0; j < RightSideSize; j++) {
         TNumeric N;
         N.LoadFromFile(f);
-        RightSide.push_back(N);
+        RightSide.push_back(TNumeric::create(std::move(N)));
     }
 
     Answer.clear();
@@ -235,7 +235,7 @@ void TSystemOfEquations::LoadFromFile(ifstream& f) {
     for (size_t i = 0; i < AnswerSize; i++) {
         TNumeric N;
         N.LoadFromFile(f);
-        Answer.push_back(N);
+        Answer.push_back(TNumeric::create(std::move(N)));
     };
 
     TProblem::LoadFromFile(f);
@@ -262,12 +262,12 @@ bool TSystemOfEquations::ReadData() {
     RightSide.clear();
     EqCount = role.size();
     for (size_t n = 0; n < EqCount; n++) {
-        vector<TNumeric> Coefs1;
-        Coefs1.assign(VarsCount(), TNumeric(0));
+        vector<PNumeric> Coefs1;
+        Coefs1.assign(VarsCount(), nullptr);
         for (size_t m = 0; m < VarsCount(); m++)
-            Coefs1[m] = *Conditions->GetByRole(role[n][m]);
+            Coefs1[m] = Conditions->GetByRole(role[n][m], Conditions);
         Coefs.push_back(Coefs1);
-        PNumeric N = Conditions->GetByRole(role[n][VarsCount()]);
+        PNumeric N = Conditions->GetByRole(role[n][VarsCount()], Conditions);
         RightSide.push_back(N);
     }
     return true;
@@ -331,8 +331,8 @@ bool Express(TNumeric Equation, TNumeric Var, TNumeric* Res) {
     // Находим всё, что после знака =
     if (str2.find("=") == string::npos)
         return false;
-    str2 = str2.substr(str2.find("=") + 1, string::npos);
-    Res->Assign(str2.c_str());
+    str2 = str2.substr(str2.find("=") + 1, string::npos);        
+    Res->AssignV(str2.c_str());
     Res->RestoreUnimplementedFunctions(Map);
 #ifdef __DEBUG__
     cout << str2 << endl;
@@ -358,11 +358,11 @@ TNumeric NSubstitute(const TNumeric& Equation, const string& VariableName, const
 
 void TSystemOfEquations::Substitute(size_t VariableNumber, const TNumeric& Expression) {
     for (size_t n = 0; n < EqCount; n++) {
-        TNumeric NewEquation = NSubstitute(*Conditions->operands[n], Variables[VariableNumber], Expression);
+        TNumeric NewEquation = NSubstitute(*Conditions->operands[n], *Variables[VariableNumber], Expression);
 #ifdef __DEBUG__
         cout << NewEquation.CodeBasic() << endl;
 #endif
-        NewEquation = NewEquation.Simplify();
+        NewEquation = *NewEquation.Simplify();
         // теперь осталось найти все коэффициенты при оставшихся неизвестных
         if (NewEquation.operation != OperatorEqual)
             throw "TSystemOfEquations::Substitute: Unexpected result. NewEquation.operation != OperatorEqual";
@@ -376,21 +376,21 @@ void TSystemOfEquations::Substitute(size_t VariableNumber, const TNumeric& Expre
         // вычисляем свободный член в левой части
         std::shared_ptr<TNumeric> LeftSideFreeTerm = std::make_shared<TNumeric>(*LeftSide);  /// \todo: deep copy instad of make_shared
         for (size_t m1 = 0; m1 < VarsCount(); m1++)
-            *LeftSideFreeTerm = NSubstitute(*LeftSideFreeTerm, Variables[m1], TNumeric("0"));
+            *LeftSideFreeTerm = NSubstitute(*LeftSideFreeTerm, *Variables[m1], TNumeric(0));
 
         // переносим свободный член в правую часть
         *LeftSide = *LeftSide - *LeftSideFreeTerm;
-        *LeftSide = LeftSide->Simplify();
+        *LeftSide = *LeftSide->Simplify();
         *RightSide = *RightSide - *LeftSideFreeTerm;
-        *RightSide = RightSide->Simplify();
+        *RightSide = *RightSide->Simplify();
         RightSide->role = role[n][VarsCount()];
 #ifdef __DEBUG__
         cout << LeftSide.CodeBasic() << endl;
         cout << RightSide.CodeBasic() << endl;
 #endif
 
-        vector<TNumeric> NewCoefs;
-        NewCoefs.assign(VarsCount() - 1, TNumeric("0"));
+        vector<PNumeric> NewCoefs;
+        NewCoefs.assign(VarsCount() - 1, nullptr);
         TNumeric NewLeftSide;
         size_t m3 = 0;  // количество уже добавленных слагаемых в NewLeftSide
         for (size_t m = 0; m < VarsCount(); m++) {
@@ -400,17 +400,17 @@ void TSystemOfEquations::Substitute(size_t VariableNumber, const TNumeric& Expre
             std::shared_ptr<TNumeric> Coef = std::make_shared<TNumeric>(*LeftSide);
             for (size_t m1 = 0; m1 < VarsCount(); m1++)
                 if (m == m1)
-                    *Coef = NSubstitute(*Coef, Variables[m1], TNumeric("1"));
+                    *Coef = NSubstitute(*Coef, *Variables[m1], TNumeric(1));
                 else
-                    *Coef = NSubstitute(*Coef, Variables[m1], TNumeric("0"));
-            *Coef = Coef->Simplify();
+                    *Coef = NSubstitute(*Coef, *Variables[m1], TNumeric(0));
+            *Coef = *Coef->Simplify();
             Coef->role = role[n][m];
-            if (m != VariableNumber) {
+            if (m != VariableNumber) { // todo: continue if m == VariableNumber
                 // добавляем новый член в левую часть
                 if (m3 == 0) {
-                    NewLeftSide = *Coef * TNumeric(Variables[m]);
+                    NewLeftSide = *Coef * (*Variables[m]);
                 } else {
-                    NewLeftSide = NewLeftSide + *Coef * TNumeric(Variables[m]);
+                    NewLeftSide = NewLeftSide + *Coef * (*Variables[m]);
                 }
                 m3++;
             };
@@ -419,10 +419,10 @@ void TSystemOfEquations::Substitute(size_t VariableNumber, const TNumeric& Expre
 #endif
             // обновляем коэффициент при очередном члене
             if (m < VariableNumber) {
-                NewCoefs[m] = *Coef;
+                NewCoefs[m] = Coef;
             };
             if (m > VariableNumber) {
-                NewCoefs[m - 1] = *Coef;
+                NewCoefs[m - 1] = Coef;
             }
         }
         *Conditions->operands[n] = MakeEquality(NewLeftSide, *RightSide);
@@ -452,9 +452,9 @@ void TSystemOfEquations::RemoveEquation(size_t EqNumber) {
 
 bool TSystemOfEquations::CheckAlwaysTrue(int EqNumber) {
     for (size_t m = 0; m < VarsCount(); m++)
-        if (Coefs[EqNumber][m] != TNumeric("0"))
+        if (*Coefs[EqNumber][m] != TNumeric(0))
             return false;
-    if (RightSide[EqNumber] != TNumeric("0"))
+    if (*RightSide[EqNumber] != TNumeric(0))
         return false;
     return true;
 }
@@ -463,11 +463,11 @@ bool TSystemOfEquations::CheckAlwaysFalse(int EqNumber) {
     bool LeftZero = true;
     bool RightZero = true;
     for (size_t m = 0; m < VarsCount(); m++)
-        if (Coefs[EqNumber][m] != TNumeric("0")) {
+        if (*Coefs[EqNumber][m] != TNumeric(0)) {
             LeftZero = false;
             break;
         }
-    if (RightSide[EqNumber] != TNumeric("0"))
+    if (*RightSide[EqNumber] != TNumeric(0))
         RightZero = false;
     if (!LeftZero)
         // в левой части не все коэффициенты равны нулю
@@ -484,7 +484,7 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
     for (size_t n = 0; n < EqCount; n++) {
         if (CheckAlwaysFalse(n)) {
             if (Writer)
-                Writer->AddParagraph("Equation above is always false.", n + 1);
+                Writer->addParagraph("Equation above is always false.", static_cast<int>(n) + 1);
             SolutionExists = false;
             return true;
         }
@@ -499,7 +499,7 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
                 // if(Writer)Writer->WriteRectangleElement(Conditions); // todo: why Conditions is rectangle element?
             }
             if (Writer)
-                Writer->AddParagraph("Equation above is always true", n + 1);
+                Writer->addParagraph("Equation above is always true", static_cast<int>(n) + 1);
             EquationsToExclude.push_back(n);
         };
     }
@@ -510,14 +510,14 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
 
     if (EqCount == 0) {
         // больше не осталось уравнений для решения.
-        Answer.assign(VarsCount(), TNumeric("0"));
+        Answer.assign(VarsCount(), nullptr);
         TNumeric C;
-        C = MakeSubscript(TNumeric("C"), TNumeric("1"));
+        C = MakeSubscript(TNumeric("C"), TNumeric(1));
         for (size_t i = 0; i < VarsCount(); i++) {
-            *C.operands[1] = TNumeric(i + 1);
-            Answer[i] = C;
+            *C.operands[1] = TNumeric(static_cast<int>(i) + 1);
+            Answer[i] = TNumeric::create(std::move(C));
             if (Writer)
-                Writer->AddFormula(MakeEquality(TNumeric(Variables[i]), Answer[i]));
+                Writer->AddFormula(MakeEquality(TNumeric(*Variables[i]), *Answer[i]));
         };
         SolutionExists = true;
         return true;
@@ -527,7 +527,7 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
         bool Excluded = false;
         for (size_t i = 0; i < Variables.size(); i++) {
             // выражаем переменную номер i из первого уравнения
-            if (Express(*Conditions->operands[0], Variables[i], &ExcludedVar)) {
+            if (Express(*Conditions->operands[0], *Variables[i], &ExcludedVar)) {
                 // успешно выразили
                 // исключаем первое уравнение из системы и выраженную переменную
                 TSystemOfEquations STemp = *this;
@@ -543,7 +543,7 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
                         if (S.EqCount > 0) {
                             Writer->BeginParagraph();
                             Writer->Add("From first equation of the system one can obtain");
-                            Writer->AddFormula(MakeEquality(Variables[i], ExcludedVar));
+                            Writer->AddFormula(MakeEquality(*Variables[i], ExcludedVar));
                             Writer->Add("Substituting to system, we obtain");
                             Writer->AddFormula(*S.Conditions);
                             Writer->EndParagraph();
@@ -580,14 +580,14 @@ bool TSystemOfEquations::GetSystemSolution(std::shared_ptr<THTMLWriter> Writer) 
                         // добавляем в него исключённую переменную
                         TNumeric Value = ExcludedVar;
                         for (size_t j = 0; j < S.Variables.size(); j++)
-                            Value = NSubstitute(Value, S.Variables[j], Answer[j]);
-                        TNumeric ValueSimplified = Value.Simplify();
+                            Value = NSubstitute(Value, *S.Variables[j], *Answer[j]);
+                        PNumeric ValueSimplified = Value.Simplify();
                         // AddLine(Lines, Ntabs, new TNumeric(MakeEquality(TNumeric(Variables[i]), Value)));
-                        if (ValueSimplified != Value) {
+                        if (*ValueSimplified != Value) {
                             if (Writer) {
                                 Writer->BeginParagraph();
                                 Writer->Add("After simplifying ");
-                                Writer->AddFormula(MakeEquality(TNumeric(Variables[i]), ValueSimplified));
+                                Writer->AddFormula(MakeEquality(TNumeric(*Variables[i]), *ValueSimplified));
                                 Writer->EndParagraph();
                             };
                         }
@@ -628,10 +628,10 @@ bool TSystemOfEquations::GetSolution(std::shared_ptr<THTMLWriter> Writer) {
                 Writer->BeginParagraph();
                 Writer->Add("Final solution of the system:");
                 for (size_t i = 0; i < VarsCount(); i++)
-                    Writer->AddFormula(MakeEquality(Variables[i], Answer[i]));
+                    Writer->AddFormula(MakeEquality(*Variables[i], *Answer[i]));
                 Writer->EndParagraph();
             } else {
-                Writer->AddParagraph("The system has no solution");
+                Writer->addParagraph("The system has no solution");
             }
         };
         return true;
@@ -659,29 +659,29 @@ bool TSystemOfEquations::AddEquation(const TNumeric& N) {
     vector<int> IDs;
     TNumeric LeftPart;
     LeftPart.operation = OperatorSum;
-    Coefs.assign(Variables.size() + 1, TNumeric("0"));
+    Coefs.assign(Variables.size() + 1, TNumeric(0));
     IDs.assign(Variables.size() + 1, 0);
     // инициализируем коэфициент перед свободным членом
     TNumeric FreeTerm = Eq;
     for (size_t i = 0; i < Variables.size(); i++)
-        FreeTerm = FreeTerm.Substitute(Variables[i].strval, TNumeric("0"));
-    FreeTerm = FreeTerm.Simplify();
+        FreeTerm = FreeTerm.Substitute(Variables[i]->strval, TNumeric(0));
+    FreeTerm = *FreeTerm.Simplify();
     // инициализируем коэфициенты перед неизвестными
     for (size_t i = 0; i < Variables.size(); i++) {
-        if (Variables[i].operation != OperatorConst)
+        if (Variables[i]->operation != OperatorConst)
             throw "TSystemOfEquations::AddEquation: All Variables[i].operation must be OperatorConst";
         TNumeric Eq1 = Eq;
-        Eq1 = Eq1.Substitute(Variables[i].strval, TNumeric("1"));
+        Eq1 = Eq1.Substitute(Variables[i]->strval, TNumeric(1));
         for (size_t j = 0; j < Variables.size(); j++) {
             if (j != i)
-                Eq1 = Eq1.Substitute(Variables[j].strval, TNumeric("0"));
+                Eq1 = Eq1.Substitute(Variables[j]->strval, TNumeric(0));
         };
         Eq1 = Eq1 - FreeTerm;
-        Eq1 = Eq1.Simplify();
+        Eq1 = *Eq1.Simplify();
         Eq1.role = MaxID++;
         Coefs[i] = Eq1;
         IDs[i] = Eq1.role;
-        LeftPart.OperandsPushback(Eq1 * Variables[i]);
+        LeftPart.OperandsPushback(Eq1 * (*Variables[i]));
     };
     FreeTerm.role = MaxID++;
     Coefs[Variables.size()] = -FreeTerm;  // правая часть со знаком "минус"
@@ -699,10 +699,10 @@ void TSystemOfEquations::Randomize(std::mt19937& rng) {
     for (size_t n = 0; n < EqCount; n++) {
         for (size_t m = 0; m <= VarsCount(); m++) {
             int CurID = role[n][m];
-            TNumeric& N = Conditions->GetByRole(CurID).value().get();
-            N = TNumeric(dist(rng));
-            N.role = CurID;
-            N.SetEditableFlags(ConstAllowed);
+            PNumeric N = Conditions->GetByRole(CurID, Conditions);
+            *N = TNumeric(dist(rng));
+            N->role = CurID;
+            //N->SetEditableFlags(ConstAllowed);
         };
     }
 }
